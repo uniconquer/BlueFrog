@@ -146,11 +146,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="WindowsMessageMap.cpp" />
-    <ClCompile Include="WinMain.cpp" />
+    <ClCompile Include="Core\Window.cpp" />
+    <ClCompile Include="Core\WindowsMessageMap.cpp" />
+    <ClCompile Include="Core\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WindowsMessageMap.h" />
+    <ClInclude Include="Core\BFWin.h" />
+    <ClInclude Include="Core\Window.h" />
+    <ClInclude Include="Core\WindowsMessageMap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

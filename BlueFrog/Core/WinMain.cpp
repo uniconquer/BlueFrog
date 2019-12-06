@@ -25,30 +25,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_CHAR:
-		{
-			static std::string title;
-			title.push_back(wParam);
-			SetWindowText(hWnd, title.c_str());
-		}
-		break;
+	{
+		static std::string title;
+		title.push_back(wParam);
+		SetWindowText(hWnd, title.c_str());
+	}
+	break;
 	case WM_LBUTTONDOWN:
-		{
-			const POINTS pt = MAKEPOINTS(lParam);
-			std::ostringstream oss;
-			oss << "(" << pt.x << "," << pt.y << ")";
-			SetWindowText(hWnd, oss.str().c_str());
-		}
-		break;
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		std::ostringstream oss;
+		oss << "(" << pt.x << "," << pt.y << ")";
+		SetWindowText(hWnd, oss.str().c_str());
+	}
+	break;
 	default:
 		break;
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,	int nCmdShow)
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	const auto pClassName = "BlueFrog";
-	
+
 	// register window class
 	WNDCLASSEX wc = { 0 };
 	wc.cbSize = sizeof(wc);
@@ -64,7 +64,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	wc.lpszClassName = pClassName;
 	wc.hIconSm = nullptr;
 	RegisterClassEx(&wc);
-	
+
 	// create window instance
 	HWND hWnd = CreateWindowEx(
 		0,
