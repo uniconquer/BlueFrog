@@ -1,5 +1,6 @@
 #include "Window.h"
 #include <sstream>
+//#include "../resource.h"
 
 // Window Class Stuff
 Window::WindowClass Window::WindowClass::wndClass;
@@ -26,12 +27,12 @@ Window::WindowClass::WindowClass() noexcept
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = GetInstance();
-	wc.hIcon = nullptr;
+	wc.hIcon = nullptr;	//static_cast<HICON>(LoadImage(GetInstance(), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 32, 32, 0));
 	wc.hCursor = nullptr;
 	wc.hbrBackground = nullptr;
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = GetName();
-	wc.hIconSm = nullptr;
+	wc.hIconSm = nullptr; //static_cast<HICON>(LoadImage(GetInstance(), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 16, 16, 0));
 	RegisterClassEx(&wc);
 }
 
@@ -54,7 +55,7 @@ Window::Window(int width, int height, const char* name)
 
 	if (AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE) == 0)
 	{
-		throw BFWND_LAST_EXCEPT();
+		throw BFWND_LAST_EXCEPT(hr);
 	}
 
 	// 윈도우 생성 및 hWnd를 얻음
@@ -65,7 +66,7 @@ Window::Window(int width, int height, const char* name)
 
 	if (hWnd == nullptr)
 	{
-		throw BFWND_LAST_EXCEPT();
+		throw BFWND_LAST_EXCEPT(hr);
 	}
 	// show window
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
