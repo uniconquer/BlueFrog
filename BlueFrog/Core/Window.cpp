@@ -112,6 +112,27 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
+		// 윈도우가 포커스를 잃었을 때 키 상태 지운다. 입력을 할 수 없는 상태를 방지
+	case WM_KILLFOCUS:
+		kbd.ClearState();
+		break;
+		/*********** KEYBOARD MESSAGES ***********/
+	case WM_KEYDOWN:
+		// ALT 키(VK_MENU) 및 F10을 추적하려면 syskey 명령을 처리해야 함
+	case WM_SYSKEYDOWN:
+		if (!(lParam & 0x40000000) || kbd.AutorepeatIsEnabled()) // filter autorepeat
+		{
+			kbd.OnKeyPressed(static_cast<unsigned char>(wParam));
+		}
+		break;
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
+		break;
+	case WM_CHAR:
+		kbd.OnChar(static_cast<unsigned char>(wParam));
+		break;
+		/*********** END KEYBOARD MESSAGES ***********/
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }

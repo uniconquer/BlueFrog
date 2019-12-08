@@ -147,6 +147,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core\BFException.cpp" />
+    <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowsMessageMap.cpp" />
     <ClCompile Include="Core\WinMain.cpp" />
@@ -154,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="Core\BFException.h" />
     <ClInclude Include="Core\BFWin.h" />
+    <ClInclude Include="Core\Keyboard.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowsMessageMap.h" />
   </ItemGroup>
