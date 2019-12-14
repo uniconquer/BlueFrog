@@ -1,5 +1,6 @@
 #pragma once
 #include "Window.h"
+#include "BFTimer.h"
 
 class App
 {
@@ -10,4 +11,5 @@ private:
 	void DoFrame();
 private:
 	Window wnd;
+	BFTimer timer;
 };
