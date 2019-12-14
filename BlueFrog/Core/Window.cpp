@@ -86,6 +86,23 @@ void Window::SetTitle(const std::string& title)
 	}
 }
 
+std::optional<int> Window::ProcessMessages() noexcept
+{
+	MSG msg;
+	while (PeekMessage(&msg, nullptr, 0,0,PM_REMOVE))
+	{
+		if (msg.message == WM_QUIT)
+		{
+			return (int)msg.wParam;
+		}
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	return {};
+}
+
 LRESULT CALLBACK Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
 	// CreateWindow()에서 전달된 create 매개 변수를 사용하여 WinAPI로 윈도우 클래스 포인터를 저장

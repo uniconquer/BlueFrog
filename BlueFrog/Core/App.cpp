@@ -10,22 +10,15 @@ App::App()
 
 int App::Go()
 {
-	MSG msg;
-	BOOL gResult;
-	while ((gResult = GetMessage(&msg, nullptr, 0, 0)) > 0)
+	while (true)
 	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		if (const auto ecode = Window::ProcessMessages())
+		{
+			return *ecode;
+		}
 
 		DoFrame();
 	}
-
-	if (gResult == -1)
-	{
-		throw BFWND_LAST_EXCEPT();
-	}
-
-	return (int)msg.wParam;
 }
 
 void App::DoFrame()
