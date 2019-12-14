@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\BFException.cpp" />
     <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\Mouse.cpp" />
@@ -154,6 +155,7 @@
     <ClCompile Include="Core\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\App.h" />
     <ClInclude Include="Core\BFException.h" />
     <ClInclude Include="Core\BFWin.h" />
     <ClInclude Include="Core\Keyboard.h" />

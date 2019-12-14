@@ -1,26 +1,10 @@
-#include "Window.h"
+#include "App.h"
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	try
 	{
-		Window wnd(800, 600, "BlueFrog");
-
-		// message pump
-		MSG msg;
-		BOOL gResult;
-		while ((gResult = GetMessage(&msg, nullptr, 0, 0)) > 0)
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-
-		if (gResult == -1)
-		{
-			return -1;
-		}
-
-		return (int)msg.wParam;
+		return App{}.Go();
 	}
 	catch (const BFException& e)
 	{

@@ -55,7 +55,7 @@ Window::Window(int width, int height, const char* name)
 
 	if (AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE) == 0)
 	{
-		throw BFWND_LAST_EXCEPT(hr);
+		throw BFWND_LAST_EXCEPT();
 	}
 
 	// 윈도우 생성 및 hWnd를 얻음
@@ -66,7 +66,7 @@ Window::Window(int width, int height, const char* name)
 
 	if (hWnd == nullptr)
 	{
-		throw BFWND_LAST_EXCEPT(hr);
+		throw BFWND_LAST_EXCEPT();
 	}
 	// show window
 	ShowWindow(hWnd, SW_SHOWDEFAULT);

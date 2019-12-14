@@ -6,7 +6,7 @@
 
 class Window
 {
-private:
+public:
 	class Exception : public BFException
 	{
 	public:
@@ -55,4 +55,4 @@ private:
 
 // error exception helper macro
 #define BFWND_EXCEPT(hr) Window::Exception(__LINE__, __FILE__, hr)
-#define BFWND_LAST_EXCEPT(hr) Window::Exception(__LINE__, __FILE__, GetLastError())
+#define BFWND_LAST_EXCEPT() Window::Exception(__LINE__, __FILE__, GetLastError())
