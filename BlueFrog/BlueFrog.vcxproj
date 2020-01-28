@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -149,6 +149,7 @@
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\BFException.cpp" />
     <ClCompile Include="Core\BFTimer.cpp" />
+    <ClCompile Include="Core\Graphics.cpp" />
     <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\Mouse.cpp" />
     <ClCompile Include="Core\Window.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="Core\BFException.h" />
     <ClInclude Include="Core\BFTimer.h" />
     <ClInclude Include="Core\BFWin.h" />
+    <ClInclude Include="Core\Graphics.h" />
     <ClInclude Include="Core\Keyboard.h" />
     <ClInclude Include="Core\Mouse.h" />
     <ClInclude Include="Core\Window.h" />
