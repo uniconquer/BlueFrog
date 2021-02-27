@@ -26,23 +26,23 @@ private:
 	class WindowClass
 	{
 	public:
-		static const char* GetName() noexcept;
+		static const WCHAR* GetName() noexcept;
 		static HINSTANCE GetInstance() noexcept;
 	private:
 		WindowClass() noexcept;
 		~WindowClass();
 		WindowClass(const WindowClass&) = delete;
 		WindowClass& operator=(const WindowClass&) = delete;
-		static constexpr const char* wndClassName = "Direct3D Engine Window";
+		static constexpr const WCHAR* wndClassName = L"Direct3D Engine Window";
 		static WindowClass wndClass;
 		HINSTANCE hInst;
 	};
 public:
-	Window(int width, int height, const char* name);
+	Window(int width, int height, const WCHAR* name);
 	~Window();
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
-	void SetTitle(const std::string& title);
+	void SetTitle(const std::wstring& title);
 	static std::optional<int> ProcessMessages() noexcept;
 	Graphics& Gfx();
 private:

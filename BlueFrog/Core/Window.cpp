@@ -5,7 +5,7 @@
 // Window Class Stuff
 Window::WindowClass Window::WindowClass::wndClass;
 
-const char* Window::WindowClass::GetName() noexcept
+const WCHAR* Window::WindowClass::GetName() noexcept
 {
 	return wndClassName;
 }
@@ -41,7 +41,7 @@ Window::WindowClass::~WindowClass()
 	UnregisterClass(wndClassName, GetInstance());
 }
 
-Window::Window(int width, int height, const char* name)
+Window::Window(int width, int height, const WCHAR* name)
 	:
 	width(width),
 	height(height),
@@ -80,7 +80,7 @@ Window::~Window()
 	DestroyWindow(hWnd);
 }
 
-void Window::SetTitle(const std::string& title)
+void Window::SetTitle(const std::wstring& title)
 {
 	if (SetWindowText(hWnd, title.c_str()) == 0)
 	{
@@ -275,7 +275,7 @@ std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
 		FORMAT_MESSAGE_ALLOCATE_BUFFER |
 		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		reinterpret_cast<LPSTR>(&pMsgBuf), 0, nullptr
+		reinterpret_cast<LPWSTR>(&pMsgBuf), 0, nullptr
 	);
 	
 	if (nMsgLen == 0)

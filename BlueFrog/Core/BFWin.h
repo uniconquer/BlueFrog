@@ -47,3 +47,4 @@
 //#define STRICT
 
 #include <Windows.h>
+#include <wchar.h>

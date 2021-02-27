@@ -4,7 +4,7 @@
 
 App::App()
 	:
-	wnd(800, 600, "Blue Frog")
+	wnd(800, 600, L"Blue Frog")
 {
 }
 
@@ -24,8 +24,8 @@ int App::Go()
 void App::DoFrame()
 {
 	const float t = timer.Peek();
-	std::ostringstream oss;
-	oss << "Time elapsed : " << std::setprecision(1) << std::fixed << t << "s";
+	std::wostringstream oss;
+	oss << L"Time elapsed : " << std::setprecision(1) << std::fixed << t << "s";
 	wnd.SetTitle(oss.str());
 
 	const float c = sin(timer.Peek()) / 2.0f + 0.5f;
