@@ -22,8 +22,20 @@
     <Filter Include="Engine\\Render">
       <UniqueIdentifier>{3f97eb4f-27a7-4bf8-ba4a-6fece42170be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\\Player">
+      <UniqueIdentifier>{f80a459b-60dd-4c68-acce-c31394cb99ad}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Engine\\Scene">
       <UniqueIdentifier>{bdc6cc0f-7fe1-46d2-bca0-66cd62195b4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\\Physics">
+      <UniqueIdentifier>{ad004dab-b188-43d7-9d56-5cc5c183e4ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\\Combat">
+      <UniqueIdentifier>{ef0e48f8-fc12-43d6-a8d6-828844a0252d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\\NPC">
+      <UniqueIdentifier>{5f95d8d4-5349-42b3-8cab-dd9dcaf8f1dc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +92,18 @@
     </ClCompile>
     <ClCompile Include="Engine\Camera\TopDownCamera.cpp">
       <Filter>Engine\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Physics\CollisionSystem.cpp">
+      <Filter>Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Combat\CombatSystem.cpp">
+      <Filter>Game\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\NPC\SimpleEnemyController.cpp">
+      <Filter>Game\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Player\PlayerController.cpp">
+      <Filter>Game\Player</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Scene\Scene.cpp">
       <Filter>Engine\Scene</Filter>
@@ -142,6 +166,27 @@
     </ClInclude>
     <ClInclude Include="Engine\Camera\TopDownCamera.h">
       <Filter>Engine\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Physics\AABB.h">
+      <Filter>Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Physics\CollisionSystem.h">
+      <Filter>Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\CollisionComponent.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\CombatComponent.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Combat\CombatSystem.h">
+      <Filter>Game\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\NPC\SimpleEnemyController.h">
+      <Filter>Game\NPC</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Player\PlayerController.h">
+      <Filter>Game\Player</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\Transform.h">
       <Filter>Engine\Scene</Filter>

@@ -1,4 +1,6 @@
 #pragma once
+#include "CollisionComponent.h"
+#include "CombatComponent.h"
 #include "RenderComponent.h"
 #include "Transform.h"
 #include <optional>
@@ -10,6 +12,8 @@ struct SceneObject
 	bool enabled = true;
 	Transform transform;
 	std::optional<RenderComponent> renderComponent;
+	std::optional<CollisionComponent> collisionComponent;
+	std::optional<CombatComponent> combatComponent;
 
 	bool CanRender() const noexcept
 	{

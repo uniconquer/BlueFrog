@@ -17,12 +17,6 @@ void TopDownCamera::SetTarget(const DirectX::XMFLOAT3& target) noexcept
 	this->target = target;
 }
 
-void TopDownCamera::MoveTarget(float dx, float dz) noexcept
-{
-	target.x += dx;
-	target.z += dz;
-}
-
 void TopDownCamera::RotateAroundTarget(float deltaRadians) noexcept
 {
 	orbitAngle += deltaRadians;
@@ -47,11 +41,6 @@ DirectX::XMFLOAT3 TopDownCamera::GetPosition() const noexcept
 const DirectX::XMFLOAT3& TopDownCamera::GetTarget() const noexcept
 {
 	return target;
-}
-
-float TopDownCamera::GetRadius() const noexcept
-{
-	return radius;
 }
 
 DirectX::XMMATRIX TopDownCamera::GetViewMatrix() const noexcept

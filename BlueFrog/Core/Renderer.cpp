@@ -17,6 +17,7 @@ Renderer::Renderer(Graphics& gfx)
 	pixelShader(gfx, GetSolidShaderSource(), "PSMain"),
 	inputLayout(gfx, GetInputLayoutDesc().data(), static_cast<UINT>(GetInputLayoutDesc().size()), vertexShader),
 	transformBuffer(gfx),
+	colorBuffer(gfx),
 	topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 {
 }
@@ -90,6 +91,11 @@ const char* Renderer::GetSolidShaderSource() noexcept
 		"{\n"
 		"    matrix transform;\n"
 		"};\n"
+		"cbuffer ColorBuffer : register(b0)\n"
+		"{\n"
+		"    float3 tint;\n"
+		"    float padding;\n"
+		"};\n"
 		"struct VSIn\n"
 		"{\n"
 		"    float3 pos : POSITION;\n"
@@ -109,7 +115,7 @@ const char* Renderer::GetSolidShaderSource() noexcept
 		"}\n"
 		"float4 PSMain(PSIn input) : SV_Target\n"
 		"{\n"
-		"    return float4(input.color, 1.0f);\n"
+		"    return float4(input.color * tint, 1.0f);\n"
 		"}\n";
 }
 
@@ -119,6 +125,7 @@ void Renderer::BindSharedState() noexcept
 	topology.Bind(gfx);
 	vertexShader.Bind(gfx);
 	transformBuffer.Bind(gfx);
+	colorBuffer.Bind(gfx);
 	pixelShader.Bind(gfx);
 }
 
@@ -134,7 +141,7 @@ const Renderer::MeshBuffers& Renderer::ResolveMesh(RenderMeshType meshType) cons
 	}
 }
 
-void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, const TopDownCamera& camera) noexcept
+void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept
 {
 	using namespace DirectX;
 
@@ -144,7 +151,9 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 	TransformData transformData = {};
 	XMStoreFloat4x4(&transformData.transform, XMMatrixTranspose(model * viewProjection));
 
+	const ColorData colorData = { renderComponent.tint,0.0f };
 	transformBuffer.Update(gfx, transformData);
+	colorBuffer.Update(gfx, colorData);
 	mesh.vertexBuffer.Bind(gfx);
 	mesh.indexBuffer.Bind(gfx);
 	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
@@ -162,6 +171,6 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
 		}
 
 		const auto& renderComponent = *object.renderComponent;
-		DrawMesh(ResolveMesh(renderComponent.meshType), object.transform, camera);
+		DrawMesh(ResolveMesh(renderComponent.meshType), object.transform, renderComponent, camera);
 	}
 }

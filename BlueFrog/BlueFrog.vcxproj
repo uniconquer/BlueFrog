@@ -155,6 +155,10 @@
     <ClCompile Include="Core\BFTimer.cpp" />
     <ClCompile Include="Core\Dxerr\dxerr.cpp" />
     <ClCompile Include="Engine\Camera\TopDownCamera.cpp" />
+    <ClCompile Include="Engine\Physics\CollisionSystem.cpp" />
+    <ClCompile Include="Game\Combat\CombatSystem.cpp" />
+    <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
+    <ClCompile Include="Game\Player\PlayerController.cpp" />
     <ClCompile Include="Engine\Render\IndexBuffer.cpp" />
     <ClCompile Include="Engine\Render\InputLayout.cpp" />
     <ClCompile Include="Engine\Render\PixelShader.cpp" />
@@ -177,6 +181,13 @@
     <ClInclude Include="Core\BFWin.h" />
     <ClInclude Include="Core\Dxerr\dxerr.h" />
     <ClInclude Include="Engine\Camera\TopDownCamera.h" />
+    <ClInclude Include="Engine\Physics\AABB.h" />
+    <ClInclude Include="Engine\Physics\CollisionSystem.h" />
+    <ClInclude Include="Engine\Scene\CollisionComponent.h" />
+    <ClInclude Include="Engine\Scene\CombatComponent.h" />
+    <ClInclude Include="Game\Combat\CombatSystem.h" />
+    <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
+    <ClInclude Include="Game\Player\PlayerController.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />
     <ClInclude Include="Engine\Render\IndexBuffer.h" />
     <ClInclude Include="Engine\Render\InputLayout.h" />

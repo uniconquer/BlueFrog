@@ -32,6 +32,12 @@ private:
 		DirectX::XMFLOAT4X4 transform;
 	};
 
+	struct ColorData
+	{
+		DirectX::XMFLOAT3 tint;
+		float padding = 0.0f;
+	};
+
 	struct MeshBuffers
 	{
 		MeshBuffers(Graphics& gfx, const Vertex* vertices, UINT vertexCount, const unsigned short* indices, UINT indexCount);
@@ -47,7 +53,7 @@ public:
 private:
 	void BindSharedState() noexcept;
 	const MeshBuffers& ResolveMesh(RenderMeshType meshType) const noexcept;
-	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const TopDownCamera& camera) noexcept;
+	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
 	static const std::array<Vertex, 8>& GetCubeVertices() noexcept;
 	static const std::array<unsigned short, 36>& GetCubeIndices() noexcept;
 	static const std::array<Vertex, 4>& GetPlaneVertices() noexcept;
@@ -62,5 +68,6 @@ private:
 	PixelShader pixelShader;
 	InputLayout inputLayout;
 	VertexConstantBuffer<TransformData> transformBuffer;
+	PixelConstantBuffer<ColorData> colorBuffer;
 	Topology topology;
 };

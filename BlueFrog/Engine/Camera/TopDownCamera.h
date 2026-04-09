@@ -7,12 +7,10 @@ public:
 	explicit TopDownCamera(float aspectRatio = 4.0f / 3.0f) noexcept;
 	void SetAspectRatio(float aspectRatio) noexcept;
 	void SetTarget(const DirectX::XMFLOAT3& target) noexcept;
-	void MoveTarget(float dx, float dz) noexcept;
 	void RotateAroundTarget(float deltaRadians) noexcept;
 	void AdjustZoom(float delta) noexcept;
 	DirectX::XMFLOAT3 GetPosition() const noexcept;
 	const DirectX::XMFLOAT3& GetTarget() const noexcept;
-	float GetRadius() const noexcept;
 	DirectX::XMMATRIX GetViewMatrix() const noexcept;
 	DirectX::XMMATRIX GetProjectionMatrix() const noexcept;
 private:

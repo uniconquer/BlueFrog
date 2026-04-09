@@ -47,3 +47,16 @@ public:
 		gfx.GetContext()->VSSetConstantBuffers(slot, 1u, &buffer);
 	}
 };
+
+template<class C>
+class PixelConstantBuffer : public ConstantBuffer<C>
+{
+public:
+	using ConstantBuffer<C>::ConstantBuffer;
+
+	void Bind(Graphics& gfx, UINT slot = 0u) const noexcept
+	{
+		ID3D11Buffer* const buffer = this->pConstantBuffer.Get();
+		gfx.GetContext()->PSSetConstantBuffers(slot, 1u, &buffer);
+	}
+};
