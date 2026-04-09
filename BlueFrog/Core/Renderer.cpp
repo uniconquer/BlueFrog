@@ -1,11 +1,18 @@
 #include "Renderer.h"
 #include <DirectXMath.h>
 
+Renderer::MeshBuffers::MeshBuffers(Graphics& gfx, const Vertex* vertices, UINT vertexCount, const unsigned short* indices, UINT indexCount)
+	:
+	vertexBuffer(gfx, vertices, vertexCount * static_cast<UINT>(sizeof(Vertex)), sizeof(Vertex)),
+	indexBuffer(gfx, indices, indexCount)
+{
+}
+
 Renderer::Renderer(Graphics& gfx)
 	:
 	gfx(gfx),
-	vertexBuffer(gfx, GetCubeVertices().data(), static_cast<UINT>(sizeof(Vertex) * GetCubeVertices().size()), sizeof(Vertex)),
-	indexBuffer(gfx, GetCubeIndices().data(), static_cast<UINT>(GetCubeIndices().size())),
+	cubeMesh(gfx, GetCubeVertices().data(), static_cast<UINT>(GetCubeVertices().size()), GetCubeIndices().data(), static_cast<UINT>(GetCubeIndices().size())),
+	planeMesh(gfx, GetPlaneVertices().data(), static_cast<UINT>(GetPlaneVertices().size()), GetPlaneIndices().data(), static_cast<UINT>(GetPlaneIndices().size())),
 	vertexShader(gfx, GetSolidShaderSource(), "VSMain"),
 	pixelShader(gfx, GetSolidShaderSource(), "PSMain"),
 	inputLayout(gfx, GetInputLayoutDesc().data(), static_cast<UINT>(GetInputLayoutDesc().size()), vertexShader),
@@ -40,6 +47,28 @@ const std::array<unsigned short, 36>& Renderer::GetCubeIndices() noexcept
 		4, 5, 7, 4, 7, 6,
 		0, 4, 2, 2, 4, 6,
 		0, 1, 4, 1, 5, 4,
+	};
+	return indices;
+}
+
+const std::array<Renderer::Vertex, 4>& Renderer::GetPlaneVertices() noexcept
+{
+	static const std::array<Vertex, 4> vertices =
+	{
+		Vertex{ -1.0f, 0.0f, -1.0f, 0.18f, 0.48f, 0.20f },
+		Vertex{ 1.0f, 0.0f, -1.0f, 0.20f, 0.55f, 0.22f },
+		Vertex{ -1.0f, 0.0f, 1.0f, 0.17f, 0.45f, 0.18f },
+		Vertex{ 1.0f, 0.0f, 1.0f, 0.22f, 0.58f, 0.24f },
+	};
+	return vertices;
+}
+
+const std::array<unsigned short, 6>& Renderer::GetPlaneIndices() noexcept
+{
+	static const std::array<unsigned short, 6> indices =
+	{
+		0, 2, 1,
+		2, 3, 1,
 	};
 	return indices;
 }
@@ -84,27 +113,74 @@ const char* Renderer::GetSolidShaderSource() noexcept
 		"}\n";
 }
 
-void Renderer::DrawTestCube(float angle) noexcept
+void Renderer::BindSharedState() noexcept
 {
-	using namespace DirectX;
-
-	const XMMATRIX model = XMMatrixRotationRollPitchYaw(angle * 0.45f, angle, angle * 0.2f);
-	const XMMATRIX view = XMMatrixLookAtLH(
-		XMVectorSet(0.0f, 2.2f, -6.0f, 1.0f),
-		XMVectorZero(),
-		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-	const XMMATRIX projection = XMMatrixPerspectiveFovLH(1.0f, 800.0f / 600.0f, 0.5f, 40.0f);
-
-	TransformData transform = {};
-	XMStoreFloat4x4(&transform.transform, XMMatrixTranspose(model * view * projection));
-
-	transformBuffer.Update(gfx, transform);
 	inputLayout.Bind(gfx);
-	vertexBuffer.Bind(gfx);
-	indexBuffer.Bind(gfx);
 	topology.Bind(gfx);
 	vertexShader.Bind(gfx);
 	transformBuffer.Bind(gfx);
 	pixelShader.Bind(gfx);
-	gfx.DrawIndexed(indexBuffer.GetCount());
+}
+
+void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, const TopDownCamera& camera) noexcept
+{
+	using namespace DirectX;
+
+	const XMMATRIX model = transform.GetMatrix();
+	const XMMATRIX viewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
+
+	TransformData transformData = {};
+	XMStoreFloat4x4(&transformData.transform, XMMatrixTranspose(model * viewProjection));
+
+	transformBuffer.Update(gfx, transformData);
+	mesh.vertexBuffer.Bind(gfx);
+	mesh.indexBuffer.Bind(gfx);
+	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
+}
+
+void Renderer::DrawTestScene(const TopDownCamera& camera, float time) noexcept
+{
+	BindSharedState();
+
+	Transform ground = {};
+	ground.scale = { 18.0f, 1.0f, 18.0f };
+	DrawMesh(planeMesh, ground, camera);
+
+	Transform central = {};
+	central.position = { 0.0f, 1.25f, 0.0f };
+	central.scale = { 1.35f, 1.35f, 1.35f };
+	central.rotation = { time * 0.15f, time, time * 0.08f };
+	DrawMesh(cubeMesh, central, camera);
+
+	Transform northWall = {};
+	northWall.position = { 0.0f, 1.0f, 6.5f };
+	northWall.scale = { 6.0f, 1.0f, 0.7f };
+	DrawMesh(cubeMesh, northWall, camera);
+
+	Transform southWall = {};
+	southWall.position = { 0.0f, 1.0f, -6.5f };
+	southWall.scale = { 6.0f, 1.0f, 0.7f };
+	DrawMesh(cubeMesh, southWall, camera);
+
+	Transform eastWall = {};
+	eastWall.position = { 6.5f, 1.0f, 0.0f };
+	eastWall.scale = { 0.7f, 1.0f, 6.0f };
+	DrawMesh(cubeMesh, eastWall, camera);
+
+	Transform westWall = {};
+	westWall.position = { -6.5f, 1.0f, 0.0f };
+	westWall.scale = { 0.7f, 1.0f, 6.0f };
+	DrawMesh(cubeMesh, westWall, camera);
+
+	Transform pillarA = {};
+	pillarA.position = { -3.5f, 0.8f, -2.5f };
+	pillarA.scale = { 0.8f, 0.8f, 0.8f };
+	pillarA.rotation = { 0.0f, time * 0.5f, 0.0f };
+	DrawMesh(cubeMesh, pillarA, camera);
+
+	Transform pillarB = {};
+	pillarB.position = { 3.5f, 0.8f, 2.5f };
+	pillarB.scale = { 0.8f, 0.8f, 0.8f };
+	pillarB.rotation = { 0.0f, -time * 0.45f, 0.0f };
+	DrawMesh(cubeMesh, pillarB, camera);
 }

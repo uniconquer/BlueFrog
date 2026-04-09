@@ -16,8 +16,14 @@
     <Filter Include="Dxerr">
       <UniqueIdentifier>{2c397739-383d-451f-bef9-a9bc4a0d96e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\\Camera">
+      <UniqueIdentifier>{ac4fd59a-4b34-4371-b5ee-ad0db7e0e377}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Engine\\Render">
       <UniqueIdentifier>{3f97eb4f-27a7-4bf8-ba4a-6fece42170be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\\Scene">
+      <UniqueIdentifier>{bdc6cc0f-7fe1-46d2-bca0-66cd62195b4d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +77,9 @@
     </ClCompile>
     <ClCompile Include="Engine\Render\VertexShader.cpp">
       <Filter>Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Camera\TopDownCamera.cpp">
+      <Filter>Engine\Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +136,12 @@
     </ClInclude>
     <ClInclude Include="Engine\Render\VertexShader.h">
       <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Camera\TopDownCamera.h">
+      <Filter>Engine\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\Transform.h">
+      <Filter>Engine\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

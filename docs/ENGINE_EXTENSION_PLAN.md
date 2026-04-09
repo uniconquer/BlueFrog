@@ -1,5 +1,7 @@
 # Engine Extension Plan
 
+For the short-term runtime structure shift toward `GameObject + Component`, also see `GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md`.
+
 단기 실행 순서와 완료 기준은 [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)를 기준으로 본다. 이 문서는 중장기 확장 방향을 설명하고, 실제 다음 작업 선택은 상세 실행 계획 문서를 우선한다.
 
 ## 목표

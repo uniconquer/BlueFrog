@@ -45,6 +45,14 @@ public:
 	void SetTitle(const std::wstring& title);
 	static std::optional<int> ProcessMessages() noexcept;
 	Graphics& Gfx();
+	int GetWidth() const noexcept
+	{
+		return width;
+	}
+	int GetHeight() const noexcept
+	{
+		return height;
+	}
 private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	static LRESULT CALLBACK HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
