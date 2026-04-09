@@ -234,7 +234,9 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	}
 	case WM_MOUSEWHEEL:
 	{
-		const POINTS pt = MAKEPOINTS(lParam);
+		const POINTS rawPt = MAKEPOINTS(lParam);
+		POINT pt = { rawPt.x, rawPt.y };
+		ScreenToClient(hWnd, &pt);
 		const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
 		mouse.OnWheelDelta(pt.x, pt.y, delta);
 		break;
@@ -269,13 +271,13 @@ const char* Window::Exception::GetType() const noexcept
 
 std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
 {
-	char* pMsgBuf = nullptr;
+	LPSTR pMsgBuf = nullptr;
 	// 윈도우는 에러 문자열에 메모리를 할당하고 포인터가 그 메모리를 가리키도록 한다.
-	const DWORD nMsgLen = FormatMessage(
+	const DWORD nMsgLen = FormatMessageA(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER |
 		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		reinterpret_cast<LPWSTR>(&pMsgBuf), 0, nullptr
+		reinterpret_cast<LPSTR>(&pMsgBuf), 0, nullptr
 	);
 	
 	if (nMsgLen == 0)
@@ -297,3 +299,5 @@ std::string Window::Exception::GetErrorString() const noexcept
 {
 	return TranslateErrorCode(hr);
 }
+
+

@@ -1,7 +1,57 @@
 #include "Graphics.h"
+#include "Dxerr/dxerr.h"
+#include <sstream>
+
+Graphics::Exception::Exception(int line, const char* file, HRESULT hr) noexcept
+	:
+	BFException(line, file),
+	hr(hr)
+{
+}
+
+const char* Graphics::Exception::what() const noexcept
+{
+	std::ostringstream oss;
+	oss << GetType() << std::endl
+		<< "[Error Code] 0x" << std::hex << std::uppercase << GetErrorCode() << std::dec << std::endl
+		<< "[Description] " << GetErrorString() << std::endl
+		<< GetOriginString();
+	whatBuffer = oss.str();
+	return whatBuffer.c_str();
+}
+
+const char* Graphics::Exception::GetType() const noexcept
+{
+	return "BlueFrog Graphics Exception";
+}
+
+std::string Graphics::Exception::TranslateErrorCode(HRESULT hr) noexcept
+{
+	char description[512] = {};
+	DXGetErrorDescriptionA(hr, description, sizeof(description));
+
+	std::ostringstream oss;
+	oss << DXGetErrorStringA(hr);
+	if (description[0] != '\0')
+	{
+		oss << ": " << description;
+	}
+	return oss.str();
+}
+
+HRESULT Graphics::Exception::GetErrorCode() const noexcept
+{
+	return hr;
+}
+
+std::string Graphics::Exception::GetErrorString() const noexcept
+{
+	return TranslateErrorCode(hr);
+}
 
 Graphics::Graphics(HWND hWnd)
 {
+	HRESULT hr;
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 	swapChainDesc.BufferDesc.Width = 0;
 	swapChainDesc.BufferDesc.Height = 0;
@@ -20,8 +70,7 @@ Graphics::Graphics(HWND hWnd)
 	swapChainDesc.Flags = 0;
 
 	// Create device and front/back buffers, and swap chain rendering context
-	D3D11CreateDeviceAndSwapChain
-	(
+	if (FAILED(hr = D3D11CreateDeviceAndSwapChain(
 		nullptr, 
 		D3D_DRIVER_TYPE_HARDWARE, 
 		nullptr, 
@@ -34,17 +83,39 @@ Graphics::Graphics(HWND hWnd)
 		&pDevice, 
 		nullptr, 
 		&pContext
-	);
+	)))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
 
 	// gain access to texture subresource in swap chain (back buffer)
 	ID3D11Resource* pBackBuffer = nullptr;
-	pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&pBackBuffer));
-
-	if (pBackBuffer != nullptr)
+	if (FAILED(hr = pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&pBackBuffer))))
 	{
-		pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTarget);
-		pBackBuffer->Release();
+		throw BFGFX_EXCEPT(hr);
 	}
+
+	if (FAILED(hr = pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTarget)))
+	{
+		pBackBuffer->Release();
+		throw BFGFX_EXCEPT(hr);
+	}
+	pBackBuffer->Release();
+
+	pContext->OMSetRenderTargets(1u, &pRenderTarget, nullptr);
+
+	RECT rect;
+	GetClientRect(hWnd, &rect);
+	const D3D11_VIEWPORT viewport =
+	{
+		0.0f,
+		0.0f,
+		static_cast<float>(rect.right - rect.left),
+		static_cast<float>(rect.bottom - rect.top),
+		0.0f,
+		1.0f
+	};
+	pContext->RSSetViewports(1u, &viewport);
 }
 
 Graphics::~Graphics()
@@ -69,5 +140,8 @@ Graphics::~Graphics()
 
 void Graphics::EndFrame()
 {
-	pSwapChain->Present(1u, 0u);
+	if (const HRESULT hr = pSwapChain->Present(1u, 0u); FAILED(hr))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
 }
