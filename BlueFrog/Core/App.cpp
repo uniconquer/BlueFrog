@@ -9,7 +9,7 @@ App::App()
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
 	BuildArenaScene();
-	hudState = HudPresenter::Build(scene, playerController);
+	hudState = gameplaySimulation.BuildHudState(scene);
 }
 
 int App::Go()
@@ -34,9 +34,7 @@ void App::DoFrame(float dt)
 void App::UpdateModel(float dt) noexcept
 {
 	const bool attackQueued = HandleCameraInput(dt);
-	playerController.Update(wnd, scene, camera, dt, attackQueued);
-	enemyController.Update(scene, dt);
-	hudState = HudPresenter::Build(scene, playerController);
+	hudState = gameplaySimulation.Update(wnd, scene, camera, dt, attackQueued);
 }
 
 bool App::HandleCameraInput(float dt) noexcept

@@ -43,6 +43,9 @@
     <Filter Include="Game\\Hud">
       <UniqueIdentifier>{a3d8c1eb-c298-4e30-8d4c-5ffbd88d4b2f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\\Simulation">
+      <UniqueIdentifier>{48326dfb-1132-48a7-902e-12d93f9cac9b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\WinMain.cpp">
@@ -110,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="Game\Player\PlayerController.cpp">
       <Filter>Game\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Simulation\GameplaySimulation.cpp">
+      <Filter>Game\Simulation</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Scene\Scene.cpp">
       <Filter>Engine\Scene</Filter>
@@ -199,6 +205,9 @@
     </ClInclude>
     <ClInclude Include="Game\Player\PlayerController.h">
       <Filter>Game\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Simulation\GameplaySimulation.h">
+      <Filter>Game\Simulation</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\Transform.h">
       <Filter>Engine\Scene</Filter>

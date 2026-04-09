@@ -6,9 +6,7 @@
 #include "../Engine/Scene/Scene.h"
 #include "../Engine/UI/HudState.h"
 #include "../Engine/UI/UIRenderer.h"
-#include "../Game/Hud/HudPresenter.h"
-#include "../Game/NPC/SimpleEnemyController.h"
-#include "../Game/Player/PlayerController.h"
+#include "../Game/Simulation/GameplaySimulation.h"
 
 class App
 {
@@ -28,7 +26,6 @@ private:
 	TopDownCamera camera;
 	Scene scene;
 	HudState hudState;
-	SimpleEnemyController enemyController;
-	PlayerController playerController;
+	GameplaySimulation gameplaySimulation;
 	BFTimer timer;
 };

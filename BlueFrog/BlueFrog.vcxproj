@@ -160,6 +160,7 @@
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
     <ClCompile Include="Game\Player\PlayerController.cpp" />
+    <ClCompile Include="Game\Simulation\GameplaySimulation.cpp" />
     <ClCompile Include="Engine\Render\IndexBuffer.cpp" />
     <ClCompile Include="Engine\Render\InputLayout.cpp" />
     <ClCompile Include="Engine\Render\PixelShader.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="Game\Hud\HudPresenter.h" />
     <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
+    <ClInclude Include="Game\Simulation\GameplaySimulation.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />
     <ClInclude Include="Engine\Render\FlatColorPipeline.h" />
     <ClInclude Include="Engine\Render\IndexBuffer.h" />
