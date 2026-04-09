@@ -85,7 +85,6 @@ bool PlayerController::Update(Window& wnd, Scene& scene, TopDownCamera& camera, 
 	desiredPosition.x += move.x * moveSpeed * dt;
 	desiredPosition.z += move.z * moveSpeed * dt;
 	desiredPosition.y = playerHeight;
-	ClampToTestMapBounds(desiredPosition);
 	CollisionSystem::MoveAndSlide(*player, scene, desiredPosition);
 
 	XMFLOAT3 mouseGroundPoint = player->transform.position;
@@ -103,6 +102,16 @@ bool PlayerController::Update(Window& wnd, Scene& scene, TopDownCamera& camera, 
 	UpdateTint(*player);
 	camera.SetTarget(player->transform.position);
 	return true;
+}
+
+float PlayerController::GetAttackCooldownProgress01() const noexcept
+{
+	if (attackCooldown <= 0.0f)
+	{
+		return 1.0f;
+	}
+
+	return std::clamp(1.0f - (attackCooldownRemaining / attackCooldown), 0.0f, 1.0f);
 }
 
 SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
@@ -188,13 +197,6 @@ void PlayerController::UpdateTint(SceneObject& player) const noexcept
 		0.72f + healthRatio * 0.20f,
 		0.30f + healthRatio * 0.25f
 	};
-}
-
-void PlayerController::ClampToTestMapBounds(XMFLOAT3& position) noexcept
-{
-	position.x = std::clamp(position.x, minX, maxX);
-	position.z = std::clamp(position.z, minZ, maxZ);
-	position.y = playerHeight;
 }
 
 float PlayerController::ComputePlayerYawRadians(const XMFLOAT3& from, const XMFLOAT3& to) noexcept

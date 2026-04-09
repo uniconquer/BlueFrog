@@ -171,7 +171,6 @@
     <ClCompile Include="Core\Mouse.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\Window.cpp" />
-    <ClCompile Include="Core\WindowsMessageMap.cpp" />
     <ClCompile Include="Core\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -204,7 +203,7 @@
     <ClInclude Include="Core\Mouse.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\Window.h" />
-    <ClInclude Include="Core\WindowsMessageMap.h" />
+    <ClInclude Include="Engine\UI\HudState.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -37,12 +37,12 @@
     <Filter Include="Game\\NPC">
       <UniqueIdentifier>{5f95d8d4-5349-42b3-8cab-dd9dcaf8f1dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\\UI">
+      <UniqueIdentifier>{0bc68d11-1bba-4b43-81d1-b64272f4626a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\WinMain.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\WindowsMessageMap.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Core\Window.cpp">
@@ -111,9 +111,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\BFWin.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\WindowsMessageMap.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Core\Window.h">
@@ -199,6 +196,9 @@
     </ClInclude>
     <ClInclude Include="Engine\Scene\SceneObject.h">
       <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\UI\HudState.h">
+      <Filter>Engine\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

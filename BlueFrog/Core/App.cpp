@@ -1,6 +1,5 @@
 #include "App.h"
 #include <sstream>
-#include <iomanip>
 
 App::App()
 	:
@@ -8,7 +7,8 @@ App::App()
 	renderer(wnd.Gfx()),
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
-	BuildTestScene();
+	BuildArenaScene();
+	UpdateHudState();
 }
 
 int App::Go()
@@ -32,12 +32,10 @@ void App::DoFrame(float dt)
 
 void App::UpdateModel(float dt) noexcept
 {
-	lastFrameTime = dt;
-	simulationTime += dt;
 	const bool attackQueued = HandleCameraInput(dt);
 	playerController.Update(wnd, scene, camera, dt, attackQueued);
 	enemyController.Update(scene, dt);
-	UpdateScene();
+	UpdateHudState();
 }
 
 bool App::HandleCameraInput(float dt) noexcept
@@ -74,7 +72,7 @@ bool App::HandleCameraInput(float dt) noexcept
 	return attackQueued;
 }
 
-void App::BuildTestScene()
+void App::BuildArenaScene()
 {
 	using DirectX::XMFLOAT3;
 	using DirectX::XMFLOAT2;
@@ -125,61 +123,40 @@ void App::BuildTestScene()
 	camera.SetTarget(player.transform.position);
 }
 
-void App::UpdateScene() noexcept
+void App::UpdateHudState() noexcept
 {
-	if (auto* shrine = scene.FindObject("ShrineCore"))
+	hudState = {};
+
+	if (const auto* player = scene.FindObject("Player"); player != nullptr && player->combatComponent.has_value())
 	{
-		shrine->transform.rotation = { simulationTime * 0.15f, simulationTime, simulationTime * 0.08f };
+		hudState.playerHealth.current = static_cast<float>(player->combatComponent->health);
+		hudState.playerHealth.max = static_cast<float>(player->combatComponent->maxHealth);
 	}
 
-	if (auto* pillarA = scene.FindObject("PillarA"))
+	if (const auto* enemy = scene.FindObject("EnemyScout"); enemy != nullptr && enemy->combatComponent.has_value() && enemy->combatComponent->IsAlive())
 	{
-		pillarA->transform.rotation = { 0.0f, simulationTime * 0.5f, 0.0f };
+		hudState.hasTarget = true;
+		hudState.targetHealth.current = static_cast<float>(enemy->combatComponent->health);
+		hudState.targetHealth.max = static_cast<float>(enemy->combatComponent->maxHealth);
 	}
 
-	if (auto* pillarB = scene.FindObject("PillarB"))
-	{
-		pillarB->transform.rotation = { 0.0f, -simulationTime * 0.45f, 0.0f };
-	}
+	hudState.attackCooldown01 = playerController.GetAttackCooldownProgress01();
+	hudState.interactionPrompt = L"LMB: attack";
+	hudState.objectiveText = hudState.hasTarget ? L"Defeat the scout" : L"Arena cleared";
 }
 
 void App::ComposeFrame()
 {
 	std::wostringstream oss;
-	DirectX::XMFLOAT3 playerPosition = {};
-	int playerHealth = 0;
-	int playerMaxHealth = 0;
-	int enemyHealth = 0;
-	int enemyMaxHealth = 0;
-	if (const auto* player = scene.FindObject("Player"))
+	oss << L"Blue Frog | HP " << static_cast<int>(hudState.playerHealth.current) << L"/" << static_cast<int>(hudState.playerHealth.max);
+	if (hudState.hasTarget)
 	{
-		playerPosition = player->transform.position;
-		if (player->combatComponent.has_value())
-		{
-			playerHealth = player->combatComponent->health;
-			playerMaxHealth = player->combatComponent->maxHealth;
-		}
+		oss << L" | Enemy " << static_cast<int>(hudState.targetHealth.current) << L"/" << static_cast<int>(hudState.targetHealth.max);
 	}
-	if (const auto* enemy = scene.FindObject("EnemyScout"))
-	{
-		if (enemy->combatComponent.has_value())
-		{
-			enemyHealth = enemy->combatComponent->health;
-			enemyMaxHealth = enemy->combatComponent->maxHealth;
-		}
-	}
-
-	oss << L"Time elapsed : " << std::setprecision(1) << std::fixed << simulationTime
-		<< L"s | dt : " << std::setprecision(2) << std::fixed << (lastFrameTime * 1000.0f) << L"ms"
-		<< L" | Player: (" << std::setprecision(1) << std::fixed << playerPosition.x << L", " << playerPosition.z << L")"
-		<< L" | HP: " << playerHealth << L"/" << playerMaxHealth
-		<< L" | Enemy: " << enemyHealth << L"/" << enemyMaxHealth
-		<< L" | Objects: " << scene.GetObjects().size()
-		<< L" | WASD: move | Mouse: aim/attack | Q/E: orbit | Wheel: zoom";
+	oss << L" | " << hudState.objectiveText << L" | Q/E: orbit | Wheel: zoom";
 	wnd.SetTitle(oss.str());
 
-	const float blue = sin(simulationTime * 0.7f) * 0.15f + 0.25f;
-	wnd.Gfx().BeginFrame(0.05f, 0.08f, blue);
-	renderer.Render(scene, camera);
+	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
+	renderer.Render(scene, camera, hudState);
 	wnd.Gfx().EndFrame();
 }
