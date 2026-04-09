@@ -1,5 +1,7 @@
 # Engine Extension Plan
 
+단기 실행 순서와 완료 기준은 [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)를 기준으로 본다. 이 문서는 중장기 확장 방향을 설명하고, 실제 다음 작업 선택은 상세 실행 계획 문서를 우선한다.
+
 ## 목표
 
 BlueFrog를 "창만 띄우는 샘플"에서 "기초 Direct3D 엔진"으로 확장합니다. 목표는 대형 엔진을 흉내 내는 것이 아니라, 렌더링과 게임 루프의 핵심 흐름을 직접 통제할 수 있는 작고 명확한 구조를 만드는 것입니다.
