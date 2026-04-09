@@ -1,14 +1,12 @@
 #pragma once
-#include <DirectXMath.h>
 
-enum class MeshType
+enum class RenderMeshType
 {
-	Plane,
 	Cube,
+	Plane,
 };
 
 struct RenderComponent
 {
-	MeshType mesh = MeshType::Cube;
-	DirectX::XMFLOAT3 tint = { 1.0f, 1.0f, 1.0f };
+	RenderMeshType meshType = RenderMeshType::Cube;
 };

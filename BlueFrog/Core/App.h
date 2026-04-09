@@ -3,6 +3,7 @@
 #include "BFTimer.h"
 #include "Renderer.h"
 #include "../Engine/Camera/TopDownCamera.h"
+#include "../Engine/Scene/Scene.h"
 
 class App
 {
@@ -13,11 +14,14 @@ private:
 	void DoFrame(float dt);
 	void UpdateModel(float dt) noexcept;
 	void HandleCameraInput(float dt) noexcept;
+	void BuildTestScene();
+	void UpdateScene() noexcept;
 	void ComposeFrame();
 private:
 	Window wnd;
 	Renderer renderer;
 	TopDownCamera camera;
+	Scene scene;
 	BFTimer timer;
 	float simulationTime = 0.0f;
 	float lastFrameTime = 0.0f;

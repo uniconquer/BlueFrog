@@ -122,6 +122,18 @@ void Renderer::BindSharedState() noexcept
 	pixelShader.Bind(gfx);
 }
 
+const Renderer::MeshBuffers& Renderer::ResolveMesh(RenderMeshType meshType) const noexcept
+{
+	switch (meshType)
+	{
+	case RenderMeshType::Plane:
+		return planeMesh;
+	case RenderMeshType::Cube:
+	default:
+		return cubeMesh;
+	}
+}
+
 void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, const TopDownCamera& camera) noexcept
 {
 	using namespace DirectX;
@@ -138,49 +150,18 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
 }
 
-void Renderer::DrawTestScene(const TopDownCamera& camera, float time) noexcept
+void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
 {
 	BindSharedState();
 
-	Transform ground = {};
-	ground.scale = { 18.0f, 1.0f, 18.0f };
-	DrawMesh(planeMesh, ground, camera);
+	for (const auto& object : scene.GetObjects())
+	{
+		if (!object.CanRender())
+		{
+			continue;
+		}
 
-	Transform central = {};
-	central.position = { 0.0f, 1.25f, 0.0f };
-	central.scale = { 1.35f, 1.35f, 1.35f };
-	central.rotation = { time * 0.15f, time, time * 0.08f };
-	DrawMesh(cubeMesh, central, camera);
-
-	Transform northWall = {};
-	northWall.position = { 0.0f, 1.0f, 6.5f };
-	northWall.scale = { 6.0f, 1.0f, 0.7f };
-	DrawMesh(cubeMesh, northWall, camera);
-
-	Transform southWall = {};
-	southWall.position = { 0.0f, 1.0f, -6.5f };
-	southWall.scale = { 6.0f, 1.0f, 0.7f };
-	DrawMesh(cubeMesh, southWall, camera);
-
-	Transform eastWall = {};
-	eastWall.position = { 6.5f, 1.0f, 0.0f };
-	eastWall.scale = { 0.7f, 1.0f, 6.0f };
-	DrawMesh(cubeMesh, eastWall, camera);
-
-	Transform westWall = {};
-	westWall.position = { -6.5f, 1.0f, 0.0f };
-	westWall.scale = { 0.7f, 1.0f, 6.0f };
-	DrawMesh(cubeMesh, westWall, camera);
-
-	Transform pillarA = {};
-	pillarA.position = { -3.5f, 0.8f, -2.5f };
-	pillarA.scale = { 0.8f, 0.8f, 0.8f };
-	pillarA.rotation = { 0.0f, time * 0.5f, 0.0f };
-	DrawMesh(cubeMesh, pillarA, camera);
-
-	Transform pillarB = {};
-	pillarB.position = { 3.5f, 0.8f, 2.5f };
-	pillarB.scale = { 0.8f, 0.8f, 0.8f };
-	pillarB.rotation = { 0.0f, -time * 0.45f, 0.0f };
-	DrawMesh(cubeMesh, pillarB, camera);
+		const auto& renderComponent = *object.renderComponent;
+		DrawMesh(ResolveMesh(renderComponent.meshType), object.transform, camera);
+	}
 }

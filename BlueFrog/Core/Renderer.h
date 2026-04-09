@@ -8,6 +8,8 @@
 #include "../Engine/Render/Topology.h"
 #include "../Engine/Render/VertexBuffer.h"
 #include "../Engine/Render/VertexShader.h"
+#include "../Engine/Scene/RenderComponent.h"
+#include "../Engine/Scene/Scene.h"
 #include "../Engine/Scene/Transform.h"
 #include <DirectXMath.h>
 #include <array>
@@ -41,9 +43,10 @@ public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
-	void DrawTestScene(const TopDownCamera& camera, float time) noexcept;
+	void Render(const Scene& scene, const TopDownCamera& camera) noexcept;
 private:
 	void BindSharedState() noexcept;
+	const MeshBuffers& ResolveMesh(RenderMeshType meshType) const noexcept;
 	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const TopDownCamera& camera) noexcept;
 	static const std::array<Vertex, 8>& GetCubeVertices() noexcept;
 	static const std::array<unsigned short, 36>& GetCubeIndices() noexcept;

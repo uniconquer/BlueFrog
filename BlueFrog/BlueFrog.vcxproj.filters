@@ -81,6 +81,9 @@
     <ClCompile Include="Engine\Camera\TopDownCamera.cpp">
       <Filter>Engine\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Scene\Scene.cpp">
+      <Filter>Engine\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\BFWin.h">
@@ -141,6 +144,15 @@
       <Filter>Engine\Camera</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\Transform.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\RenderComponent.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\Scene.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\SceneObject.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
   </ItemGroup>

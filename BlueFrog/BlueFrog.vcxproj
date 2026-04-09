@@ -161,6 +161,7 @@
     <ClCompile Include="Engine\Render\Topology.cpp" />
     <ClCompile Include="Engine\Render\VertexBuffer.cpp" />
     <ClCompile Include="Engine\Render\VertexShader.cpp" />
+    <ClCompile Include="Engine\Scene\Scene.cpp" />
     <ClCompile Include="Core\Graphics.cpp" />
     <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\Mouse.cpp" />
@@ -183,6 +184,9 @@
     <ClInclude Include="Engine\Render\Topology.h" />
     <ClInclude Include="Engine\Render\VertexBuffer.h" />
     <ClInclude Include="Engine\Render\VertexShader.h" />
+    <ClInclude Include="Engine\Scene\RenderComponent.h" />
+    <ClInclude Include="Engine\Scene\Scene.h" />
+    <ClInclude Include="Engine\Scene\SceneObject.h" />
     <ClInclude Include="Engine\Scene\Transform.h" />
     <ClInclude Include="Core\Graphics.h" />
     <ClInclude Include="Core\Keyboard.h" />
