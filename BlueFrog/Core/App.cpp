@@ -17,18 +17,31 @@ int App::Go()
 			return *ecode;
 		}
 
-		DoFrame();
+		DoFrame(timer.Mark());
 	}
 }
 
-void App::DoFrame()
+void App::DoFrame(float dt)
 {
-	const float t = timer.Peek();
+	UpdateModel(dt);
+	ComposeFrame();
+}
+
+void App::UpdateModel(float dt) noexcept
+{
+	lastFrameTime = dt;
+	simulationTime += dt;
+}
+
+void App::ComposeFrame()
+{
 	std::wostringstream oss;
-	oss << L"Time elapsed : " << std::setprecision(1) << std::fixed << t << "s";
+	oss << L"Time elapsed : " << std::setprecision(1) << std::fixed << simulationTime
+		<< L"s | dt : " << std::setprecision(2) << std::fixed << (lastFrameTime * 1000.0f) << L"ms";
 	wnd.SetTitle(oss.str());
 
-	const float c = sin(timer.Peek()) / 2.0f + 0.5f;
-	wnd.Gfx().ClearBuffer(c, c, 1.0f);
+	const float blue = sin(simulationTime * 0.7f) * 0.15f + 0.25f;
+	wnd.Gfx().BeginFrame(0.05f, 0.08f, blue);
+	wnd.Gfx().DrawTestTriangle(simulationTime);
 	wnd.Gfx().EndFrame();
 }

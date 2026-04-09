@@ -36,7 +36,8 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBu
 정상 실행되면 다음 동작을 확인할 수 있습니다.
 
 - `Blue Frog`라는 제목의 창이 열린다.
-- 제목 표시줄에 경과 시간이 실시간으로 표시된다.
+- 제목 표시줄에 경과 시간과 프레임 시간이 실시간으로 표시된다.
+- 회전하는 컬러 삼각형이 렌더링된다.
 - 배경색이 시간에 따라 천천히 변화한다.
 
 ## 트러블슈팅
