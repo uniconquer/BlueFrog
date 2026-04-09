@@ -156,6 +156,7 @@
     <ClCompile Include="Core\Dxerr\dxerr.cpp" />
     <ClCompile Include="Engine\Camera\TopDownCamera.cpp" />
     <ClCompile Include="Engine\Physics\CollisionSystem.cpp" />
+    <ClCompile Include="Engine\UI\UIRenderer.cpp" />
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
     <ClCompile Include="Game\Player\PlayerController.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="Engine\Physics\CollisionSystem.h" />
     <ClInclude Include="Engine\Scene\CollisionComponent.h" />
     <ClInclude Include="Engine\Scene\CombatComponent.h" />
+    <ClInclude Include="Engine\UI\HealthBar.h" />
     <ClInclude Include="Game\Combat\CombatSystem.h" />
     <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
@@ -204,6 +206,7 @@
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Engine\UI\HudState.h" />
+    <ClInclude Include="Engine\UI\UIRenderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

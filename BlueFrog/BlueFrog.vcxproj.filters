@@ -96,6 +96,9 @@
     <ClCompile Include="Engine\Physics\CollisionSystem.cpp">
       <Filter>Engine\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\UI\UIRenderer.cpp">
+      <Filter>Engine\UI</Filter>
+    </ClCompile>
     <ClCompile Include="Game\Combat\CombatSystem.cpp">
       <Filter>Game\Combat</Filter>
     </ClCompile>
@@ -176,6 +179,9 @@
     <ClInclude Include="Engine\Scene\CombatComponent.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\UI\HealthBar.h">
+      <Filter>Engine\UI</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Combat\CombatSystem.h">
       <Filter>Game\Combat</Filter>
     </ClInclude>
@@ -198,6 +204,9 @@
       <Filter>Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Engine\UI\HudState.h">
+      <Filter>Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\UI\UIRenderer.h">
       <Filter>Engine\UI</Filter>
     </ClInclude>
   </ItemGroup>
