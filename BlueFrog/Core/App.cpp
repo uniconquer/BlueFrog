@@ -4,7 +4,8 @@
 
 App::App()
 	:
-	wnd(800, 600, L"Blue Frog")
+	wnd(800, 600, L"Blue Frog"),
+	renderer(wnd.Gfx())
 {
 }
 
@@ -42,6 +43,6 @@ void App::ComposeFrame()
 
 	const float blue = sin(simulationTime * 0.7f) * 0.15f + 0.25f;
 	wnd.Gfx().BeginFrame(0.05f, 0.08f, blue);
-	wnd.Gfx().DrawTestTriangle(simulationTime);
+	renderer.DrawTestTriangle(simulationTime);
 	wnd.Gfx().EndFrame();
 }

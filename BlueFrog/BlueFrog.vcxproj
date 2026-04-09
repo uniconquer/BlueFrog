@@ -157,6 +157,7 @@
     <ClCompile Include="Core\Graphics.cpp" />
     <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\Mouse.cpp" />
+    <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowsMessageMap.cpp" />
     <ClCompile Include="Core\WinMain.cpp" />
@@ -170,6 +171,7 @@
     <ClInclude Include="Core\Graphics.h" />
     <ClInclude Include="Core\Keyboard.h" />
     <ClInclude Include="Core\Mouse.h" />
+    <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowsMessageMap.h" />
   </ItemGroup>

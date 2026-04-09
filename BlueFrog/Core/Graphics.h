@@ -5,22 +5,6 @@
 
 class Graphics
 {
-private:
-	struct Vertex
-	{
-		float x;
-		float y;
-		float z;
-		float r;
-		float g;
-		float b;
-	};
-
-	struct TransformData
-	{
-		float angle;
-		float padding[3];
-	};
 public:
 	class Exception : public BFException
 	{
@@ -40,18 +24,14 @@ public:
 	Graphics& operator=(const Graphics&) = delete;
 	~Graphics();
 	void BeginFrame(float red, float green, float blue) noexcept;
-	void DrawTestTriangle(float angle) noexcept;
 	void EndFrame();
+	ID3D11Device* GetDevice() noexcept;
+	ID3D11DeviceContext* GetContext() noexcept;
 private:
 	ID3D11Device* pDevice = nullptr;
 	IDXGISwapChain* pSwapChain = nullptr;
 	ID3D11DeviceContext* pContext = nullptr;
 	ID3D11RenderTargetView* pRenderTarget = nullptr;
-	ID3D11VertexShader* pVertexShader = nullptr;
-	ID3D11PixelShader* pPixelShader = nullptr;
-	ID3D11InputLayout* pInputLayout = nullptr;
-	ID3D11Buffer* pVertexBuffer = nullptr;
-	ID3D11Buffer* pTransformBuffer = nullptr;
 };
 
 #define BFGFX_EXCEPT(hr) Graphics::Exception(__LINE__, __FILE__, hr)
