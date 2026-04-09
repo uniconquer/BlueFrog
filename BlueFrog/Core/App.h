@@ -16,8 +16,7 @@ public:
 private:
 	void DoFrame(float dt);
 	void UpdateModel(float dt) noexcept;
-	bool HandleCameraInput(float dt) noexcept;
-	void BuildArenaScene();
+	GameplayInput CollectGameplayInput(float dt) noexcept;
 	void ComposeFrame();
 private:
 	Window wnd;

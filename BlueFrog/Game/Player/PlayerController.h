@@ -1,18 +1,18 @@
 #pragma once
-#include "../../Core/Window.h"
 #include "../../Engine/Camera/TopDownCamera.h"
 #include "../../Engine/Scene/Scene.h"
+#include "../Simulation/GameplayInput.h"
 #include <DirectXMath.h>
 
 class PlayerController
 {
 public:
-	bool Update(Window& wnd, Scene& scene, TopDownCamera& camera, float dt, bool attackQueued) noexcept;
+	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	float GetAttackCooldownProgress01() const noexcept;
 private:
 	SceneObject* FindPlayer(Scene& scene) noexcept;
-	static DirectX::XMFLOAT3 GetMoveVector(const Window& wnd, const TopDownCamera& camera) noexcept;
-	static bool ComputeMouseGroundPoint(const Window& wnd, const TopDownCamera& camera, DirectX::XMFLOAT3& outPoint) noexcept;
+	static DirectX::XMFLOAT3 GetMoveVector(const GameplayInput& input, const TopDownCamera& camera) noexcept;
+	static bool ComputeMouseGroundPoint(const GameplayInput& input, const TopDownCamera& camera, DirectX::XMFLOAT3& outPoint) noexcept;
 	bool TryAttack(Scene& scene, SceneObject& player) noexcept;
 	void UpdateTint(SceneObject& player) const noexcept;
 	static float ComputePlayerYawRadians(const DirectX::XMFLOAT3& from, const DirectX::XMFLOAT3& to) noexcept;

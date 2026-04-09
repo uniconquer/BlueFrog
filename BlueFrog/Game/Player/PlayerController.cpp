@@ -8,27 +8,10 @@ using namespace DirectX;
 
 namespace
 {
-	XMFLOAT3 MakeMoveVector(bool left, bool right, bool forward, bool back, const TopDownCamera& camera) noexcept
+	XMFLOAT3 MakeMoveVector(float strafe, float forward, const TopDownCamera& camera) noexcept
 	{
-		float x = 0.0f;
-		float z = 0.0f;
-
-		if (left)
-		{
-			x -= 1.0f;
-		}
-		if (right)
-		{
-			x += 1.0f;
-		}
-		if (forward)
-		{
-			z += 1.0f;
-		}
-		if (back)
-		{
-			z -= 1.0f;
-		}
+		float x = std::clamp(strafe, -1.0f, 1.0f);
+		float z = std::clamp(forward, -1.0f, 1.0f);
 
 		const XMFLOAT3 cameraTarget = camera.GetTarget();
 		const XMFLOAT3 cameraPos = camera.GetPosition();
@@ -63,7 +46,7 @@ namespace
 	}
 }
 
-bool PlayerController::Update(Window& wnd, Scene& scene, TopDownCamera& camera, float dt, bool attackQueued) noexcept
+bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
 {
 	attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
 
@@ -80,7 +63,7 @@ bool PlayerController::Update(Window& wnd, Scene& scene, TopDownCamera& camera, 
 		return true;
 	}
 
-	const XMFLOAT3 move = GetMoveVector(wnd, camera);
+	const XMFLOAT3 move = GetMoveVector(input, camera);
 	XMFLOAT3 desiredPosition = player->transform.position;
 	desiredPosition.x += move.x * moveSpeed * dt;
 	desiredPosition.z += move.z * moveSpeed * dt;
@@ -88,12 +71,12 @@ bool PlayerController::Update(Window& wnd, Scene& scene, TopDownCamera& camera, 
 	CollisionSystem::MoveAndSlide(*player, scene, desiredPosition);
 
 	XMFLOAT3 mouseGroundPoint = player->transform.position;
-	if (ComputeMouseGroundPoint(wnd, camera, mouseGroundPoint))
+	if (ComputeMouseGroundPoint(input, camera, mouseGroundPoint))
 	{
 		player->transform.rotation.y = ComputePlayerYawRadians(player->transform.position, mouseGroundPoint);
 	}
 
-	if (attackQueued && attackCooldownRemaining <= 0.0f)
+	if (input.attackQueued && attackCooldownRemaining <= 0.0f)
 	{
 		TryAttack(scene, *player);
 		attackCooldownRemaining = attackCooldown;
@@ -119,28 +102,22 @@ SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 	return scene.FindObject("Player");
 }
 
-XMFLOAT3 PlayerController::GetMoveVector(const Window& wnd, const TopDownCamera& camera) noexcept
+XMFLOAT3 PlayerController::GetMoveVector(const GameplayInput& input, const TopDownCamera& camera) noexcept
 {
-	return MakeMoveVector(
-		wnd.kbd.KeyIsPressed('A'),
-		wnd.kbd.KeyIsPressed('D'),
-		wnd.kbd.KeyIsPressed('W'),
-		wnd.kbd.KeyIsPressed('S'),
-		camera);
+	return MakeMoveVector(input.movementIntent.x, input.movementIntent.y, camera);
 }
 
-bool PlayerController::ComputeMouseGroundPoint(const Window& wnd, const TopDownCamera& camera, XMFLOAT3& outPoint) noexcept
+bool PlayerController::ComputeMouseGroundPoint(const GameplayInput& input, const TopDownCamera& camera, XMFLOAT3& outPoint) noexcept
 {
-	if (!wnd.mouse.IsInWindow())
+	if (!input.hasMousePosition)
 	{
 		return false;
 	}
 
-	const auto mousePos = wnd.mouse.GetPos();
-	const float width = static_cast<float>(std::max(1, wnd.GetWidth()));
-	const float height = static_cast<float>(std::max(1, wnd.GetHeight()));
-	const float ndcX = (static_cast<float>(mousePos.first) / width) * 2.0f - 1.0f;
-	const float ndcY = 1.0f - (static_cast<float>(mousePos.second) / height) * 2.0f;
+	const float width = std::max(1.0f, input.viewportSize.x);
+	const float height = std::max(1.0f, input.viewportSize.y);
+	const float ndcX = (input.mousePosition.x / width) * 2.0f - 1.0f;
+	const float ndcY = 1.0f - (input.mousePosition.y / height) * 2.0f;
 
 	const XMMATRIX viewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
 	const XMMATRIX inverseViewProjection = XMMatrixInverse(nullptr, viewProjection);
