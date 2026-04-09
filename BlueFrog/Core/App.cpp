@@ -5,6 +5,7 @@ App::App()
 	:
 	wnd(800, 600, L"Blue Frog"),
 	renderer(wnd.Gfx()),
+	uiRenderer(wnd.Gfx()),
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
 	BuildArenaScene();
@@ -157,6 +158,7 @@ void App::ComposeFrame()
 	wnd.SetTitle(oss.str());
 
 	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
-	renderer.Render(scene, camera, hudState);
+	renderer.Render(scene, camera);
+	uiRenderer.Render(hudState);
 	wnd.Gfx().EndFrame();
 }

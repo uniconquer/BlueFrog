@@ -2,6 +2,7 @@
 #include "Graphics.h"
 #include "../Engine/Camera/TopDownCamera.h"
 #include "../Engine/Render/ConstantBuffer.h"
+#include "../Engine/Render/FlatColorPipeline.h"
 #include "../Engine/Render/IndexBuffer.h"
 #include "../Engine/Render/InputLayout.h"
 #include "../Engine/Render/PixelShader.h"
@@ -11,7 +12,6 @@
 #include "../Engine/Scene/RenderComponent.h"
 #include "../Engine/Scene/Scene.h"
 #include "../Engine/Scene/Transform.h"
-#include "../Engine/UI/HudState.h"
 #include <DirectXMath.h>
 #include <array>
 
@@ -50,26 +50,19 @@ public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
-	void Render(const Scene& scene, const TopDownCamera& camera, const HudState& hudState) noexcept;
+	void Render(const Scene& scene, const TopDownCamera& camera) noexcept;
 private:
 	void BindSharedState() noexcept;
 	const MeshBuffers& ResolveMesh(RenderMeshType meshType) const noexcept;
 	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
-	void DrawHudQuad(float centerX, float centerY, float width, float height, const DirectX::XMFLOAT3& tint) noexcept;
-	void RenderHud(const HudState& hudState) noexcept;
 	static const std::array<Vertex, 8>& GetCubeVertices() noexcept;
 	static const std::array<unsigned short, 36>& GetCubeIndices() noexcept;
 	static const std::array<Vertex, 4>& GetPlaneVertices() noexcept;
 	static const std::array<unsigned short, 6>& GetPlaneIndices() noexcept;
-	static const std::array<Vertex, 4>& GetHudQuadVertices() noexcept;
-	static const std::array<unsigned short, 6>& GetHudQuadIndices() noexcept;
-	static const std::array<D3D11_INPUT_ELEMENT_DESC, 2>& GetInputLayoutDesc() noexcept;
-	static const char* GetSolidShaderSource() noexcept;
 private:
 	Graphics& gfx;
 	MeshBuffers cubeMesh;
 	MeshBuffers planeMesh;
-	MeshBuffers hudQuadMesh;
 	VertexShader vertexShader;
 	PixelShader pixelShader;
 	InputLayout inputLayout;

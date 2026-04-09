@@ -190,6 +190,7 @@
     <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />
+    <ClInclude Include="Engine\Render\FlatColorPipeline.h" />
     <ClInclude Include="Engine\Render\IndexBuffer.h" />
     <ClInclude Include="Engine\Render\InputLayout.h" />
     <ClInclude Include="Engine\Render\PixelShader.h" />

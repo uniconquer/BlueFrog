@@ -146,6 +146,9 @@
     <ClInclude Include="Engine\Render\ConstantBuffer.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Render\FlatColorPipeline.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Render\IndexBuffer.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>

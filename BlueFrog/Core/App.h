@@ -5,6 +5,7 @@
 #include "../Engine/Camera/TopDownCamera.h"
 #include "../Engine/Scene/Scene.h"
 #include "../Engine/UI/HudState.h"
+#include "../Engine/UI/UIRenderer.h"
 #include "../Game/NPC/SimpleEnemyController.h"
 #include "../Game/Player/PlayerController.h"
 
@@ -23,6 +24,7 @@ private:
 private:
 	Window wnd;
 	Renderer renderer;
+	UIRenderer uiRenderer;
 	TopDownCamera camera;
 	Scene scene;
 	HudState hudState;

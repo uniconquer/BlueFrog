@@ -2,6 +2,7 @@
 
 #include "../../Core/Graphics.h"
 #include "../Render/ConstantBuffer.h"
+#include "../Render/FlatColorPipeline.h"
 #include "../Render/IndexBuffer.h"
 #include "../Render/InputLayout.h"
 #include "../Render/PixelShader.h"
@@ -15,12 +16,6 @@
 
 class UIRenderer
 {
-public:
-	explicit UIRenderer(Graphics& gfx);
-	UIRenderer(const UIRenderer&) = delete;
-	UIRenderer& operator=(const UIRenderer&) = delete;
-	void Render(const HudState& hudState) noexcept;
-	void RenderHealthBar(const HealthBar& bar) noexcept;
 private:
 	struct Vertex
 	{
@@ -50,13 +45,17 @@ private:
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
 	};
+public:
+	explicit UIRenderer(Graphics& gfx);
+	UIRenderer(const UIRenderer&) = delete;
+	UIRenderer& operator=(const UIRenderer&) = delete;
+	void Render(const HudState& hudState) noexcept;
 private:
 	void BindSharedState() noexcept;
-	void DrawQuad(const HealthBar& bar, float ratio) noexcept;
+	void DrawQuad(float centerX, float centerY, float width, float height, const DirectX::XMFLOAT3& tint) noexcept;
+	void DrawBar(const HealthBar& bar) noexcept;
 	static const std::array<Vertex, 4>& GetQuadVertices() noexcept;
 	static const std::array<unsigned short, 6>& GetQuadIndices() noexcept;
-	static const std::array<D3D11_INPUT_ELEMENT_DESC, 2>& GetInputLayoutDesc() noexcept;
-	static const char* GetShaderSource() noexcept;
 private:
 	Graphics& gfx;
 	MeshBuffers quadMesh;
