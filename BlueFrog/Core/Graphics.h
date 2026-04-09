@@ -2,6 +2,7 @@
 #include "BFWin.h"
 #include "BFException.h"
 #include <d3d11.h>
+#include <wrl/client.h>
 
 class Graphics
 {
@@ -25,13 +26,15 @@ public:
 	~Graphics();
 	void BeginFrame(float red, float green, float blue) noexcept;
 	void EndFrame();
+	void DrawIndexed(UINT count) noexcept;
 	ID3D11Device* GetDevice() noexcept;
 	ID3D11DeviceContext* GetContext() noexcept;
 private:
-	ID3D11Device* pDevice = nullptr;
-	IDXGISwapChain* pSwapChain = nullptr;
-	ID3D11DeviceContext* pContext = nullptr;
-	ID3D11RenderTargetView* pRenderTarget = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
+	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView;
 };
 
 #define BFGFX_EXCEPT(hr) Graphics::Exception(__LINE__, __FILE__, hr)

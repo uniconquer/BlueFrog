@@ -16,6 +16,9 @@
     <Filter Include="Dxerr">
       <UniqueIdentifier>{2c397739-383d-451f-bef9-a9bc4a0d96e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\\Render">
+      <UniqueIdentifier>{3f97eb4f-27a7-4bf8-ba4a-6fece42170be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\WinMain.cpp">
@@ -51,6 +54,24 @@
     <ClCompile Include="Core\Dxerr\dxerr.cpp">
       <Filter>Dxerr</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Render\IndexBuffer.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Render\InputLayout.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Render\PixelShader.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Render\Topology.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Render\VertexBuffer.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Render\VertexShader.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\BFWin.h">
@@ -85,6 +106,27 @@
     </ClInclude>
     <ClInclude Include="Core\Dxerr\dxerr.h">
       <Filter>Dxerr</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\ConstantBuffer.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\IndexBuffer.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\InputLayout.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\PixelShader.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\Topology.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\VertexBuffer.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\VertexShader.h">
+      <Filter>Engine\Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

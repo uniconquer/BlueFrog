@@ -1,5 +1,14 @@
 #pragma once
 #include "Graphics.h"
+#include "../Engine/Render/ConstantBuffer.h"
+#include "../Engine/Render/IndexBuffer.h"
+#include "../Engine/Render/InputLayout.h"
+#include "../Engine/Render/PixelShader.h"
+#include "../Engine/Render/Topology.h"
+#include "../Engine/Render/VertexBuffer.h"
+#include "../Engine/Render/VertexShader.h"
+#include <DirectXMath.h>
+#include <array>
 
 class Renderer
 {
@@ -16,35 +25,25 @@ private:
 
 	struct TransformData
 	{
-		float angle;
-		float padding[3];
-	};
-public:
-	class Exception : public BFException
-	{
-	public:
-		Exception(int line, const char* file, HRESULT hr) noexcept;
-		const char* what() const noexcept override;
-		const char* GetType() const noexcept override;
-		static std::string TranslateErrorCode(HRESULT hr) noexcept;
-		HRESULT GetErrorCode() const noexcept;
-		std::string GetErrorString() const noexcept;
-	private:
-		HRESULT hr;
+		DirectX::XMFLOAT4X4 transform;
 	};
 public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
-	~Renderer();
-	void DrawTestTriangle(float angle) noexcept;
+	void DrawTestCube(float angle) noexcept;
+private:
+	static const std::array<Vertex, 8>& GetCubeVertices() noexcept;
+	static const std::array<unsigned short, 36>& GetCubeIndices() noexcept;
+	static const std::array<D3D11_INPUT_ELEMENT_DESC, 2>& GetInputLayoutDesc() noexcept;
+	static const char* GetSolidShaderSource() noexcept;
 private:
 	Graphics& gfx;
-	ID3D11VertexShader* pVertexShader = nullptr;
-	ID3D11PixelShader* pPixelShader = nullptr;
-	ID3D11InputLayout* pInputLayout = nullptr;
-	ID3D11Buffer* pVertexBuffer = nullptr;
-	ID3D11Buffer* pTransformBuffer = nullptr;
+	VertexBuffer vertexBuffer;
+	IndexBuffer indexBuffer;
+	VertexShader vertexShader;
+	PixelShader pixelShader;
+	InputLayout inputLayout;
+	VertexConstantBuffer<TransformData> transformBuffer;
+	Topology topology;
 };
-
-#define BFRENDER_EXCEPT(hr) Renderer::Exception(__LINE__, __FILE__, hr)

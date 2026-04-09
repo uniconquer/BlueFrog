@@ -154,6 +154,12 @@
     <ClCompile Include="Core\BFException.cpp" />
     <ClCompile Include="Core\BFTimer.cpp" />
     <ClCompile Include="Core\Dxerr\dxerr.cpp" />
+    <ClCompile Include="Engine\Render\IndexBuffer.cpp" />
+    <ClCompile Include="Engine\Render\InputLayout.cpp" />
+    <ClCompile Include="Engine\Render\PixelShader.cpp" />
+    <ClCompile Include="Engine\Render\Topology.cpp" />
+    <ClCompile Include="Engine\Render\VertexBuffer.cpp" />
+    <ClCompile Include="Engine\Render\VertexShader.cpp" />
     <ClCompile Include="Core\Graphics.cpp" />
     <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\Mouse.cpp" />
@@ -168,6 +174,13 @@
     <ClInclude Include="Core\BFTimer.h" />
     <ClInclude Include="Core\BFWin.h" />
     <ClInclude Include="Core\Dxerr\dxerr.h" />
+    <ClInclude Include="Engine\Render\ConstantBuffer.h" />
+    <ClInclude Include="Engine\Render\IndexBuffer.h" />
+    <ClInclude Include="Engine\Render\InputLayout.h" />
+    <ClInclude Include="Engine\Render\PixelShader.h" />
+    <ClInclude Include="Engine\Render\Topology.h" />
+    <ClInclude Include="Engine\Render\VertexBuffer.h" />
+    <ClInclude Include="Engine\Render\VertexShader.h" />
     <ClInclude Include="Core\Graphics.h" />
     <ClInclude Include="Core\Keyboard.h" />
     <ClInclude Include="Core\Mouse.h" />

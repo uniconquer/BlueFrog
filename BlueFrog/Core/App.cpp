@@ -43,6 +43,6 @@ void App::ComposeFrame()
 
 	const float blue = sin(simulationTime * 0.7f) * 0.15f + 0.25f;
 	wnd.Gfx().BeginFrame(0.05f, 0.08f, blue);
-	renderer.DrawTestTriangle(simulationTime);
+	renderer.DrawTestCube(simulationTime);
 	wnd.Gfx().EndFrame();
 }

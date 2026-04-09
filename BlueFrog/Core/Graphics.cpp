@@ -1,6 +1,7 @@
 #include "Graphics.h"
 #include "Dxerr/dxerr.h"
 #include <sstream>
+#include <wrl/client.h>
 
 Graphics::Exception::Exception(int line, const char* file, HRESULT hr) noexcept
 	:
@@ -49,30 +50,11 @@ std::string Graphics::Exception::GetErrorString() const noexcept
 	return TranslateErrorCode(hr);
 }
 
-namespace
-{
-	template<class T>
-	void ReleaseCom(T*& pCom) noexcept
-	{
-		if (pCom != nullptr)
-		{
-			pCom->Release();
-			pCom = nullptr;
-		}
-	}
-}
-
 Graphics::Graphics(HWND hWnd)
 {
+	using Microsoft::WRL::ComPtr;
+
 	HRESULT hr;
-	const auto fail = [&](HRESULT failedHr)
-	{
-		ReleaseCom(pRenderTarget);
-		ReleaseCom(pContext);
-		ReleaseCom(pSwapChain);
-		ReleaseCom(pDevice);
-		throw BFGFX_EXCEPT(failedHr);
-	};
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 	swapChainDesc.BufferDesc.Width = 0;
 	swapChainDesc.BufferDesc.Height = 0;
@@ -100,67 +82,91 @@ Graphics::Graphics(HWND hWnd)
 		0, 
 		D3D11_SDK_VERSION, 
 		&swapChainDesc,
-		&pSwapChain, 
-		&pDevice, 
+		pSwapChain.GetAddressOf(), 
+		pDevice.GetAddressOf(), 
 		nullptr, 
-		&pContext
+		pContext.GetAddressOf()
 	)))
 	{
-		fail(hr);
+		throw BFGFX_EXCEPT(hr);
 	}
 
 	// gain access to texture subresource in swap chain (back buffer)
-	ID3D11Resource* pBackBuffer = nullptr;
-	if (FAILED(hr = pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&pBackBuffer))))
+	ComPtr<ID3D11Resource> pBackBuffer;
+	if (FAILED(hr = pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(pBackBuffer.GetAddressOf()))))
 	{
-		fail(hr);
+		throw BFGFX_EXCEPT(hr);
 	}
 
-	if (FAILED(hr = pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTarget)))
+	if (FAILED(hr = pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, pRenderTarget.GetAddressOf())))
 	{
-		pBackBuffer->Release();
-		fail(hr);
+		throw BFGFX_EXCEPT(hr);
 	}
-	pBackBuffer->Release();
-
-	pContext->OMSetRenderTargets(1u, &pRenderTarget, nullptr);
 
 	RECT rect;
 	GetClientRect(hWnd, &rect);
+	const UINT width = static_cast<UINT>(rect.right - rect.left);
+	const UINT height = static_cast<UINT>(rect.bottom - rect.top);
+
+	D3D11_TEXTURE2D_DESC depthDesc = {};
+	depthDesc.Width = width;
+	depthDesc.Height = height;
+	depthDesc.MipLevels = 1u;
+	depthDesc.ArraySize = 1u;
+	depthDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthDesc.SampleDesc.Count = 1u;
+	depthDesc.SampleDesc.Quality = 0u;
+	depthDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+	ComPtr<ID3D11Texture2D> pDepthStencil;
+	if (FAILED(hr = pDevice->CreateTexture2D(&depthDesc, nullptr, pDepthStencil.GetAddressOf())))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
+
+	if (FAILED(hr = pDevice->CreateDepthStencilView(pDepthStencil.Get(), nullptr, pDepthStencilView.GetAddressOf())))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
+
+	ID3D11RenderTargetView* const renderTargets[] = { pRenderTarget.Get() };
+	pContext->OMSetRenderTargets(1u, renderTargets, pDepthStencilView.Get());
+
 	const D3D11_VIEWPORT viewport =
 	{
 		0.0f,
 		0.0f,
-		static_cast<float>(rect.right - rect.left),
-		static_cast<float>(rect.bottom - rect.top),
+		static_cast<float>(width),
+		static_cast<float>(height),
 		0.0f,
 		1.0f
 	};
 	pContext->RSSetViewports(1u, &viewport);
 }
 
-Graphics::~Graphics()
-{
-	ReleaseCom(pRenderTarget);
-	ReleaseCom(pContext);
-	ReleaseCom(pSwapChain);
-	ReleaseCom(pDevice);
-}
+Graphics::~Graphics() = default;
 
 void Graphics::BeginFrame(float red, float green, float blue) noexcept
 {
 	const float color[] = { red, green, blue, 1.0f };
-	pContext->ClearRenderTargetView(pRenderTarget, color);
+	pContext->ClearRenderTargetView(pRenderTarget.Get(), color);
+	pContext->ClearDepthStencilView(pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
 ID3D11Device* Graphics::GetDevice() noexcept
 {
-	return pDevice;
+	return pDevice.Get();
 }
 
 ID3D11DeviceContext* Graphics::GetContext() noexcept
 {
-	return pContext;
+	return pContext.Get();
+}
+
+void Graphics::DrawIndexed(UINT count) noexcept
+{
+	pContext->DrawIndexed(count, 0u, 0);
 }
 
 void Graphics::EndFrame()
