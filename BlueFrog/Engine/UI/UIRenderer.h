@@ -54,6 +54,7 @@ private:
 	void BindSharedState() noexcept;
 	void DrawQuad(float centerX, float centerY, float width, float height, const DirectX::XMFLOAT3& tint) noexcept;
 	void DrawBar(const HealthBar& bar) noexcept;
+	void DrawCrosshair() noexcept;
 	static const std::array<Vertex, 4>& GetQuadVertices() noexcept;
 	static const std::array<unsigned short, 6>& GetQuadIndices() noexcept;
 private:

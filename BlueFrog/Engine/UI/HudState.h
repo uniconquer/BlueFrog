@@ -25,6 +25,5 @@ struct HudState
 	HudMeter targetHealth;
 	float attackCooldown01 = 1.0f;
 	bool hasTarget = false;
-	std::wstring interactionPrompt;
 	std::wstring objectiveText;
 };

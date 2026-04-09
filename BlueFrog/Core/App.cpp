@@ -9,7 +9,7 @@ App::App()
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
 	BuildArenaScene();
-	UpdateHudState();
+	hudState = HudPresenter::Build(scene, playerController);
 }
 
 int App::Go()
@@ -36,7 +36,7 @@ void App::UpdateModel(float dt) noexcept
 	const bool attackQueued = HandleCameraInput(dt);
 	playerController.Update(wnd, scene, camera, dt, attackQueued);
 	enemyController.Update(scene, dt);
-	UpdateHudState();
+	hudState = HudPresenter::Build(scene, playerController);
 }
 
 bool App::HandleCameraInput(float dt) noexcept
@@ -122,28 +122,6 @@ void App::BuildArenaScene()
 	enemy.combatComponent = CombatComponent{ CombatFaction::Enemy, 3, 3 };
 
 	camera.SetTarget(player.transform.position);
-}
-
-void App::UpdateHudState() noexcept
-{
-	hudState = {};
-
-	if (const auto* player = scene.FindObject("Player"); player != nullptr && player->combatComponent.has_value())
-	{
-		hudState.playerHealth.current = static_cast<float>(player->combatComponent->health);
-		hudState.playerHealth.max = static_cast<float>(player->combatComponent->maxHealth);
-	}
-
-	if (const auto* enemy = scene.FindObject("EnemyScout"); enemy != nullptr && enemy->combatComponent.has_value() && enemy->combatComponent->IsAlive())
-	{
-		hudState.hasTarget = true;
-		hudState.targetHealth.current = static_cast<float>(enemy->combatComponent->health);
-		hudState.targetHealth.max = static_cast<float>(enemy->combatComponent->maxHealth);
-	}
-
-	hudState.attackCooldown01 = playerController.GetAttackCooldownProgress01();
-	hudState.interactionPrompt = L"LMB: attack";
-	hudState.objectiveText = hudState.hasTarget ? L"Defeat the scout" : L"Arena cleared";
 }
 
 void App::ComposeFrame()

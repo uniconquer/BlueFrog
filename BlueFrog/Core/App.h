@@ -6,6 +6,7 @@
 #include "../Engine/Scene/Scene.h"
 #include "../Engine/UI/HudState.h"
 #include "../Engine/UI/UIRenderer.h"
+#include "../Game/Hud/HudPresenter.h"
 #include "../Game/NPC/SimpleEnemyController.h"
 #include "../Game/Player/PlayerController.h"
 
@@ -19,7 +20,6 @@ private:
 	void UpdateModel(float dt) noexcept;
 	bool HandleCameraInput(float dt) noexcept;
 	void BuildArenaScene();
-	void UpdateHudState() noexcept;
 	void ComposeFrame();
 private:
 	Window wnd;

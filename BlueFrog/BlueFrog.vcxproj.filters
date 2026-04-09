@@ -40,6 +40,9 @@
     <Filter Include="Engine\\UI">
       <UniqueIdentifier>{0bc68d11-1bba-4b43-81d1-b64272f4626a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\\Hud">
+      <UniqueIdentifier>{a3d8c1eb-c298-4e30-8d4c-5ffbd88d4b2f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\WinMain.cpp">
@@ -188,6 +191,9 @@
     <ClInclude Include="Game\Combat\CombatSystem.h">
       <Filter>Game\Combat</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Hud\HudPresenter.h">
+      <Filter>Game\Hud</Filter>
+    </ClInclude>
     <ClInclude Include="Game\NPC\SimpleEnemyController.h">
       <Filter>Game\NPC</Filter>
     </ClInclude>
@@ -207,6 +213,9 @@
       <Filter>Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Engine\UI\HudState.h">
+      <Filter>Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\UI\UILayout.h">
       <Filter>Engine\UI</Filter>
     </ClInclude>
     <ClInclude Include="Engine\UI\UIRenderer.h">

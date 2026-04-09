@@ -1,4 +1,5 @@
 #include "UIRenderer.h"
+#include "UILayout.h"
 #include <algorithm>
 
 UIRenderer::MeshBuffers::MeshBuffers(Graphics& gfx, const Vertex* vertices, UINT vertexCount, const unsigned short* indices, UINT indexCount)
@@ -90,15 +91,34 @@ void UIRenderer::DrawBar(const HealthBar& bar) noexcept
 	DrawQuad(left + fillWidth * 0.5f, bar.centerY, fillWidth, bar.height, bar.fillTint);
 }
 
+void UIRenderer::DrawCrosshair() noexcept
+{
+	using namespace UiLayout;
+
+	const float armLength = CrosshairLength * 0.5f - CrosshairGap * 0.5f;
+	if (armLength <= 0.0f)
+	{
+		return;
+	}
+
+	const float armOffset = CrosshairGap * 0.5f + armLength * 0.5f;
+	DrawQuad(CrosshairCenterX - armOffset, CrosshairCenterY, armLength, CrosshairThickness, CrosshairTint);
+	DrawQuad(CrosshairCenterX + armOffset, CrosshairCenterY, armLength, CrosshairThickness, CrosshairTint);
+	DrawQuad(CrosshairCenterX, CrosshairCenterY - armOffset, CrosshairThickness, armLength, CrosshairTint);
+	DrawQuad(CrosshairCenterX, CrosshairCenterY + armOffset, CrosshairThickness, armLength, CrosshairTint);
+}
+
 void UIRenderer::Render(const HudState& hudState) noexcept
 {
 	BindSharedState();
 
-	DrawBar(HealthBar{ -0.62f, 0.88f, 0.48f, 0.06f, hudState.playerHealth.Ratio(), { 0.08f, 0.09f, 0.12f }, { 0.18f, 0.84f, 0.36f } });
-	DrawBar(HealthBar{ -0.62f, 0.78f, 0.48f, 0.03f, hudState.attackCooldown01, { 0.08f, 0.09f, 0.12f }, { 0.95f, 0.78f, 0.22f } });
+	DrawBar(UiLayout::MakePlayerHealthBar(hudState.playerHealth.Ratio()));
+	DrawBar(UiLayout::MakeAttackCooldownBar(hudState.attackCooldown01));
 
 	if (hudState.hasTarget)
 	{
-		DrawBar(HealthBar{ 0.00f, 0.88f, 0.42f, 0.06f, hudState.targetHealth.Ratio(), { 0.08f, 0.09f, 0.12f }, { 0.92f, 0.24f, 0.22f } });
+		DrawBar(UiLayout::MakeTargetHealthBar(hudState.targetHealth.Ratio()));
 	}
+
+	DrawCrosshair();
 }
