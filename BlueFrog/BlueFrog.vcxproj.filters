@@ -212,6 +212,9 @@
     <ClInclude Include="Game\Player\PlayerAimSystem.h">
       <Filter>Game\Player</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Player\PlayerMovementSystem.h">
+      <Filter>Game\Player</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>

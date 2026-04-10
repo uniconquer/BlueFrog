@@ -4,49 +4,6 @@
 #include "../Simulation/GameplaySceneIds.h"
 #include "../Combat/CombatSystem.h"
 #include <algorithm>
-#include <cmath>
-
-using namespace DirectX;
-
-namespace
-{
-	XMFLOAT3 MakeMoveVector(float strafe, float forward, const TopDownCamera& camera) noexcept
-	{
-		float x = std::clamp(strafe, -1.0f, 1.0f);
-		float z = std::clamp(forward, -1.0f, 1.0f);
-
-		const XMFLOAT3 cameraTarget = camera.GetTarget();
-		const XMFLOAT3 cameraPos = camera.GetPosition();
-		const float forwardX = cameraTarget.x - cameraPos.x;
-		const float forwardZ = cameraTarget.z - cameraPos.z;
-		const float forwardLength = std::sqrt(forwardX * forwardX + forwardZ * forwardZ);
-
-		if (forwardLength > 0.0001f)
-		{
-			const float normalizedForwardX = forwardX / forwardLength;
-			const float normalizedForwardZ = forwardZ / forwardLength;
-			const float rightX = normalizedForwardZ;
-			const float rightZ = -normalizedForwardX;
-			const float moveX = rightX * x + normalizedForwardX * z;
-			const float moveZ = rightZ * x + normalizedForwardZ * z;
-
-			const float length = std::sqrt(moveX * moveX + moveZ * moveZ);
-			if (length > 0.0f)
-			{
-				return { moveX / length, 0.0f, moveZ / length };
-			}
-		}
-
-		const float length = std::sqrt(x * x + z * z);
-		if (length > 0.0f)
-		{
-			x /= length;
-			z /= length;
-		}
-
-		return { x, 0.0f, z };
-	}
-}
 
 bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
 {
@@ -64,14 +21,14 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		return true;
 	}
 
-	const XMFLOAT3 move = GetMoveVector(input, camera);
-	XMFLOAT3 desiredPosition = player->transform.position;
+	const DirectX::XMFLOAT3 move = PlayerMovementSystem::ComputeMoveVector(input, camera);
+	DirectX::XMFLOAT3 desiredPosition = player->transform.position;
 	desiredPosition.x += move.x * moveSpeed * dt;
 	desiredPosition.z += move.z * moveSpeed * dt;
 	desiredPosition.y = playerHeight;
 	CollisionSystem::MoveAndSlide(*player, scene, desiredPosition);
 
-	XMFLOAT3 mouseGroundPoint = player->transform.position;
+	DirectX::XMFLOAT3 mouseGroundPoint = player->transform.position;
 	if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, playerHeight, mouseGroundPoint))
 	{
 		player->transform.rotation.y = PlayerAimSystem::ComputeYawRadians(player->transform.position, mouseGroundPoint);
@@ -100,11 +57,6 @@ float PlayerController::GetAttackCooldownProgress01() const noexcept
 SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 {
 	return scene.FindObject(GameplaySceneIds::Player);
-}
-
-XMFLOAT3 PlayerController::GetMoveVector(const GameplayInput& input, const TopDownCamera& camera) noexcept
-{
-	return MakeMoveVector(input.movementIntent.x, input.movementIntent.y, camera);
 }
 
 bool PlayerController::TryAttack(Scene& scene, SceneObject& player) noexcept

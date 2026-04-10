@@ -1,6 +1,7 @@
 #pragma once
 #include "../../Engine/Camera/TopDownCamera.h"
 #include "../../Engine/Scene/Scene.h"
+#include "PlayerMovementSystem.h"
 #include "../Simulation/GameplayInput.h"
 
 class PlayerController
@@ -10,7 +11,6 @@ public:
 	float GetAttackCooldownProgress01() const noexcept;
 private:
 	SceneObject* FindPlayer(Scene& scene) noexcept;
-	static DirectX::XMFLOAT3 GetMoveVector(const GameplayInput& input, const TopDownCamera& camera) noexcept;
 	bool TryAttack(Scene& scene, SceneObject& player) noexcept;
 	void UpdateTint(SceneObject& player) const noexcept;
 private:

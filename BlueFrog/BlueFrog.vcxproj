@@ -197,6 +197,7 @@
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
     <ClInclude Include="Game\Player\PlayerAimSystem.h" />
+    <ClInclude Include="Game\Player\PlayerMovementSystem.h" />
     <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h" />
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h" />
     <ClInclude Include="Game\Simulation\GameplayCameraSystem.h" />
