@@ -6,7 +6,7 @@
 class GameplayCameraSystem final
 {
 public:
-	void Apply(const GameplayInput& input, TopDownCamera& camera) noexcept
+	void ApplyInput(const GameplayInput& input, TopDownCamera& camera) noexcept
 	{
 		if (input.orbitDelta != 0.0f)
 		{
@@ -17,5 +17,10 @@ public:
 		{
 			camera.AdjustZoom(input.zoomDelta);
 		}
+	}
+
+	void FollowTarget(const DirectX::XMFLOAT3& target, TopDownCamera& camera) noexcept
+	{
+		camera.SetTarget(target);
 	}
 };

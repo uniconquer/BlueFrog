@@ -8,8 +8,12 @@ void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera) noexcep
 
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
 {
-	cameraSystem.Apply(input, camera);
+	cameraSystem.ApplyInput(input, camera);
 	playerSystem.Update(input, scene, camera, dt);
+	if (SceneObject* player = scene.FindObject("Player"))
+	{
+		cameraSystem.FollowTarget(player->transform.position, camera);
+	}
 	enemySystem.Update(scene, dt);
 	return BuildHudState(scene);
 }

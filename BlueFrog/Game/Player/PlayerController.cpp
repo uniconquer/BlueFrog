@@ -59,7 +59,6 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	if (!player->combatComponent->IsAlive())
 	{
 		UpdateTint(*player);
-		camera.SetTarget(player->transform.position);
 		return true;
 	}
 
@@ -83,7 +82,6 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	}
 
 	UpdateTint(*player);
-	camera.SetTarget(player->transform.position);
 	return true;
 }
 
