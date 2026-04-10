@@ -206,6 +206,9 @@
     <ClInclude Include="Game\Player\PlayerController.h">
       <Filter>Game\Player</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h">
+      <Filter>Game\Simulation</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Simulation\GameplayInput.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>

@@ -195,6 +195,7 @@
     <ClInclude Include="Game\Hud\HudPresenter.h" />
     <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
+    <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h" />
     <ClInclude Include="Game\Simulation\GameplayInput.h" />
     <ClInclude Include="Game\Simulation\GameplaySimulation.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />

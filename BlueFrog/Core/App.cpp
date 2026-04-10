@@ -1,5 +1,4 @@
 #include "App.h"
-#include <sstream>
 
 App::App()
 	:
@@ -86,14 +85,7 @@ GameplayInput App::CollectGameplayInput(float dt) noexcept
 
 void App::ComposeFrame()
 {
-	std::wostringstream oss;
-	oss << L"Blue Frog | HP " << static_cast<int>(hudState.playerHealth.current) << L"/" << static_cast<int>(hudState.playerHealth.max);
-	if (hudState.hasTarget)
-	{
-		oss << L" | Enemy " << static_cast<int>(hudState.targetHealth.current) << L"/" << static_cast<int>(hudState.targetHealth.max);
-	}
-	oss << L" | " << hudState.objectiveText << L" | Q/E: orbit | Wheel: zoom";
-	wnd.SetTitle(oss.str());
+	wnd.SetTitle(GameplaySimulation::BuildWindowTitle(hudState));
 
 	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
 	renderer.Render(scene, camera);

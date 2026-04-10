@@ -35,15 +35,11 @@ HudState GameplaySimulation::BuildHudState(const Scene& scene) const noexcept
 std::wstring GameplaySimulation::BuildWindowTitle(const HudState& hudState) noexcept
 {
 	std::wostringstream oss;
-	oss << L"Blue Frog | HP " << static_cast<int>(hudState.playerHealth.current)
-		<< L"/" << static_cast<int>(hudState.playerHealth.max);
-
+	oss << L"Blue Frog | HP " << static_cast<int>(hudState.playerHealth.current) << L"/" << static_cast<int>(hudState.playerHealth.max);
 	if (hudState.hasTarget)
 	{
-		oss << L" | Enemy " << static_cast<int>(hudState.targetHealth.current)
-			<< L"/" << static_cast<int>(hudState.targetHealth.max);
+		oss << L" | Enemy " << static_cast<int>(hudState.targetHealth.current) << L"/" << static_cast<int>(hudState.targetHealth.max);
 	}
-
 	oss << L" | " << hudState.objectiveText << L" | Q/E: orbit | Wheel: zoom";
 	return oss.str();
 }
