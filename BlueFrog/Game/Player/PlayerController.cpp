@@ -1,5 +1,6 @@
 #include "PlayerController.h"
 #include "../../Engine/Physics/CollisionSystem.h"
+#include "PlayerAimSystem.h"
 #include "../Simulation/GameplaySceneIds.h"
 #include "../Combat/CombatSystem.h"
 #include <algorithm>
@@ -71,9 +72,9 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	CollisionSystem::MoveAndSlide(*player, scene, desiredPosition);
 
 	XMFLOAT3 mouseGroundPoint = player->transform.position;
-	if (ComputeMouseGroundPoint(input, camera, mouseGroundPoint))
+	if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, playerHeight, mouseGroundPoint))
 	{
-		player->transform.rotation.y = ComputePlayerYawRadians(player->transform.position, mouseGroundPoint);
+		player->transform.rotation.y = PlayerAimSystem::ComputeYawRadians(player->transform.position, mouseGroundPoint);
 	}
 
 	if (input.attackQueued && attackCooldownRemaining <= 0.0f)
@@ -104,42 +105,6 @@ SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 XMFLOAT3 PlayerController::GetMoveVector(const GameplayInput& input, const TopDownCamera& camera) noexcept
 {
 	return MakeMoveVector(input.movementIntent.x, input.movementIntent.y, camera);
-}
-
-bool PlayerController::ComputeMouseGroundPoint(const GameplayInput& input, const TopDownCamera& camera, XMFLOAT3& outPoint) noexcept
-{
-	if (!input.hasMousePosition)
-	{
-		return false;
-	}
-
-	const float width = std::max(1.0f, input.viewportSize.x);
-	const float height = std::max(1.0f, input.viewportSize.y);
-	const float ndcX = (input.mousePosition.x / width) * 2.0f - 1.0f;
-	const float ndcY = 1.0f - (input.mousePosition.y / height) * 2.0f;
-
-	const XMMATRIX viewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
-	const XMMATRIX inverseViewProjection = XMMatrixInverse(nullptr, viewProjection);
-
-	const XMVECTOR nearPoint = XMVector3TransformCoord(XMVectorSet(ndcX, ndcY, 0.0f, 1.0f), inverseViewProjection);
-	const XMVECTOR farPoint = XMVector3TransformCoord(XMVectorSet(ndcX, ndcY, 1.0f, 1.0f), inverseViewProjection);
-	const XMVECTOR ray = XMVectorSubtract(farPoint, nearPoint);
-	const float rayY = XMVectorGetY(ray);
-	if (std::fabs(rayY) < 0.0001f)
-	{
-		return false;
-	}
-
-	const float t = -XMVectorGetY(nearPoint) / rayY;
-	if (t < 0.0f)
-	{
-		return false;
-	}
-
-	const XMVECTOR worldPoint = XMVectorAdd(nearPoint, XMVectorScale(ray, t));
-	XMStoreFloat3(&outPoint, worldPoint);
-	outPoint.y = playerHeight;
-	return true;
 }
 
 bool PlayerController::TryAttack(Scene& scene, SceneObject& player) noexcept
@@ -173,16 +138,4 @@ void PlayerController::UpdateTint(SceneObject& player) const noexcept
 		0.72f + healthRatio * 0.20f,
 		0.30f + healthRatio * 0.25f
 	};
-}
-
-float PlayerController::ComputePlayerYawRadians(const XMFLOAT3& from, const XMFLOAT3& to) noexcept
-{
-	const float dx = to.x - from.x;
-	const float dz = to.z - from.z;
-	if (std::fabs(dx) < 0.0001f && std::fabs(dz) < 0.0001f)
-	{
-		return 0.0f;
-	}
-
-	return std::atan2(dx, dz);
 }
