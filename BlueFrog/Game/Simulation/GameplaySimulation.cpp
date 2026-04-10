@@ -4,7 +4,6 @@
 #include "../../Engine/Scene/RenderComponent.h"
 #include "../../Engine/Scene/SceneObject.h"
 #include <DirectXMath.h>
-#include <algorithm>
 
 void GameplaySimulation::ApplyCameraInput(const GameplayInput& input, TopDownCamera& camera) noexcept
 {

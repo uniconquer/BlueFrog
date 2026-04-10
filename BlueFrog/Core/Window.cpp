@@ -1,4 +1,4 @@
-#include "Window.h"
+癤�#include "Window.h"
 #include <sstream>
 //#include "../resource.h"
 
@@ -19,7 +19,7 @@ Window::WindowClass::WindowClass() noexcept
 	:
 	hInst(GetModuleHandle(nullptr))
 {
-	// 윈도우 클래스 등록
+	// Register the window class used by the app.
 	WNDCLASSEX wc = { 0 };
 	wc.cbSize = sizeof(wc);
 	wc.style = CS_OWNDC;
@@ -58,7 +58,7 @@ Window::Window(int width, int height, const WCHAR* name)
 		throw BFWND_LAST_EXCEPT();
 	}
 
-	// 윈도우 생성 및 hWnd를 얻음
+	// Create the window and store its HWND.
 	hWnd = CreateWindow(WindowClass::GetName(), name,
 		WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top,
@@ -112,28 +112,28 @@ Graphics& Window::Gfx()
 
 LRESULT CALLBACK Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
-	// CreateWindow()에서 전달된 create 매개 변수를 사용하여 WinAPI로 윈도우 클래스 포인터를 저장
+	// During window creation, stash the Window instance pointer in user data.
 	if (msg == WM_NCCREATE)
 	{
-		// 생성된 데이터에서 윈도우 클래스의 포인터를 추출
+		// Extract the Window instance pointer from the creation payload.
 		const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
 		Window* const pWnd = static_cast<Window*>(pCreate->lpCreateParams);
-		// 포인터를 윈도우 인스턴스에 저장하도록 WinAPI가 관리하는 유저 데이터 설정
+		// Store the instance pointer in Win32-managed user data.
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
-		// 설정이 완료되었으므로 메시지 프로시져를 일반(비설정) 핸들러로 설정
+		// Once setup is done, switch to the regular message thunk.
 		SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Window::HandleMsgThunk));
-		// 윈도우 인스턴스 핸들러로 메시지를 전달
+		// Forward the message to the instance handler.
 		return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 	}
-	// WM_NCCREATE 메시지 이전에 메시지가 표시되면 기본 핸들러로 처리
+	// Before WM_NCCREATE, fall back to the default window procedure.
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
 LRESULT CALLBACK Window::HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
-	// 포인터를 윈도우 인스턴스로 검색
+	// Recover the Window instance pointer from user data.
 	Window* const pWnd = reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-	// 윈도우 인스턴스 핸들러로 메시지를 전달
+	// Forward the message to the instance handler.
 	return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
 
@@ -144,13 +144,13 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
-		// 윈도우가 포커스를 잃었을 때 키 상태 지운다. 입력을 할 수 없는 상태를 방지
+		// Clear keyboard state on focus loss to avoid stuck input.
 	case WM_KILLFOCUS:
 		kbd.ClearState();
 		break;
 		/*********** KEYBOARD MESSAGES ***********/
 	case WM_KEYDOWN:
-		// ALT 키(VK_MENU) 및 F10을 추적하려면 syskey 명령을 처리해야 함
+		// Handle system key messages so Alt and F10 stay tracked.
 	case WM_SYSKEYDOWN:
 		if (!(lParam & 0x40000000) || kbd.AutorepeatIsEnabled()) // filter autorepeat
 		{
@@ -212,7 +212,7 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	{
 		const POINTS pt = MAKEPOINTS(lParam);
 		mouse.OnLeftReleased(pt.x, pt.y);
-		// 윈도우 밖이면 마우스를 놓아준다.
+		// Release capture if the button is released outside the client area.
 		if (pt.x < 0 || pt.x >= width || pt.y < 0 || pt.y >= height)
 		{
 			ReleaseCapture();
@@ -224,7 +224,7 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	{
 		const POINTS pt = MAKEPOINTS(lParam);
 		mouse.OnRightReleased(pt.x, pt.y);
-		// 윈도우 밖이면 마우스를 놓아준다.
+		// Release capture if the button is released outside the client area.
 		if (pt.x < 0 || pt.x >= width || pt.y < 0 || pt.y >= height)
 		{
 			ReleaseCapture();
@@ -272,7 +272,7 @@ const char* Window::Exception::GetType() const noexcept
 std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
 {
 	LPSTR pMsgBuf = nullptr;
-	// 윈도우는 에러 문자열에 메모리를 할당하고 포인터가 그 메모리를 가리키도록 한다.
+	// Windows allocates the error string buffer and returns it through the pointer.
 	const DWORD nMsgLen = FormatMessageA(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER |
 		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,

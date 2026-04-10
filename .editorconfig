@@ -1,0 +1,14 @@
+root = true
+
+[*.{cpp,h,hpp,inl,md,txt,vcxproj,filters,sln}]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+
+[*.{cpp,h,hpp,inl}]
+indent_style = tab
+tab_width = 4
+
+[*.{md,txt,vcxproj,filters,sln}]
+indent_style = space
+indent_size = 2
