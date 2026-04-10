@@ -10,11 +10,8 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 {
 	cameraSystem.ApplyInput(input, camera);
 	playerSystem.Update(input, scene, camera, dt);
-	if (SceneObject* player = scene.FindObject("Player"))
-	{
-		cameraSystem.FollowTarget(player->transform.position, camera);
-	}
 	enemySystem.Update(scene, dt);
+	cameraSystem.FollowPlayer(scene, camera);
 	return BuildHudState(scene);
 }
 

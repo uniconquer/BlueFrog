@@ -218,6 +218,9 @@
     <ClInclude Include="Game\Simulation\GameplayInput.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Simulation\GameplaySceneIds.h">
+      <Filter>Game\Simulation</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Simulation\GameplaySimulation.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>

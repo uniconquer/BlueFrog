@@ -1,5 +1,6 @@
 #include "PlayerController.h"
 #include "../../Engine/Physics/CollisionSystem.h"
+#include "../Simulation/GameplaySceneIds.h"
 #include "../Combat/CombatSystem.h"
 #include <algorithm>
 #include <cmath>
@@ -97,7 +98,7 @@ float PlayerController::GetAttackCooldownProgress01() const noexcept
 
 SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 {
-	return scene.FindObject("Player");
+	return scene.FindObject(GameplaySceneIds::Player);
 }
 
 XMFLOAT3 PlayerController::GetMoveVector(const GameplayInput& input, const TopDownCamera& camera) noexcept
@@ -143,7 +144,7 @@ bool PlayerController::ComputeMouseGroundPoint(const GameplayInput& input, const
 
 bool PlayerController::TryAttack(Scene& scene, SceneObject& player) noexcept
 {
-	if (SceneObject* enemy = scene.FindObject("EnemyScout"))
+	if (SceneObject* enemy = scene.FindObject(GameplaySceneIds::EnemyScout))
 	{
 		return CombatSystem::TryMeleeAttack(player, *enemy, attackDamage, attackRange);
 	}

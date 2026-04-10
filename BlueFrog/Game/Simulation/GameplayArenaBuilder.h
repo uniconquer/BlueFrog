@@ -6,7 +6,9 @@
 #include "../../Engine/Scene/CombatComponent.h"
 #include "../../Engine/Scene/RenderComponent.h"
 #include "../../Engine/Scene/SceneObject.h"
+#include "GameplaySceneIds.h"
 #include <DirectXMath.h>
+#include <string>
 
 class GameplayArenaBuilder final
 {
@@ -23,9 +25,9 @@ private:
 
 		scene.Clear();
 
-		const auto createRenderable = [&](const char* name, const XMFLOAT3& position, const XMFLOAT3& scale, RenderMeshType meshType, const XMFLOAT3& tint) -> SceneObject&
+		const auto createRenderable = [&](std::string_view name, const XMFLOAT3& position, const XMFLOAT3& scale, RenderMeshType meshType, const XMFLOAT3& tint) -> SceneObject&
 		{
-			auto& object = scene.CreateObject(name);
+			auto& object = scene.CreateObject(std::string(name));
 			object.transform.position = position;
 			object.transform.scale = scale;
 			object.renderComponent = RenderComponent{ meshType, tint };
@@ -55,12 +57,12 @@ private:
 		attachBlocker(pillarA, { 0.8f, 0.8f });
 		attachBlocker(pillarB, { 0.8f, 0.8f });
 
-		auto& player = createRenderable("Player", { -4.0f, 1.25f, 0.0f }, { 0.7f, 1.25f, 0.7f }, RenderMeshType::Cube, { 0.82f, 1.0f, 0.55f });
+		auto& player = createRenderable(GameplaySceneIds::Player, { -4.0f, 1.25f, 0.0f }, { 0.7f, 1.25f, 0.7f }, RenderMeshType::Cube, { 0.82f, 1.0f, 0.55f });
 		player.transform.rotation = { 0.0f, DirectX::XM_PIDIV2, 0.0f };
 		player.collisionComponent = CollisionComponent{ { 0.45f, 0.45f }, true };
 		player.combatComponent = CombatComponent{ CombatFaction::Player, 5, 5 };
 
-		auto& enemy = createRenderable("EnemyScout", { 3.8f, 1.0f, -3.8f }, { 0.75f, 1.0f, 0.75f }, RenderMeshType::Cube, { 0.92f, 0.36f, 0.36f });
+		auto& enemy = createRenderable(GameplaySceneIds::EnemyScout, { 3.8f, 1.0f, -3.8f }, { 0.75f, 1.0f, 0.75f }, RenderMeshType::Cube, { 0.92f, 0.36f, 0.36f });
 		enemy.collisionComponent = CollisionComponent{ { 0.5f, 0.5f }, true };
 		enemy.combatComponent = CombatComponent{ CombatFaction::Enemy, 3, 3 };
 

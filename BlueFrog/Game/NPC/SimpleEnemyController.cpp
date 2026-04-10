@@ -1,6 +1,7 @@
 #include "SimpleEnemyController.h"
 #include "../../Engine/Physics/CollisionSystem.h"
 #include "../Combat/CombatSystem.h"
+#include "../Simulation/GameplaySceneIds.h"
 #include <algorithm>
 #include <cmath>
 
@@ -10,7 +11,7 @@ void SimpleEnemyController::Update(Scene& scene, float dt) noexcept
 {
 	attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
 
-	SceneObject* player = scene.FindObject("Player");
+	SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 	SceneObject* enemy = FindEnemy(scene);
 	if (player == nullptr || enemy == nullptr || !player->combatComponent.has_value() || !enemy->combatComponent.has_value())
 	{
@@ -61,7 +62,7 @@ void SimpleEnemyController::Update(Scene& scene, float dt) noexcept
 
 SceneObject* SimpleEnemyController::FindEnemy(Scene& scene) noexcept
 {
-	return scene.FindObject("EnemyScout");
+	return scene.FindObject(GameplaySceneIds::EnemyScout);
 }
 
 float SimpleEnemyController::ComputeYawRadians(const XMFLOAT3& from, const XMFLOAT3& to) noexcept

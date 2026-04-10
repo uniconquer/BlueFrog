@@ -199,6 +199,7 @@
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h" />
     <ClInclude Include="Game\Simulation\GameplayCameraSystem.h" />
     <ClInclude Include="Game\Simulation\GameplayInput.h" />
+    <ClInclude Include="Game\Simulation\GameplaySceneIds.h" />
     <ClInclude Include="Game\Simulation\GameplaySimulation.h" />
     <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />

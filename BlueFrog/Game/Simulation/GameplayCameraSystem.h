@@ -1,7 +1,9 @@
 #pragma once
 
 #include "../../Engine/Camera/TopDownCamera.h"
+#include "../../Engine/Scene/Scene.h"
 #include "GameplayInput.h"
+#include "GameplaySceneIds.h"
 
 class GameplayCameraSystem final
 {
@@ -19,8 +21,11 @@ public:
 		}
 	}
 
-	void FollowTarget(const DirectX::XMFLOAT3& target, TopDownCamera& camera) noexcept
+	void FollowPlayer(const Scene& scene, TopDownCamera& camera) noexcept
 	{
-		camera.SetTarget(target);
+		if (const SceneObject* player = scene.FindObject(GameplaySceneIds::Player))
+		{
+			camera.SetTarget(player->transform.position);
+		}
 	}
 };
