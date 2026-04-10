@@ -212,6 +212,9 @@
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Simulation\GameplayCameraSystem.h">
+      <Filter>Game\Simulation</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Simulation\GameplayInput.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>

@@ -3,6 +3,7 @@
 #include "../../Engine/Camera/TopDownCamera.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/UI/HudState.h"
+#include "GameplayCameraSystem.h"
 #include "EnemyGameplaySystem.h"
 #include "GameplayInput.h"
 #include "GameplayArenaBuilder.h"
@@ -17,7 +18,7 @@ public:
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
 private:
-	static void ApplyCameraInput(const GameplayInput& input, TopDownCamera& camera) noexcept;
+	GameplayCameraSystem cameraSystem;
 	PlayerGameplaySystem playerSystem;
 	EnemyGameplaySystem enemySystem;
 };

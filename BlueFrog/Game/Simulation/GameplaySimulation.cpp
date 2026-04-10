@@ -1,19 +1,6 @@
 #include "GameplaySimulation.h"
 #include <sstream>
 
-void GameplaySimulation::ApplyCameraInput(const GameplayInput& input, TopDownCamera& camera) noexcept
-{
-	if (input.orbitDelta != 0.0f)
-	{
-		camera.RotateAroundTarget(input.orbitDelta);
-	}
-
-	if (input.zoomDelta != 0.0f)
-	{
-		camera.AdjustZoom(input.zoomDelta);
-	}
-}
-
 void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera) noexcept
 {
 	GameplayArenaBuilder::Build(scene, camera);
@@ -21,7 +8,7 @@ void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera) noexcep
 
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
 {
-	ApplyCameraInput(input, camera);
+	cameraSystem.Apply(input, camera);
 	playerSystem.Update(input, scene, camera, dt);
 	enemySystem.Update(scene, dt);
 	return BuildHudState(scene);
