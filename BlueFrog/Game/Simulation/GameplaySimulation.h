@@ -3,11 +3,10 @@
 #include "../../Engine/Camera/TopDownCamera.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/UI/HudState.h"
+#include "EnemyGameplaySystem.h"
 #include "GameplayInput.h"
 #include "GameplayArenaBuilder.h"
-#include "../Hud/HudPresenter.h"
-#include "../NPC/SimpleEnemyController.h"
-#include "../Player/PlayerController.h"
+#include "PlayerGameplaySystem.h"
 #include <string>
 
 class GameplaySimulation final
@@ -19,6 +18,6 @@ public:
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
 private:
 	static void ApplyCameraInput(const GameplayInput& input, TopDownCamera& camera) noexcept;
-	PlayerController playerController;
-	SimpleEnemyController enemyController;
+	PlayerGameplaySystem playerSystem;
+	EnemyGameplaySystem enemySystem;
 };

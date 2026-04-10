@@ -22,14 +22,14 @@ void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera) noexcep
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
 {
 	ApplyCameraInput(input, camera);
-	playerController.Update(input, scene, camera, dt);
-	enemyController.Update(scene, dt);
+	playerSystem.Update(input, scene, camera, dt);
+	enemySystem.Update(scene, dt);
 	return BuildHudState(scene);
 }
 
 HudState GameplaySimulation::BuildHudState(const Scene& scene) const noexcept
 {
-	return HudPresenter::Build(scene, playerController);
+	return playerSystem.BuildHudState(scene);
 }
 
 std::wstring GameplaySimulation::BuildWindowTitle(const HudState& hudState) noexcept

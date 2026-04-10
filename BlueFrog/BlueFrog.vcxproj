@@ -195,9 +195,11 @@
     <ClInclude Include="Game\Hud\HudPresenter.h" />
     <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
+    <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h" />
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h" />
     <ClInclude Include="Game\Simulation\GameplayInput.h" />
     <ClInclude Include="Game\Simulation\GameplaySimulation.h" />
+    <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />
     <ClInclude Include="Engine\Render\FlatColorPipeline.h" />
     <ClInclude Include="Engine\Render\IndexBuffer.h" />

@@ -206,6 +206,9 @@
     <ClInclude Include="Game\Player\PlayerController.h">
       <Filter>Game\Player</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h">
+      <Filter>Game\Simulation</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>
@@ -213,6 +216,9 @@
       <Filter>Game\Simulation</Filter>
     </ClInclude>
     <ClInclude Include="Game\Simulation\GameplaySimulation.h">
+      <Filter>Game\Simulation</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\Transform.h">
