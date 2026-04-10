@@ -1,8 +1,12 @@
 # Engine Extension Plan
 
+> ⚠ **이 문서는 초기 엔진 확장 설계안의 히스토리 기록이다.** 아래 "권장 마일스톤" Milestone 1–5는 이미 모두 완료된 상태다.
+> - 단기 실행 현황과 Phase 4 예고는 [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)를 본다.
+> - 장기 컴포넌트/시스템 전환은 [GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md)를 본다.
+
 For the short-term runtime structure shift toward `GameObject + Component`, also see `GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md`.
 
-단기 실행 순서와 완료 기준은 [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)를 기준으로 본다. 이 문서는 중장기 확장 방향을 설명하고, 실제 다음 작업 선택은 상세 실행 계획 문서를 우선한다.
+이 문서 본문은 초기 설계 의도를 그대로 남겨 두고, 아래 내용은 참고용으로만 읽는다.
 
 ## 목표
 
@@ -95,7 +99,7 @@ while (running)
 
 ## 권장 마일스톤
 
-### Milestone 1: 렌더 루프 정리
+### Milestone 1: 렌더 루프 정리 (완료)
 
 - `Graphics::BeginFrame()` 추가
 - `App::DoFrame()`에서 렌더 단계와 업데이트 단계를 분리
@@ -105,7 +109,7 @@ while (running)
 - 현재 배경색 애니메이션 유지
 - `BeginFrame -> EndFrame` 구조 확립
 
-### Milestone 2: 첫 번째 도형 렌더링
+### Milestone 2: 첫 번째 도형 렌더링 (완료)
 
 - 정점 셰이더/픽셀 셰이더 추가
 - 입력 레이아웃, 버텍스 버퍼, 토폴로지 설정
@@ -114,7 +118,7 @@ while (running)
 완료 기준:
 - Clear만 하던 화면 대신 실제 지오메트리 1개가 그려짐
 
-### Milestone 3: 카메라와 변환
+### Milestone 3: 카메라와 변환 (완료)
 
 - `Transform`과 행렬 유틸 추가
 - 월드/뷰/프로젝션 상수 버퍼 도입
@@ -123,7 +127,7 @@ while (running)
 완료 기준:
 - 키보드/마우스로 카메라 또는 오브젝트를 움직일 수 있음
 
-### Milestone 4: 리소스 추상화
+### Milestone 4: 리소스 추상화 (완료)
 
 - 셰이더/버퍼 생성 코드 래핑
 - 중복 Direct3D 상태 설정 제거
@@ -132,7 +136,7 @@ while (running)
 완료 기준:
 - D3D API 호출이 앱 전역에 흩어지지 않고 렌더 계층으로 모임
 
-### Milestone 5: 씬 구조와 자산 진입점
+### Milestone 5: 씬 구조와 자산 진입점 (완료)
 
 - `Scene`과 `Entity` 또는 `SceneNode` 추가
 - 간단한 메시 로더 또는 하드코딩 메시 지원
@@ -179,12 +183,11 @@ BlueFrog/Core/
 - 입력 이벤트 큐가 클릭/휠 좌표를 올바르게 유지하는지 확인
 - 렌더 초기화 이후 삼각형 테스트 씬을 자동 회전시켜 기본 렌더 경로 검증
 
-## 추천 다음 작업
+## 다음 방향
 
-가장 좋은 다음 커밋은 아래 순서입니다.
+초기 마일스톤 1–5는 모두 완료됐다. 이 문서에서 제시했던 `BeginFrame()` 도입, 첫 도형 렌더링, `Renderer` 분리 작업은 이미 커밋되어 있으며, 이후에는 `Engine/Render/` 리소스 래퍼와 `GameplaySimulation` 시스템 추출까지 이어졌다.
 
-1. `Graphics::BeginFrame()` 추가
-2. 삼각형 렌더링에 필요한 셰이더와 버텍스 버퍼 추가
-3. `Renderer` 클래스로 draw 호출 분리
+이후 작업 방향은 아래 문서를 우선한다.
 
-이 순서로 가면 지금 구조를 망가뜨리지 않고도 엔진다운 형태로 자연스럽게 확장할 수 있습니다.
+- 단기 실행 현황과 Phase 4 예고: [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)
+- 장기 컴포넌트/시스템 전환: [GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md)

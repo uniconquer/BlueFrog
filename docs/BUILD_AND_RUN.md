@@ -35,10 +35,12 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBu
 
 정상 실행되면 다음 동작을 확인할 수 있습니다.
 
-- `Blue Frog`라는 제목의 창이 열린다.
-- 제목 표시줄에 경과 시간과 프레임 시간이 실시간으로 표시된다.
-- 회전하는 컬러 삼각형이 렌더링된다.
-- 배경색이 시간에 따라 천천히 변화한다.
+- `Blue Frog`라는 제목의 창이 열리고, 제목 표시줄에는 플레이어 체력과 타깃/목표 텍스트가 표시된다.
+- 탑다운 카메라로 바라본 작은 아레나가 렌더링된다. 바닥 평면(`Ground`), 중앙 `ShrineCore`, 사방 벽(`NorthWall`/`SouthWall`/`EastWall`/`WestWall`), 기둥 2개(`PillarA`/`PillarB`)가 배치돼 있다.
+- 연두색 큐브의 `Player`와 붉은색 큐브의 `EnemyScout` 1명이 아레나에 배치된다.
+- `WASD`로 카메라 기준 이동, 마우스로 조준, 좌클릭으로 근접 공격이 가능하다.
+- `Q`/`E`로 카메라 공전, 마우스 휠로 줌 인·아웃이 가능하다.
+- 체력 바, 공격 쿨다운, 크로스헤어 등의 HUD가 직교 투영으로 화면에 오버레이된다.
 
 ## 트러블슈팅
 

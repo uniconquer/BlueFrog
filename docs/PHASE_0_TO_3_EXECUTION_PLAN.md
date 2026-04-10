@@ -4,15 +4,17 @@
 
 이 문서는 BlueFrog를 "DX11 학습용 샘플"에서 "탑다운 판타지 액션 RPG를 만들기 위한 전용 엔진"으로 발전시키기 위한 단기 실행 계획서다. 목표는 Unity 같은 범용 엔진을 흉내 내는 것이 아니라, 현재 목표 게임을 안정적으로 만들 수 있는 런타임과 제작 기반을 먼저 확보하는 것이다.
 
-## 현재 상태
+## 현재 상태 (Phase 0–3 완료 스냅샷, 2026-04-10 기준)
 
-- Win32 창 생성, 메시지 루프, 입력 큐, 타이머 구현 완료
-- DX11 디바이스/스왑체인/렌더 타깃 초기화 완료
-- `Graphics`와 `Renderer`가 분리된 최소 렌더 구조 확보
-- 런타임 셰이더 컴파일 기반 테스트 삼각형 렌더링 가능
-- `v143` 기본 빌드와 실행 검증 완료
+Phase 0–3 실행이 모두 끝났고, 이후 Codex 세션에서 게임플레이 시스템 추출 리팩터까지 들어간 상태다.
 
-즉, 지금부터의 핵심은 "렌더러 데모를 엔진 기초로 승격"하는 것이다.
+- **Phase 0**: 문서/디렉터리 정책이 확립되고 `Core`/`Engine`/`Game` 경계가 고정됐다.
+- **Phase 1**: depth stencil, indexed draw, 렌더 리소스 래퍼(`Engine/Render/`)가 분리됐고 `Renderer`가 실제 draw 경로를 소유한다.
+- **Phase 2**: `Engine/Camera/TopDownCamera`, `Engine/Scene/SceneObject`/`Scene`/`Transform`, 테스트 아레나(바닥·벽·기둥·신전)가 구성됐다.
+- **Phase 3**: `PlayerController`, `SimpleEnemyController`, `CombatSystem`, `CollisionSystem`, `HudState` + `UIRenderer` 기반 HUD가 동작한다.
+- **리팩터 이후**: `GameplaySimulation` 경계, `GameplayArenaBuilder`, `GameplayCameraSystem`, `PlayerGameplaySystem`, `EnemyGameplaySystem`, `GameplaySceneIds`, `PlayerMovementSystem`/`PlayerAimSystem`, `EnemyScoutBehavior` 등이 도입돼 `App`은 얇은 프레임 오케스트레이터로 정리됐다.
+
+이 문서는 이제 "실행 가이드"가 아니라 **완료 스냅샷과 Phase 4 예고** 문서 역할을 한다.
 
 ## 제품 방향
 
@@ -376,40 +378,39 @@ Game/
 
 ### Phase 0 체크리스트
 
-- [ ] 디렉터리 역할 문서화
-- [ ] MVP 범위 고정
-- [ ] 후순위 기능 명시
+- [x] 디렉터리 역할 문서화
+- [x] MVP 범위 고정
+- [x] 후순위 기능 명시
 
 ### Phase 1 체크리스트
 
-- [ ] depth stencil
-- [ ] indexed cube/plane
-- [ ] render resource 래퍼 분리
+- [x] depth stencil
+- [x] indexed cube/plane
+- [x] render resource 래퍼 분리
 
 ### Phase 2 체크리스트
 
-- [ ] top-down camera
-- [ ] scene object 배치
-- [ ] 테스트 맵 구성
+- [x] top-down camera
+- [x] scene object 배치
+- [x] 테스트 맵 구성
 
 ### Phase 3 체크리스트
 
-- [ ] player controller
-- [ ] basic combat
-- [ ] collision
-- [ ] simple enemy
-- [ ] HUD
+- [x] player controller
+- [x] basic combat
+- [x] collision
+- [x] simple enemy
+- [x] HUD
 
-## 다음 단계 예고
+## Phase 4 예고 (현재 미실행)
 
-Phase 3이 끝난 뒤에야 아래를 본격적으로 시작한다.
+Phase 3 이후 본격적으로 손댈 후보는 아래와 같다. 어떤 항목을 먼저 할지는 별도 실행 계획 문서에서 결정한다.
 
-- 텍스처와 머티리얼
-- 조명
-- 모델 로딩
-- 애니메이션
-- 퀘스트/대화/인벤토리
-- 마운트
-- 저장/불러오기
+- 텍스처 & 머티리얼
+- 조명(간단한 디렉셔널/포인트)
+- 모델 로딩(OBJ 또는 glTF 중 택1)
+- 간단한 애니메이션
+- 씬 데이터 직렬화(아레나 하드코딩 → 데이터 파일)
+- 퀘스트/대화/인벤토리/마운트/저장·불러오기는 여전히 후순위
 
-즉, 지금의 정답은 "기술 데모를 늘리는 것"이 아니라 "플레이 가능한 작은 탑다운 액션 RPG 조각"을 가능한 빨리 만드는 것이다.
+지금의 정답은 여전히 "기술 데모를 늘리는 것"이 아니라 "플레이 가능한 작은 탑다운 액션 RPG 조각"을 한 단계씩 키우는 것이다.
