@@ -203,6 +203,9 @@
     <ClInclude Include="Game\NPC\SimpleEnemyController.h">
       <Filter>Game\NPC</Filter>
     </ClInclude>
+    <ClInclude Include="Game\NPC\EnemyScoutBehavior.h">
+      <Filter>Game\NPC</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Player\PlayerController.h">
       <Filter>Game\Player</Filter>
     </ClInclude>
