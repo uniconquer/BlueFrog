@@ -6,6 +6,9 @@
 #include "../Engine/Render/IndexBuffer.h"
 #include "../Engine/Render/InputLayout.h"
 #include "../Engine/Render/PixelShader.h"
+#include "../Engine/Render/Sampler.h"
+#include "../Engine/Render/TexturedPipeline.h"
+#include "../Engine/Render/Texture2D.h"
 #include "../Engine/Render/Topology.h"
 #include "../Engine/Render/VertexBuffer.h"
 #include "../Engine/Render/VertexShader.h"
@@ -58,7 +61,7 @@ private:
 
 	struct TexturedMeshBuffers
 	{
-		TexturedMeshBuffers(Graphics& gfx);
+		explicit TexturedMeshBuffers(Graphics& gfx);
 
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
@@ -94,7 +97,7 @@ private:
 	InputLayout texturedInputLayout;
 	VertexConstantBuffer<TransformData> transformBuffer;
 	PixelConstantBuffer<ColorData> colorBuffer;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> groundTextureView;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> groundSampler;
+	Texture2D groundTexture;
+	Sampler groundSampler;
 	Topology topology;
 };
