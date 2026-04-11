@@ -32,13 +32,22 @@ private:
 
 	struct TransformData
 	{
-		DirectX::XMFLOAT4X4 transform;
+		DirectX::XMFLOAT4X4 mvp;
+		DirectX::XMFLOAT4X4 model;
 	};
 
 	struct MaterialData
 	{
 		DirectX::XMFLOAT3 tint;
-		float padding = 0.0f;
+		float pad0 = 0.0f;
+	};
+
+	struct LightData
+	{
+		DirectX::XMFLOAT3 lightDir;
+		float ambient = 0.0f;
+		DirectX::XMFLOAT3 lightColor;
+		float pad1 = 0.0f;
 	};
 
 	struct MeshBuffers
@@ -75,6 +84,7 @@ private:
 	InputLayout litInputLayout;
 	VertexConstantBuffer<TransformData> transformBuffer;
 	PixelConstantBuffer<MaterialData> materialBuffer;
+	PixelConstantBuffer<LightData> lightBuffer;
 	Texture2D defaultWhiteTexture;
 	std::unordered_map<std::string, Texture2D> textureCache;
 	Sampler samplerWrapLinear;

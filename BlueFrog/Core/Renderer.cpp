@@ -27,6 +27,7 @@ Renderer::Renderer(Graphics& gfx)
 	litInputLayout(gfx, LitPipeline::GetInputLayoutDesc().data(), static_cast<UINT>(LitPipeline::GetInputLayoutDesc().size()), litVertexShader),
 	transformBuffer(gfx),
 	materialBuffer(gfx),
+	lightBuffer(gfx),
 	defaultWhiteTexture(gfx, MakeWhiteSurface()),
 	samplerWrapLinear(gfx),
 	samplerClampLinear(gfx, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP),
@@ -122,6 +123,7 @@ void Renderer::BindLitState() noexcept
 	litVertexShader.Bind(gfx);
 	transformBuffer.Bind(gfx);
 	materialBuffer.Bind(gfx, 1u);
+	lightBuffer.Bind(gfx, 2u);
 	litPixelShader.Bind(gfx);
 }
 
@@ -139,11 +141,12 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 {
 	using namespace DirectX;
 
-	const XMMATRIX model = transform.GetMatrix();
+	const XMMATRIX modelMatrix = transform.GetMatrix();
 	const XMMATRIX viewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
 
 	TransformData transformData = {};
-	XMStoreFloat4x4(&transformData.transform, XMMatrixTranspose(model * viewProjection));
+	XMStoreFloat4x4(&transformData.mvp,   XMMatrixTranspose(modelMatrix * viewProjection));
+	XMStoreFloat4x4(&transformData.model, XMMatrixTranspose(modelMatrix));
 	transformBuffer.Update(gfx, transformData);
 
 	const Material mat = renderComponent.material.value_or(Material{});
@@ -190,6 +193,17 @@ const Sampler& Renderer::ResolveSampler(SamplerPreset preset) const noexcept
 
 void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
 {
+	using namespace DirectX;
+
+	// Upload light data once per frame (uniform scale assumed, so model matrix
+	// upper-left 3x3 is a valid normal matrix without inverse-transpose).
+	const XMVECTOR rawDir = XMVector3Normalize(XMVectorSet(0.3f, -1.0f, 0.2f, 0.0f));
+	LightData lightData = {};
+	XMStoreFloat3(&lightData.lightDir,   rawDir);
+	lightData.ambient    = 0.35f;
+	lightData.lightColor = { 1.0f, 0.96f, 0.90f };
+	lightBuffer.Update(gfx, lightData);
+
 	BindLitState();
 	for (const auto& object : scene.GetObjects())
 	{
