@@ -12,11 +12,14 @@
 #include "../Engine/Render/Topology.h"
 #include "../Engine/Render/VertexBuffer.h"
 #include "../Engine/Render/VertexShader.h"
+#include "../Engine/Scene/Material.h"
 #include "../Engine/Scene/RenderComponent.h"
 #include "../Engine/Scene/Scene.h"
 #include "../Engine/Scene/Transform.h"
 #include <DirectXMath.h>
 #include <array>
+#include <string>
+#include <unordered_map>
 
 class Renderer
 {
@@ -78,6 +81,8 @@ private:
 	const TexturedMeshBuffers& ResolveTexturedMesh(RenderMeshType meshType) const noexcept;
 	void DrawFlatMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
 	void DrawTexturedMesh(const TexturedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
+	Texture2D& ResolveTexture(const std::string& path);
+	const Sampler& ResolveSampler(SamplerPreset preset) const noexcept;
 	static const std::array<Vertex, 8>& GetCubeVertices() noexcept;
 	static const std::array<unsigned short, 36>& GetCubeIndices() noexcept;
 	static const std::array<Vertex, 4>& GetPlaneVertices() noexcept;
@@ -97,7 +102,10 @@ private:
 	InputLayout texturedInputLayout;
 	VertexConstantBuffer<TransformData> transformBuffer;
 	PixelConstantBuffer<ColorData> colorBuffer;
-	Texture2D groundTexture;
-	Sampler groundSampler;
+	Texture2D defaultWhiteTexture;
+	std::unordered_map<std::string, Texture2D> textureCache;
+	Sampler samplerWrapLinear;
+	Sampler samplerClampLinear;
+	Sampler samplerWrapPoint;
 	Topology topology;
 };

@@ -29,8 +29,7 @@ namespace ImageLoader
                 path.c_str(), nullptr, GENERIC_READ,
                 WICDecodeMetadataCacheOnLoad, &decoder)))
         {
-            throw std::runtime_error("ImageLoader: failed to open file: " +
-                                     std::string(path.begin(), path.end()));
+            throw std::runtime_error("ImageLoader: failed to open file");
         }
 
         Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;

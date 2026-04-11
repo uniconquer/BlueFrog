@@ -190,6 +190,7 @@
     <ClInclude Include="Engine\Physics\AABB.h" />
     <ClInclude Include="Engine\Physics\CollisionSystem.h" />
     <ClInclude Include="Engine\Scene\CollisionComponent.h" />
+    <ClInclude Include="Engine\Scene\Material.h" />
     <ClInclude Include="Engine\Scene\CombatComponent.h" />
     <ClInclude Include="Engine\UI\HealthBar.h" />
     <ClInclude Include="Game\Combat\CombatSystem.h" />

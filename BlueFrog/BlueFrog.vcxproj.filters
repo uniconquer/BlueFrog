@@ -206,6 +206,9 @@
     <ClInclude Include="Engine\Scene\CollisionComponent.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Scene\Material.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Scene\CombatComponent.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>

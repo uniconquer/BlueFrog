@@ -16,6 +16,14 @@ Renderer::TexturedMeshBuffers::TexturedMeshBuffers(Graphics& gfx)
 {
 }
 
+static Surface MakeWhiteSurface()
+{
+	Surface s(1u, 1u);
+	std::uint8_t* const p = s.GetPixels();
+	p[0] = p[1] = p[2] = p[3] = 255u;
+	return s;
+}
+
 Renderer::Renderer(Graphics& gfx)
 	:
 	gfx(gfx),
@@ -30,8 +38,10 @@ Renderer::Renderer(Graphics& gfx)
 	texturedInputLayout(gfx, TexturedPipeline::GetInputLayoutDesc().data(), static_cast<UINT>(TexturedPipeline::GetInputLayoutDesc().size()), texturedVertexShader),
 	transformBuffer(gfx),
 	colorBuffer(gfx),
-	groundTexture(gfx, ImageLoader::LoadSurfaceFromFile(L"Assets/Textures/ground_checker.png")),
-	groundSampler(gfx),
+	defaultWhiteTexture(gfx, MakeWhiteSurface()),
+	samplerWrapLinear(gfx),
+	samplerClampLinear(gfx, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP),
+	samplerWrapPoint(gfx, D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_WRAP),
 	topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 {
 }
@@ -128,8 +138,7 @@ void Renderer::BindTexturedState() noexcept
 	transformBuffer.Bind(gfx);
 	colorBuffer.Bind(gfx);
 	texturedPixelShader.Bind(gfx);
-	groundTexture.Bind(gfx);
-	groundSampler.Bind(gfx);
+	// Texture and sampler are bound per-draw in DrawTexturedMesh
 }
 
 const Renderer::MeshBuffers& Renderer::ResolveMesh(RenderMeshType meshType) const noexcept
@@ -185,13 +194,56 @@ void Renderer::DrawTexturedMesh(const TexturedMeshBuffers& mesh, const Transform
 
 	TransformData transformData = {};
 	XMStoreFloat4x4(&transformData.transform, XMMatrixTranspose(model * viewProjection));
-
-	const ColorData colorData = { renderComponent.tint, 0.0f };
 	transformBuffer.Update(gfx, transformData);
+
+	XMFLOAT3 tint = renderComponent.tint;
+	if (renderComponent.material.has_value())
+	{
+		tint = renderComponent.material->tint;
+		ResolveTexture(renderComponent.material->texturePath).Bind(gfx);
+		ResolveSampler(renderComponent.material->sampler).Bind(gfx);
+	}
+	else
+	{
+		defaultWhiteTexture.Bind(gfx);
+		samplerWrapLinear.Bind(gfx);
+	}
+
+	const ColorData colorData = { tint, 0.0f };
 	colorBuffer.Update(gfx, colorData);
 	mesh.vertexBuffer.Bind(gfx);
 	mesh.indexBuffer.Bind(gfx);
 	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
+}
+
+Texture2D& Renderer::ResolveTexture(const std::string& path)
+{
+	if (path.empty())
+	{
+		return defaultWhiteTexture;
+	}
+	auto it = textureCache.find(path);
+	if (it != textureCache.end())
+	{
+		return it->second;
+	}
+	Surface surface = ImageLoader::LoadSurfaceFromFile(std::wstring(path.begin(), path.end()));
+	auto [inserted_it, ok] = textureCache.emplace(
+		std::piecewise_construct,
+		std::forward_as_tuple(path),
+		std::forward_as_tuple(gfx, surface));
+	return inserted_it->second;
+}
+
+const Sampler& Renderer::ResolveSampler(SamplerPreset preset) const noexcept
+{
+	switch (preset)
+	{
+	case SamplerPreset::ClampLinear: return samplerClampLinear;
+	case SamplerPreset::WrapPoint:   return samplerWrapPoint;
+	case SamplerPreset::WrapLinear:
+	default:                          return samplerWrapLinear;
+	}
 }
 
 void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
