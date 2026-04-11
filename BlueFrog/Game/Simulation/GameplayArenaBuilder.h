@@ -25,12 +25,12 @@ private:
 
 		scene.Clear();
 
-		const auto createRenderable = [&](std::string_view name, const XMFLOAT3& position, const XMFLOAT3& scale, RenderMeshType meshType, const XMFLOAT3& tint) -> SceneObject&
+		const auto createRenderable = [&](std::string_view name, const XMFLOAT3& position, const XMFLOAT3& scale, RenderMeshType meshType, const XMFLOAT3& tint, RenderVisualKind visualKind = RenderVisualKind::SolidColor) -> SceneObject&
 		{
 			auto& object = scene.CreateObject(std::string(name));
 			object.transform.position = position;
 			object.transform.scale = scale;
-			object.renderComponent = RenderComponent{ meshType, tint };
+			object.renderComponent = RenderComponent{ meshType, tint, visualKind };
 			return object;
 		};
 
@@ -39,7 +39,7 @@ private:
 			object.collisionComponent = CollisionComponent{ halfExtents, true };
 		};
 
-		createRenderable("Ground", { 0.0f, 0.0f, 0.0f }, { 18.0f, 1.0f, 18.0f }, RenderMeshType::Plane, { 0.92f, 1.0f, 0.92f });
+		createRenderable("Ground", { 0.0f, 0.0f, 0.0f }, { 18.0f, 1.0f, 18.0f }, RenderMeshType::Plane, { 1.0f, 1.0f, 1.0f }, RenderVisualKind::Textured);
 		auto& shrine = createRenderable("ShrineCore", { 0.0f, 1.25f, 0.0f }, { 1.35f, 1.35f, 1.35f }, RenderMeshType::Cube, { 1.0f, 0.94f, 0.80f });
 		attachBlocker(shrine, { 1.35f, 1.35f });
 

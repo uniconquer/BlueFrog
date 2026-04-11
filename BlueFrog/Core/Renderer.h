@@ -46,27 +46,55 @@ private:
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
 	};
+
+	struct TexturedVertex
+	{
+		float x;
+		float y;
+		float z;
+		float u;
+		float v;
+	};
+
+	struct TexturedMeshBuffers
+	{
+		TexturedMeshBuffers(Graphics& gfx);
+
+		VertexBuffer vertexBuffer;
+		IndexBuffer indexBuffer;
+	};
 public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
 	void Render(const Scene& scene, const TopDownCamera& camera) noexcept;
 private:
-	void BindSharedState() noexcept;
+	void BindFlatState() noexcept;
+	void BindTexturedState() noexcept;
 	const MeshBuffers& ResolveMesh(RenderMeshType meshType) const noexcept;
-	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
+	const TexturedMeshBuffers& ResolveTexturedMesh(RenderMeshType meshType) const noexcept;
+	void DrawFlatMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
+	void DrawTexturedMesh(const TexturedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
 	static const std::array<Vertex, 8>& GetCubeVertices() noexcept;
 	static const std::array<unsigned short, 36>& GetCubeIndices() noexcept;
 	static const std::array<Vertex, 4>& GetPlaneVertices() noexcept;
 	static const std::array<unsigned short, 6>& GetPlaneIndices() noexcept;
+	static const std::array<TexturedVertex, 4>& GetTexturedPlaneVertices() noexcept;
+	static const std::array<unsigned short, 6>& GetTexturedPlaneIndices() noexcept;
 private:
 	Graphics& gfx;
 	MeshBuffers cubeMesh;
 	MeshBuffers planeMesh;
+	TexturedMeshBuffers texturedPlaneMesh;
 	VertexShader vertexShader;
 	PixelShader pixelShader;
 	InputLayout inputLayout;
+	VertexShader texturedVertexShader;
+	PixelShader texturedPixelShader;
+	InputLayout texturedInputLayout;
 	VertexConstantBuffer<TransformData> transformBuffer;
 	PixelConstantBuffer<ColorData> colorBuffer;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> groundTextureView;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> groundSampler;
 	Topology topology;
 };
