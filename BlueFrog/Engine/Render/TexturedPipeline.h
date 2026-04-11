@@ -22,6 +22,11 @@ namespace TexturedPipeline
 			"{\n"
 			"    matrix transform;\n"
 			"};\n"
+			"cbuffer ColorBuffer : register(b0)\n"
+			"{\n"
+			"    float3 tint;\n"
+			"    float padding;\n"
+			"};\n"
 			"Texture2D surfaceTexture : register(t0);\n"
 			"SamplerState surfaceSampler : register(s0);\n"
 			"struct VSIn\n"
@@ -43,7 +48,7 @@ namespace TexturedPipeline
 			"}\n"
 			"float4 PSMain(PSIn input) : SV_Target\n"
 			"{\n"
-			"    return surfaceTexture.Sample(surfaceSampler, input.uv);\n"
+			"    return surfaceTexture.Sample(surfaceSampler, input.uv) * float4(tint, 1.0f);\n"
 			"}\n";
 	}
 }
