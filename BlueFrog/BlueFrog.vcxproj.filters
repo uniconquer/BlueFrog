@@ -78,6 +78,9 @@
     <ClCompile Include="Core\Dxerr\dxerr.cpp">
       <Filter>Dxerr</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Render\ImageLoader.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
     <ClCompile Include="Engine\Render\IndexBuffer.cpp">
       <Filter>Engine\Render</Filter>
     </ClCompile>
@@ -151,6 +154,9 @@
     </ClInclude>
     <ClInclude Include="Core\Dxerr\dxerr.h">
       <Filter>Dxerr</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\ImageLoader.h">
+      <Filter>Engine\Render</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Render\ConstantBuffer.h">
       <Filter>Engine\Render</Filter>
@@ -269,5 +275,18 @@
     <ClInclude Include="Engine\UI\UIRenderer.h">
       <Filter>Engine\UI</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{d2c3e1a4-8f5b-4c6d-9e7f-0a1b2c3d4e5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\\Textures">
+      <UniqueIdentifier>{e3d4f5a6-9b0c-4d7e-af80-1b2c3d4e5f60}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Textures\ground_checker.png">
+      <Filter>Assets\Textures</Filter>
+    </None>
   </ItemGroup>
 </Project>

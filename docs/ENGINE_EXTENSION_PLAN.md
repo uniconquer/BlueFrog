@@ -1,7 +1,8 @@
 # Engine Extension Plan
 
 > ⚠ **이 문서는 초기 엔진 확장 설계안의 히스토리 기록이다.** 아래 "권장 마일스톤" Milestone 1–5는 이미 모두 완료된 상태다.
-> - 단기 실행 현황과 Phase 4 예고는 [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)를 본다.
+> - Phase 0–3 완료 스냅샷과 Phase 4 예고는 [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)를 본다.
+> - Phase 4 실행 계획(진행 중): [PHASE_4_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_4_EXECUTION_PLAN.md).
 > - 장기 컴포넌트/시스템 전환은 [GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md)를 본다.
 
 For the short-term runtime structure shift toward `GameObject + Component`, also see `GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md`.
@@ -189,5 +190,6 @@ BlueFrog/Core/
 
 이후 작업 방향은 아래 문서를 우선한다.
 
-- 단기 실행 현황과 Phase 4 예고: [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)
+- Phase 0–3 완료 스냅샷과 Phase 4 예고: [PHASE_0_TO_3_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_0_TO_3_EXECUTION_PLAN.md)
+- Phase 4 실행 계획(진행 중): [PHASE_4_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_4_EXECUTION_PLAN.md)
 - 장기 컴포넌트/시스템 전환: [GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/GAMEOBJECT_COMPONENT_TRANSITION_PLAN.md)

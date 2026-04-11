@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "../Engine/Render/ImageLoader.h"
 #include <DirectXMath.h>
 
 Renderer::MeshBuffers::MeshBuffers(Graphics& gfx, const Vertex* vertices, UINT vertexCount, const unsigned short* indices, UINT indexCount)
@@ -29,7 +30,7 @@ Renderer::Renderer(Graphics& gfx)
 	texturedInputLayout(gfx, TexturedPipeline::GetInputLayoutDesc().data(), static_cast<UINT>(TexturedPipeline::GetInputLayoutDesc().size()), texturedVertexShader),
 	transformBuffer(gfx),
 	colorBuffer(gfx),
-	groundTexture(gfx, Surface::MakeCheckerboard(64u, 64u, 8u, { 95u, 118u, 74u, 255u }, { 123u, 97u, 62u, 255u })),
+	groundTexture(gfx, ImageLoader::LoadSurfaceFromFile(L"Assets/Textures/ground_checker.png")),
 	groundSampler(gfx),
 	topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 {

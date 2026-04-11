@@ -135,5 +135,5 @@ What we are not promising yet:
 초기 "Transform / TopDownCamera / 탑다운 테스트 맵" 단계는 이미 완료됐다. 이어지는 실행 순서는 아래와 같다.
 
 - Phase C 마무리: `GameplaySimulation`의 하드코딩된 시스템 순서(카메라 → 플레이어 → 적)를 데이터 주도 등록으로 전환할지 결정한다.
-- Phase D 진입 전 조건: 컴포넌트 shape 안정화, 씬 오브젝트 이름 기반 조회(`GameplaySceneIds`)를 ID 핸들 기반으로 전환할지 검토한다.
-- Phase D 첫 단계: `GameplayArenaBuilder`의 하드코딩된 아레나를 데이터 파일에서 불러오는 최소 로더로 교체한다.
+- Phase D 진입 전 조건: 컴포넌트 shape 안정화, 씬 오브젝트 이름 기반 조회(`GameplaySceneIds`)를 ID 핸들 기반으로 전환할지 검토한다. 단기적으로는 이름 기반을 유지하고, JSON 씬 파일의 객체명이 `GameplaySceneIds` 상수와 일치하는 것을 계약으로 삼는다.
+- Phase D 첫 단계: `GameplayArenaBuilder`의 하드코딩된 아레나를 데이터 파일에서 불러오는 최소 로더로 교체한다. 이 작업의 실행 계획은 [PHASE_4_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_4_EXECUTION_PLAN.md)의 "트랙 B — 씬 직렬화" 단계 B-1/B-2에 통합됐다.
