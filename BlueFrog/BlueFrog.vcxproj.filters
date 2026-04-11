@@ -123,6 +123,9 @@
     <ClCompile Include="Engine\Scene\Scene.cpp">
       <Filter>Engine\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Scene\SceneLoader.cpp">
+      <Filter>Engine\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\BFWin.h">
@@ -263,6 +266,9 @@
     <ClInclude Include="Engine\Scene\Scene.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Scene\SceneLoader.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Scene\SceneObject.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
@@ -283,10 +289,16 @@
     <Filter Include="Assets\\Textures">
       <UniqueIdentifier>{e3d4f5a6-9b0c-4d7e-af80-1b2c3d4e5f60}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\\Scenes">
+      <UniqueIdentifier>{f4e5d6c7-a8b9-4e0f-b1c2-d3e4f5a6b7c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Textures\ground_checker.png">
       <Filter>Assets\Textures</Filter>
+    </None>
+    <None Include="Assets\Scenes\arena_trial.json">
+      <Filter>Assets\Scenes</Filter>
     </None>
   </ItemGroup>
 </Project>

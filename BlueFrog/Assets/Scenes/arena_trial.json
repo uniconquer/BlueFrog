@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "scene": {
+    "name": "ArenaTrial",
+    "camera": { "target": [-4.0, 1.25, 0.0] },
+    "objects": [
+      {
+        "name": "Ground",
+        "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [18.0, 1.0, 18.0] },
+        "render": {
+          "mesh": "plane",
+          "material": { "texture": "Assets/Textures/ground_checker.png", "tint": [1.0, 1.0, 1.0], "sampler": "wrap_linear" }
+        }
+      },
+      {
+        "name": "ShrineCore",
+        "transform": { "position": [0.0, 1.25, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.35, 1.35, 1.35] },
+        "render": {
+          "mesh": "cube",
+          "material": { "tint": [1.0, 0.94, 0.80] }
+        },
+        "collision": { "halfExtents": [1.35, 1.35], "blocking": true }
+      },
+      {
+        "name": "NorthWall",
+        "transform": { "position": [0.0, 1.0, 6.5], "rotation": [0.0, 0.0, 0.0], "scale": [6.0, 1.0, 0.7] },
+        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
+        "collision": { "halfExtents": [6.0, 0.7], "blocking": true }
+      },
+      {
+        "name": "SouthWall",
+        "transform": { "position": [0.0, 1.0, -6.5], "rotation": [0.0, 0.0, 0.0], "scale": [6.0, 1.0, 0.7] },
+        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
+        "collision": { "halfExtents": [6.0, 0.7], "blocking": true }
+      },
+      {
+        "name": "EastWall",
+        "transform": { "position": [6.5, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.7, 1.0, 6.0] },
+        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
+        "collision": { "halfExtents": [0.7, 6.0], "blocking": true }
+      },
+      {
+        "name": "WestWall",
+        "transform": { "position": [-6.5, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.7, 1.0, 6.0] },
+        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
+        "collision": { "halfExtents": [0.7, 6.0], "blocking": true }
+      },
+      {
+        "name": "PillarA",
+        "transform": { "position": [-3.5, 0.8, -2.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.8, 0.8, 0.8] },
+        "render": { "mesh": "cube", "material": { "tint": [0.95, 0.86, 1.0] } },
+        "collision": { "halfExtents": [0.8, 0.8], "blocking": true }
+      },
+      {
+        "name": "PillarB",
+        "transform": { "position": [3.5, 0.8, 2.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.8, 0.8, 0.8] },
+        "render": { "mesh": "cube", "material": { "tint": [1.0, 0.88, 0.84] } },
+        "collision": { "halfExtents": [0.8, 0.8], "blocking": true }
+      },
+      {
+        "name": "Player",
+        "transform": { "position": [-4.0, 1.25, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [0.7, 1.25, 0.7] },
+        "render": { "mesh": "cube", "material": { "tint": [0.82, 1.0, 0.55] } },
+        "collision": { "halfExtents": [0.45, 0.45], "blocking": true },
+        "combat": { "faction": "player", "maxHp": 5, "currentHp": 5 }
+      },
+      {
+        "name": "EnemyScout",
+        "transform": { "position": [3.8, 1.0, -3.8], "rotation": [0.0, 0.0, 0.0], "scale": [0.75, 1.0, 0.75] },
+        "render": { "mesh": "cube", "material": { "tint": [0.92, 0.36, 0.36] } },
+        "collision": { "halfExtents": [0.5, 0.5], "blocking": true },
+        "combat": { "faction": "enemy", "maxHp": 3, "currentHp": 3 }
+      }
+    ]
+  }
+}
