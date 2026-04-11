@@ -71,20 +71,20 @@ bool PlayerController::TryAttack(Scene& scene, SceneObject& player) noexcept
 
 void PlayerController::UpdateTint(SceneObject& player) const noexcept
 {
-	if (!player.renderComponent.has_value() || !player.combatComponent.has_value())
+	if (!player.renderComponent.has_value() || !player.renderComponent->material.has_value() || !player.combatComponent.has_value())
 	{
 		return;
 	}
 
 	if (!player.combatComponent->IsAlive())
 	{
-		player.renderComponent->tint = { 0.28f, 0.30f, 0.34f };
+		player.renderComponent->material->tint = { 0.28f, 0.30f, 0.34f };
 		return;
 	}
 
 	const float healthRatio = static_cast<float>(player.combatComponent->health) / static_cast<float>(std::max(1, player.combatComponent->maxHealth));
 	const float cooldownRatio = attackCooldownRemaining > 0.0f ? attackCooldownRemaining / attackCooldown : 0.0f;
-	player.renderComponent->tint =
+	player.renderComponent->material->tint =
 	{
 		0.55f + (1.0f - cooldownRatio) * 0.35f,
 		0.72f + healthRatio * 0.20f,

@@ -161,9 +161,6 @@
     <ClInclude Include="Engine\Render\ConstantBuffer.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Render\FlatColorPipeline.h">
-      <Filter>Engine\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Render\IndexBuffer.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
@@ -173,6 +170,9 @@
     <ClInclude Include="Engine\Render\PixelShader.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Render\LitPipeline.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Render\Sampler.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
@@ -180,9 +180,6 @@
       <Filter>Engine\Render</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Render\Texture2D.h">
-      <Filter>Engine\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Render\TexturedPipeline.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Render\Topology.h">

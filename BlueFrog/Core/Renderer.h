@@ -2,12 +2,11 @@
 #include "Graphics.h"
 #include "../Engine/Camera/TopDownCamera.h"
 #include "../Engine/Render/ConstantBuffer.h"
-#include "../Engine/Render/FlatColorPipeline.h"
 #include "../Engine/Render/IndexBuffer.h"
 #include "../Engine/Render/InputLayout.h"
+#include "../Engine/Render/LitPipeline.h"
 #include "../Engine/Render/PixelShader.h"
 #include "../Engine/Render/Sampler.h"
-#include "../Engine/Render/TexturedPipeline.h"
 #include "../Engine/Render/Texture2D.h"
 #include "../Engine/Render/Topology.h"
 #include "../Engine/Render/VertexBuffer.h"
@@ -24,14 +23,11 @@
 class Renderer
 {
 private:
-	struct Vertex
+	struct LitVertex
 	{
-		float x;
-		float y;
-		float z;
-		float r;
-		float g;
-		float b;
+		float x, y, z;
+		float nx, ny, nz;
+		float u, v;
 	};
 
 	struct TransformData
@@ -39,7 +35,7 @@ private:
 		DirectX::XMFLOAT4X4 transform;
 	};
 
-	struct ColorData
+	struct MaterialData
 	{
 		DirectX::XMFLOAT3 tint;
 		float padding = 0.0f;
@@ -47,61 +43,38 @@ private:
 
 	struct MeshBuffers
 	{
-		MeshBuffers(Graphics& gfx, const Vertex* vertices, UINT vertexCount, const unsigned short* indices, UINT indexCount);
+		MeshBuffers(Graphics& gfx, const LitVertex* vertices, UINT vertexCount, const unsigned short* indices, UINT indexCount);
 
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
 	};
 
-	struct TexturedVertex
-	{
-		float x;
-		float y;
-		float z;
-		float u;
-		float v;
-	};
-
-	struct TexturedMeshBuffers
-	{
-		explicit TexturedMeshBuffers(Graphics& gfx);
-
-		VertexBuffer vertexBuffer;
-		IndexBuffer indexBuffer;
-	};
 public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
 	void Render(const Scene& scene, const TopDownCamera& camera) noexcept;
+
 private:
-	void BindFlatState() noexcept;
-	void BindTexturedState() noexcept;
+	void BindLitState() noexcept;
 	const MeshBuffers& ResolveMesh(RenderMeshType meshType) const noexcept;
-	const TexturedMeshBuffers& ResolveTexturedMesh(RenderMeshType meshType) const noexcept;
-	void DrawFlatMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
-	void DrawTexturedMesh(const TexturedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
+	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
 	Texture2D& ResolveTexture(const std::string& path);
 	const Sampler& ResolveSampler(SamplerPreset preset) const noexcept;
-	static const std::array<Vertex, 8>& GetCubeVertices() noexcept;
+	static const std::array<LitVertex, 24>& GetCubeVertices() noexcept;
 	static const std::array<unsigned short, 36>& GetCubeIndices() noexcept;
-	static const std::array<Vertex, 4>& GetPlaneVertices() noexcept;
+	static const std::array<LitVertex, 4>& GetPlaneVertices() noexcept;
 	static const std::array<unsigned short, 6>& GetPlaneIndices() noexcept;
-	static const std::array<TexturedVertex, 4>& GetTexturedPlaneVertices() noexcept;
-	static const std::array<unsigned short, 6>& GetTexturedPlaneIndices() noexcept;
+
 private:
 	Graphics& gfx;
 	MeshBuffers cubeMesh;
 	MeshBuffers planeMesh;
-	TexturedMeshBuffers texturedPlaneMesh;
-	VertexShader vertexShader;
-	PixelShader pixelShader;
-	InputLayout inputLayout;
-	VertexShader texturedVertexShader;
-	PixelShader texturedPixelShader;
-	InputLayout texturedInputLayout;
+	VertexShader litVertexShader;
+	PixelShader litPixelShader;
+	InputLayout litInputLayout;
 	VertexConstantBuffer<TransformData> transformBuffer;
-	PixelConstantBuffer<ColorData> colorBuffer;
+	PixelConstantBuffer<MaterialData> materialBuffer;
 	Texture2D defaultWhiteTexture;
 	std::unordered_map<std::string, Texture2D> textureCache;
 	Sampler samplerWrapLinear;

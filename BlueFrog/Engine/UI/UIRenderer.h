@@ -2,7 +2,6 @@
 
 #include "../../Core/Graphics.h"
 #include "../Render/ConstantBuffer.h"
-#include "../Render/FlatColorPipeline.h"
 #include "../Render/IndexBuffer.h"
 #include "../Render/InputLayout.h"
 #include "../Render/PixelShader.h"

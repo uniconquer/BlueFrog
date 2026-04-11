@@ -209,14 +209,13 @@
     <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h" />
     <ClInclude Include="Engine\Render\ImageLoader.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />
-    <ClInclude Include="Engine\Render\FlatColorPipeline.h" />
     <ClInclude Include="Engine\Render\IndexBuffer.h" />
     <ClInclude Include="Engine\Render\InputLayout.h" />
     <ClInclude Include="Engine\Render\PixelShader.h" />
+    <ClInclude Include="Engine\Render\LitPipeline.h" />
     <ClInclude Include="Engine\Render\Sampler.h" />
     <ClInclude Include="Engine\Render\Surface.h" />
     <ClInclude Include="Engine\Render\Texture2D.h" />
-    <ClInclude Include="Engine\Render\TexturedPipeline.h" />
     <ClInclude Include="Engine\Render\Topology.h" />
     <ClInclude Include="Engine\Render\VertexBuffer.h" />
     <ClInclude Include="Engine\Render\VertexShader.h" />

@@ -69,18 +69,18 @@ private:
 
 	void UpdateTint(SceneObject& enemy, bool chasing) const noexcept
 	{
-		if (!enemy.renderComponent.has_value())
+		if (!enemy.renderComponent.has_value() || !enemy.renderComponent->material.has_value())
 		{
 			return;
 		}
 
 		if (!enemy.combatComponent.has_value() || !enemy.combatComponent->IsAlive())
 		{
-			enemy.renderComponent->tint = { 0.30f, 0.32f, 0.36f };
+			enemy.renderComponent->material->tint = { 0.30f, 0.32f, 0.36f };
 			return;
 		}
 
-		enemy.renderComponent->tint = chasing ? DirectX::XMFLOAT3{ 1.0f, 0.50f, 0.42f } : DirectX::XMFLOAT3{ 0.92f, 0.36f, 0.36f };
+		enemy.renderComponent->material->tint = chasing ? DirectX::XMFLOAT3{ 1.0f, 0.50f, 0.42f } : DirectX::XMFLOAT3{ 0.92f, 0.36f, 0.36f };
 	}
 
 private:

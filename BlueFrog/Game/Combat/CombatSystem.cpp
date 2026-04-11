@@ -37,18 +37,18 @@ void CombatSystem::ApplyDamage(SceneObject& target, int damage) noexcept
 
 	target.combatComponent->health = std::max(0, target.combatComponent->health - damage);
 
-	if (!target.renderComponent.has_value())
+	if (!target.renderComponent.has_value() || !target.renderComponent->material.has_value())
 	{
 		return;
 	}
 
 	if (target.combatComponent->IsAlive())
 	{
-		target.renderComponent->tint = { 1.0f, 0.62f, 0.62f };
+		target.renderComponent->material->tint = { 1.0f, 0.62f, 0.62f };
 	}
 	else
 	{
-		target.renderComponent->tint = { 0.30f, 0.32f, 0.36f };
+		target.renderComponent->material->tint = { 0.30f, 0.32f, 0.36f };
 		if (target.collisionComponent.has_value())
 		{
 			target.collisionComponent->blocksMovement = false;
