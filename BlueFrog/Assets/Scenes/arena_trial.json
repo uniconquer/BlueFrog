@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "scene": {
     "name": "ArenaTrial",
     "camera": { "target": [-4.0, 1.25, 0.0] },
@@ -59,17 +59,13 @@
       },
       {
         "name": "Player",
-        "transform": { "position": [-4.0, 1.25, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [0.7, 1.25, 0.7] },
-        "render": { "mesh": "cube", "material": { "tint": [0.82, 1.0, 0.55] } },
-        "collision": { "halfExtents": [0.45, 0.45], "blocking": true },
-        "combat": { "faction": "player", "maxHp": 5, "currentHp": 5 }
+        "prefab": "Assets/Prefabs/Player.prefab.json",
+        "transform": { "position": [-4.0, 1.25, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [0.7, 1.25, 0.7] }
       },
       {
         "name": "EnemyScout",
-        "transform": { "position": [3.8, 1.0, -3.8], "rotation": [0.0, 0.0, 0.0], "scale": [0.75, 1.0, 0.75] },
-        "render": { "mesh": "cube", "material": { "tint": [0.92, 0.36, 0.36] } },
-        "collision": { "halfExtents": [0.5, 0.5], "blocking": true },
-        "combat": { "faction": "enemy", "maxHp": 3, "currentHp": 3 }
+        "prefab": "Assets/Prefabs/EnemyScout.prefab.json",
+        "transform": { "position": [3.8, 1.0, -3.8], "rotation": [0.0, 0.0, 0.0], "scale": [0.75, 1.0, 0.75] }
       }
     ]
   }

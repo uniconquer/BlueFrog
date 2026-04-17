@@ -176,6 +176,7 @@
     <ClCompile Include="Engine\Render\Topology.cpp" />
     <ClCompile Include="Engine\Render\VertexBuffer.cpp" />
     <ClCompile Include="Engine\Render\VertexShader.cpp" />
+    <ClCompile Include="Engine\Scene\PrefabLoader.cpp" />
     <ClCompile Include="Engine\Scene\Scene.cpp" />
     <ClCompile Include="Engine\Scene\SceneLoader.cpp" />
     <ClCompile Include="Core\Graphics.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="Engine\Render\VertexBuffer.h" />
     <ClInclude Include="Engine\Render\VertexShader.h" />
     <ClInclude Include="Engine\Scene\RenderComponent.h" />
+    <ClInclude Include="Engine\Scene\PrefabLoader.h" />
     <ClInclude Include="Engine\Scene\Scene.h" />
     <ClInclude Include="Engine\Scene\SceneLoader.h" />
     <ClInclude Include="Engine\Scene\SceneObject.h" />
@@ -241,6 +243,8 @@
   <ItemGroup>
     <None Include="Assets\Textures\ground_checker.png" />
     <None Include="Assets\Scenes\arena_trial.json" />
+    <None Include="Assets\Prefabs\Player.prefab.json" />
+    <None Include="Assets\Prefabs\EnemyScout.prefab.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

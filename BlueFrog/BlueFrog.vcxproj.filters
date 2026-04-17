@@ -126,6 +126,9 @@
     <ClCompile Include="Engine\Scene\SceneLoader.cpp">
       <Filter>Engine\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Scene\PrefabLoader.cpp">
+      <Filter>Engine\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\BFWin.h">
@@ -269,6 +272,9 @@
     <ClInclude Include="Engine\Scene\SceneLoader.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Scene\PrefabLoader.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Scene\SceneObject.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
@@ -292,6 +298,9 @@
     <Filter Include="Assets\\Scenes">
       <UniqueIdentifier>{f4e5d6c7-a8b9-4e0f-b1c2-d3e4f5a6b7c8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\\Prefabs">
+      <UniqueIdentifier>{a5b6c7d8-e9f0-4a1b-8c2d-3e4f5a6b7c8d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Textures\ground_checker.png">
@@ -299,6 +308,12 @@
     </None>
     <None Include="Assets\Scenes\arena_trial.json">
       <Filter>Assets\Scenes</Filter>
+    </None>
+    <None Include="Assets\Prefabs\Player.prefab.json">
+      <Filter>Assets\Prefabs</Filter>
+    </None>
+    <None Include="Assets\Prefabs\EnemyScout.prefab.json">
+      <Filter>Assets\Prefabs</Filter>
     </None>
   </ItemGroup>
 </Project>

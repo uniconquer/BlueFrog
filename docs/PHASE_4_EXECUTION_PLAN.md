@@ -286,9 +286,11 @@ Phase 4 완료 판정은 아래 **모두** 만족 시.
 
 ## 진행 상태
 
-- [ ] A-1 WIC 로더 + 자산 배포
-- [ ] A-2 Material + 텍스처 캐시
-- [ ] A-3 LitPipeline 통합 + visualKind 제거
-- [ ] B-1 nlohmann/json vendor + SceneLoader skeleton
-- [ ] B-2 SceneLoader 완성 + 하드코딩 아레나 교체
-- [ ] A-4 디렉셔널 라이트
+- [x] A-1 WIC 로더 + 자산 배포 (`bffdaf0`)
+- [x] A-2 Material + 텍스처 캐시 (`bf8146a`)
+- [x] A-3 LitPipeline 통합 + visualKind 제거 (`a1ff1b8`)
+- [x] B-1 nlohmann/json vendor + SceneLoader skeleton (`a3ad9d4`)
+- [x] B-2 SceneLoader 완성 + 하드코딩 아레나 교체 (`06bf0b9`)
+- [x] A-4 디렉셔널 라이트 (`838f1cd`)
+
+Phase 4는 모두 완료됐다. 다음 단계인 프리팹/다중 씬/트리거/씬 검증은 [PHASE_5_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_5_EXECUTION_PLAN.md)에서 이어진다.

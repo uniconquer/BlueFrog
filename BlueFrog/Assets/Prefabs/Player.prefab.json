@@ -1,0 +1,5 @@
+{
+  "render":    { "mesh": "cube", "material": { "tint": [0.82, 1.0, 0.55] } },
+  "collision": { "halfExtents": [0.45, 0.45], "blocking": true },
+  "combat":    { "faction": "player", "maxHp": 5, "currentHp": 5 }
+}

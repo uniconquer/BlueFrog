@@ -2,6 +2,7 @@
 #include "CollisionComponent.h"
 #include "CombatComponent.h"
 #include "Material.h"
+#include "PrefabLoader.h"
 #include "RenderComponent.h"
 #include "SceneObject.h"
 #include "Transform.h"
@@ -114,9 +115,14 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 		return SetError(errorOut, std::string("SceneLoader: JSON parse error: ") + e.what());
 	}
 
-	if (!root.contains("schemaVersion") || root["schemaVersion"].get<int>() != 1)
+	if (!root.contains("schemaVersion"))
 	{
-		return SetError(errorOut, "SceneLoader: unsupported or missing schemaVersion (expected 1)");
+		return SetError(errorOut, "SceneLoader: missing schemaVersion");
+	}
+	const int schemaVersion = root["schemaVersion"].get<int>();
+	if (schemaVersion != 1 && schemaVersion != 2)
+	{
+		return SetError(errorOut, "SceneLoader: unsupported schemaVersion " + std::to_string(schemaVersion) + " (expected 1 or 2)");
 	}
 
 	const auto& sceneNode = root["scene"];
@@ -130,9 +136,26 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 		camera.SetTarget(t);
 	}
 
+	// Per-load prefab cache: repeated references share one parse, but state
+	// never leaks between Load calls (different scenes, different prefab dirs).
+	PrefabLoader::Cache prefabCache;
+
 	// Objects
-	for (const auto& objJson : sceneNode.value("objects", json::array()))
+	for (const auto& objJsonRef : sceneNode.value("objects", json::array()))
 	{
+		// Copy so prefab merge can write missing top-level keys into it.
+		json objJson = objJsonRef;
+
+		if (objJson.contains("prefab"))
+		{
+			const std::string prefabPath = objJson["prefab"].get<std::string>();
+			std::string prefabError;
+			if (!PrefabLoader::LoadAndMerge(prefabPath, objJson, prefabCache, &prefabError))
+			{
+				return SetError(errorOut, "SceneLoader: " + prefabError);
+			}
+		}
+
 		const std::string name = objJson.value("name", "");
 		auto& obj = scene.CreateObject(name);
 
