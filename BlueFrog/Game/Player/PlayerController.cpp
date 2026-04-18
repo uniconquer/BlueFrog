@@ -5,7 +5,7 @@
 #include "../Combat/CombatSystem.h"
 #include <algorithm>
 
-bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
+bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus) noexcept
 {
 	attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
 
@@ -36,7 +36,7 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 
 	if (input.attackQueued && attackCooldownRemaining <= 0.0f)
 	{
-		TryAttack(scene, *player);
+		TryAttack(scene, *player, bus);
 		attackCooldownRemaining = attackCooldown;
 	}
 
@@ -59,11 +59,11 @@ SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 	return scene.FindObject(GameplaySceneIds::Player);
 }
 
-bool PlayerController::TryAttack(Scene& scene, SceneObject& player) noexcept
+bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bus) noexcept
 {
 	if (SceneObject* enemy = scene.FindObject(GameplaySceneIds::EnemyScout))
 	{
-		return CombatSystem::TryMeleeAttack(player, *enemy, attackDamage, attackRange);
+		return CombatSystem::TryMeleeAttack(player, *enemy, attackDamage, attackRange, &bus);
 	}
 
 	return false;

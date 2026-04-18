@@ -12,7 +12,7 @@
 #include "../../Core/BFWin.h"
 #endif
 
-void TriggerGameplaySystem::Update(Scene& scene) noexcept
+void TriggerGameplaySystem::Update(Scene& scene, EventBus& bus) noexcept
 {
 	const SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 	if (player == nullptr)
@@ -59,6 +59,11 @@ void TriggerGameplaySystem::Update(Scene& scene) noexcept
 #ifdef _WIN32
 			::OutputDebugStringA(msg.c_str());
 #endif
+
+			// Publish the TriggerFired event for downstream consumers.
+			// Payload: a = tag (scene-defined intent), b = object name
+			// (useful when multiple trigger zones share a tag).
+			bus.Publish({ GameEventType::TriggerFired, tc.tag, obj.name });
 		}
 	}
 }

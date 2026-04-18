@@ -1,18 +1,54 @@
 #include "GameplaySimulation.h"
 #include <sstream>
+#include <string>
+
+#ifdef _WIN32
+#include "../../Core/BFWin.h"
+#endif
 
 void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera, const std::string& scenePath) noexcept
 {
 	GameplayArenaBuilder::Build(scene, camera, scenePath);
 }
 
+namespace
+{
+	// Phase 6 A-2: temporary debug drain. Proves that EnemyKilled and
+	// TriggerFired publish at the expected moments. A-3 replaces this with
+	// ObjectiveSystem consumption.
+	void DebugDumpEvents(const std::vector<GameEvent>& events)
+	{
+#ifndef _WIN32
+		(void)events;
+#else
+		for (const auto& e : events)
+		{
+			const char* name = "Unknown";
+			switch (e.type)
+			{
+			case GameEventType::EnemyKilled:        name = "EnemyKilled"; break;
+			case GameEventType::TriggerFired:       name = "TriggerFired"; break;
+			case GameEventType::LoadSceneRequested: name = "LoadSceneRequested"; break;
+			}
+			const std::string msg = std::string("[Event] ") + name + " a='" + e.a + "' b='" + e.b + "'\n";
+			::OutputDebugStringA(msg.c_str());
+		}
+#endif
+	}
+}
+
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
 {
 	cameraSystem.ApplyInput(input, camera);
-	playerSystem.Update(input, scene, camera, dt);
-	enemySystem.Update(scene, dt);
-	triggerSystem.Update(scene);
+	playerSystem.Update(input, scene, camera, dt, eventBus);
+	enemySystem.Update(scene, dt, eventBus);
+	triggerSystem.Update(scene, eventBus);
 	cameraSystem.FollowPlayer(scene, camera);
+
+	// Drain exactly once per tick after all systems have run. A-3 replaces
+	// this debug dump with ObjectiveSystem::Consume.
+	DebugDumpEvents(eventBus.Drain());
+
 	return BuildHudState(scene);
 }
 

@@ -4,14 +4,16 @@
 #include "PlayerMovementSystem.h"
 #include "../Simulation/GameplayInput.h"
 
+class EventBus;
+
 class PlayerController
 {
 public:
-	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
+	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus) noexcept;
 	float GetAttackCooldownProgress01() const noexcept;
 private:
 	SceneObject* FindPlayer(Scene& scene) noexcept;
-	bool TryAttack(Scene& scene, SceneObject& player) noexcept;
+	bool TryAttack(Scene& scene, SceneObject& player, EventBus& bus) noexcept;
 	void UpdateTint(SceneObject& player) const noexcept;
 private:
 	static constexpr float moveSpeed = 6.5f;

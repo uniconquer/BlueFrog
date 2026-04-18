@@ -1,7 +1,7 @@
 #include "SimpleEnemyController.h"
 #include "../Simulation/GameplaySceneIds.h"
 
-void SimpleEnemyController::Update(Scene& scene, float dt) noexcept
+void SimpleEnemyController::Update(Scene& scene, float dt, EventBus& bus) noexcept
 {
 	SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 	SceneObject* enemy = FindEnemy(scene);
@@ -10,7 +10,7 @@ void SimpleEnemyController::Update(Scene& scene, float dt) noexcept
 		return;
 	}
 
-	enemyBehavior.Update(scene, *player, *enemy, dt);
+	enemyBehavior.Update(scene, *player, *enemy, dt, bus);
 }
 
 SceneObject* SimpleEnemyController::FindEnemy(Scene& scene) noexcept

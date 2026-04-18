@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../Engine/Events/EventBus.h"
 #include "../../Engine/Physics/CollisionSystem.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/Scene/SceneObject.h"
@@ -10,7 +11,7 @@
 class EnemyScoutBehavior final
 {
 public:
-	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt) noexcept
+	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus) noexcept
 	{
 		attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
 
@@ -55,7 +56,7 @@ public:
 			return;
 		}
 
-		if (attackCooldownRemaining <= 0.0f && CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f))
+		if (attackCooldownRemaining <= 0.0f && CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f, &bus))
 		{
 			attackCooldownRemaining = attackCooldown;
 		}

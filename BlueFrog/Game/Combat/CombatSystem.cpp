@@ -1,8 +1,9 @@
 #include "CombatSystem.h"
+#include "../../Engine/Events/EventBus.h"
 #include <algorithm>
 #include <cmath>
 
-bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range) noexcept
+bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range, EventBus* bus) noexcept
 {
 	if (!attacker.combatComponent.has_value() || !target.combatComponent.has_value())
 	{
@@ -24,18 +25,29 @@ bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, in
 		return false;
 	}
 
-	ApplyDamage(target, damage);
+	ApplyDamage(target, damage, bus);
 	return true;
 }
 
-void CombatSystem::ApplyDamage(SceneObject& target, int damage) noexcept
+void CombatSystem::ApplyDamage(SceneObject& target, int damage, EventBus* bus) noexcept
 {
 	if (!target.combatComponent.has_value())
 	{
 		return;
 	}
 
+	// Capture the alive state BEFORE mutation so we can detect the exact
+	// alive→dead transition. Post-scan death detection is unreliable here
+	// because dead enemies persist in the scene (collision disabled, tint
+	// darkened) — we'd republish EnemyKilled every tick they remain.
+	const bool wasAlive = target.combatComponent->IsAlive();
+
 	target.combatComponent->health = std::max(0, target.combatComponent->health - damage);
+
+	if (bus && wasAlive && !target.combatComponent->IsAlive())
+	{
+		bus->Publish({ GameEventType::EnemyKilled, target.name, {} });
+	}
 
 	if (!target.renderComponent.has_value() || !target.renderComponent->material.has_value())
 	{
