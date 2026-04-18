@@ -1,6 +1,15 @@
 # BlueFrog Phase 6 Execution Plan — "Triggers → Events → Objectives"
 
 > 선행 문서: [PHASE_5_EXECUTION_PLAN.md](PHASE_5_EXECUTION_PLAN.md)
+>
+> **진행 현황 (Phase 6 완료).**
+> - A-1 EventBus 뼈대 — `65238e4`
+> - A-2 Publisher 배선 + 임시 디버그 drain — `69515c9`
+> - A-3 ObjectiveState/System + HUD 동적화 — `c35256d`
+> - A-4 트리거 액션 + 씬 전환 — `0267930`
+> - A-5 문서 / validator 스윕 — 본 커밋
+>
+> Phase 7 이후 연기 항목(이벤트 pub/sub 리스너 모델, 다이얼로그, 인벤토리, 퀘스트 상태 머신, 조건식 OR/count-N, 세이브/로드, 플레이어 상태 이관)은 본 계획 "Verification" 섹션 아래 표 그대로 유효하다.
 
 ## Context
 

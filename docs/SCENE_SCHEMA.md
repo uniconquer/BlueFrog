@@ -12,6 +12,13 @@ This document describes the on-disk format for scenes and prefabs used by `Scene
 ```json
 {
   "schemaVersion": 2,
+  "objective": {
+    "text": "Defeat the scout",
+    "completionText": "Arena cleared",
+    "conditions": [
+      { "type": "enemy_killed", "name": "EnemyScout" }
+    ]
+  },
   "scene": {
     "name": "ArenaTrial",
     "camera": { "target": [-4.0, 1.25, 0.0] },
@@ -23,9 +30,38 @@ This document describes the on-disk format for scenes and prefabs used by `Scene
 | Key | Required | Notes |
 |---|---|---|
 | `schemaVersion` | yes | Integer. `1` and `2` are both accepted. `1` is the subset that existed before Phase 5 introduced `prefab`/`trigger`. New scenes should write `2`. |
+| `objective` | no | Scene-level objective shown in the title bar. Omit for scenes without a goal — the title segment renders empty. See *Objective block* below. |
 | `scene.name` | no | Informational. Not used at runtime. |
 | `scene.camera.target` | no | `[x, y, z]` world-space point the camera follows on spawn. Defaults to the engine's existing camera state if omitted. |
 | `scene.objects` | no | Array. Missing array = empty scene. |
+
+### Objective block
+
+Drives the dynamic objective text segment of the title bar. `ObjectiveSystem` consumes `EnemyKilled` events from the `EventBus` every tick and flips matching conditions to met; once every condition is met, the HUD switches from `text` to `completionText`.
+
+```json
+"objective": {
+  "text": "Defeat both scouts",
+  "completionText": "Yard cleared",
+  "conditions": [
+    { "type": "enemy_killed", "name": "EnemyScout" },
+    { "type": "enemy_killed", "name": "EnemyScoutElite" }
+  ]
+}
+```
+
+| Field | Values | Default |
+|---|---|---|
+| `text` | In-progress title string (ASCII). | `""` |
+| `completionText` | Shown once all conditions are met. | `""` |
+| `conditions` | Array of condition objects (**AND-combined** in v1). Empty or missing = trivially complete (title always shows `completionText`). | `[]` |
+
+Condition fields:
+
+| Field | Values | Notes |
+|---|---|---|
+| `type` | `"enemy_killed"` (v1) | Allow-list enforced by `SceneLoader::Validate`; typoed types reject at startup with a path-prefixed error. |
+| `name` | Scene-object name to match. | For `enemy_killed`, the defeated object's `name` must equal this string. |
 
 ## Scene object
 
@@ -102,13 +138,33 @@ XZ axis-aligned box used by the gameplay-level `CollisionSystem`.
 
 ### Trigger component
 
-Invisible axis-aligned XZ volume that fires a log line the first time the player overlaps it. No rendering or collision required on the same object. `halfExtents` array is `[halfX, halfZ]` — the same packing `CollisionComponent` uses.
+Invisible axis-aligned XZ volume that fires the first time the player overlaps it. No rendering or collision required on the same object. `halfExtents` array is `[halfX, halfZ]` — the same packing `CollisionComponent` uses.
 
 | Field | Values | Default |
 |---|---|---|
 | `halfExtents` | `[halfX, halfZ]` | `[1.0, 1.0]` |
-| `tag` | Free-form string; appears in the `[Trigger] Player entered '<tag>'` log. | `""` |
+| `tag` | Free-form string; appears in the `[Trigger] Player entered '<tag>'` log and as payload `a` of the `TriggerFired` event. | `""` |
 | `fireOnce` | `true` = one-shot; `false` = fire on every entry. Exit detection is not implemented yet. | `true` |
+| `action` | Optional `{ "type": ..., "param": ... }` describing what firing should do. See *Trigger action*. Absent = implicit `"log"`. | (none) |
+
+#### Trigger action
+
+```json
+"trigger": {
+  "halfExtents": [1.5, 1.5],
+  "tag": "center_zone",
+  "fireOnce": true,
+  "action": { "type": "load_scene", "param": "Assets/Scenes/arena_trial.json" }
+}
+```
+
+| `type` | Effect | `param` meaning |
+|---|---|---|
+| `"log"` | Prints `[Trigger] Player entered '<tag>'` and publishes `TriggerFired` with `b = <object name>`. Identical to omitting `action`. | ignored |
+| `"publish"` | Same log line, plus `TriggerFired` with `b = param`. Use when downstream consumers need scene-chosen payload instead of the object name. | free-form payload string |
+| `"load_scene"` | Publishes `LoadSceneRequested { a = param }`. `GameplaySimulation` reloads after the current tick finishes; the scene-graph swap is atomic from the systems' point of view. | path to the destination scene JSON |
+
+Validator rejects any other type with a path-prefixed error before the window is created.
 
 ## Prefab merge
 
@@ -136,9 +192,17 @@ Prefabs are worth making when the **same component block repeats verbatim** acro
 
 If every field of a component differs per instance, the prefab cannot usefully store it — under shallow override, any scene-side `collision` block replaces the prefab's `collision` entirely, including `blocking`. When that's a problem the fix is not to make the scene omit `collision` (the data is required); it is to either (a) accept the duplication or (b) escalate to deep merge. Deep merge is a Phase 6+ decision, only worthwhile once five or more prefabs share partially-overridden components.
 
+## Scene reload semantics
+
+A scene transition — whether triggered by startup, `--scene`, or a `load_scene` action — is a **full reset**. `Scene::Clear` discards every object (so trigger `fired` flags disappear with them), `ObjectiveSystem::Reset` drops objective progress, and `EventBus` is implicitly empty at the tick boundary where reload runs. There is no player-state carry-over: HP, position, and attack cooldown all come from the new scene's `Player` object.
+
+If later phases need persistence across transitions (save state, inventory, "continue" between hub and arena), the integration point is `GameplaySimulation::ReloadScene` — it is the single call that performs BuildArena + ObjectiveSystem::Reset, so capturing/restoring state around it covers every reload path.
+
+Reload is deferred to **after** `GameplaySimulation::Update` returns. Systems never see a mid-tick scene swap, so iterators over `Scene::GetObjects()` stay valid for the duration of the tick that published `LoadSceneRequested`.
+
 ## Versioning policy
 
-- `1`: original schema. No `prefab`, no `trigger`. Still accepted by the v2 loader without modification.
-- `2`: adds optional `prefab` scene-object key and optional `trigger` component. v1 scenes are structurally a subset — no migration needed.
+- `1`: original schema. No `prefab`, no `trigger`, no `objective`. Still accepted by the v2 loader without modification.
+- `2`: adds optional `prefab`/`trigger` scene-level structures (Phase 5) and optional top-level `objective` block plus optional `trigger.action` (Phase 6). All additions are structurally optional — a v2 scene that uses none of them is indistinguishable from a v1 scene, and v1 scenes load unchanged.
 
 When a breaking change is introduced, bump `schemaVersion` and make the loader accept the previous version's structure verbatim while rejecting future versions with a clear error.
