@@ -14,26 +14,26 @@
       },
       {
         "name": "NorthWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
         "transform": { "position": [0.0, 1.0, 4.0], "rotation": [0.0, 0.0, 0.0], "scale": [4.0, 1.0, 0.6] },
-        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
         "collision": { "halfExtents": [4.0, 0.6], "blocking": true }
       },
       {
         "name": "SouthWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
         "transform": { "position": [0.0, 1.0, -4.0], "rotation": [0.0, 0.0, 0.0], "scale": [4.0, 1.0, 0.6] },
-        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
         "collision": { "halfExtents": [4.0, 0.6], "blocking": true }
       },
       {
         "name": "EastWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
         "transform": { "position": [4.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.6, 1.0, 4.0] },
-        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
         "collision": { "halfExtents": [0.6, 4.0], "blocking": true }
       },
       {
         "name": "WestWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
         "transform": { "position": [-4.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.6, 1.0, 4.0] },
-        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
         "collision": { "halfExtents": [0.6, 4.0], "blocking": true }
       },
       {

@@ -1,0 +1,3 @@
+{
+  "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } }
+}

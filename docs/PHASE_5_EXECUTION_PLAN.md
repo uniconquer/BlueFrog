@@ -126,7 +126,7 @@ Phase 5의 목표는 "유니티 workflow"의 다음 핵심 요소인 **프리팹
 - [BlueFrog/Assets/Scenes/arena_trial.json](/D:/Work/Projects/BlueFrog/BlueFrog/Assets/Scenes/arena_trial.json) — 4개 벽을 `{ "name":"NorthWall", "prefab":"Assets/Prefabs/ArenaWall.prefab.json", "transform":{...} }`로 축소. 2개 Pillar도 동일한 변환이 유익하면 `Pillar.prefab.json` 추가 여부 판단 (tint가 다르면 별도 프리팹 가치가 없을 수 있음 — 4 walls만으로 가치 증명되면 충분).
 - `BlueFrog/Assets/Scenes/sparring_yard.json` — 동일 프리팹으로 벽 정리.
 
-**완료 기준**: 두 씬 모두 시각적으로 이전과 동일하게 렌더링. `arena_trial.json` 라인 수가 30% 이상 감소.
+**완료 기준**: 두 씬 모두 시각적으로 이전과 동일하게 렌더링. 기대: `ArenaWall.prefab.json`이 `render.mesh` + `render.material.tint`를 **단일 정의 지점**으로 만든다 (두 씬 × 4벽 = 8개소가 프리팹 1개로 수렴). Shallow override 규칙상 `transform`/`collision.halfExtents`는 벽마다 달라 씬 쪽에 남기 때문에 **파일 라인 수 감소는 실질적으로 0** (각 벽에서 `render` 한 라인이 `prefab` 한 라인으로 치환). 라인 압축이 프리팹 가치의 지표가 아니다 — 핵심은 "tint를 바꾸려면 한 곳만 고치면 된다"는 유지보수 표면적의 축소.
 
 ### 단계 B-1 — Startup validator + 에러 메시지 포맷 강화
 
@@ -186,7 +186,7 @@ Phase 5 완료 판정은 아래 **모두** 만족 시.
 4. **두 번째 씬**: `--scene Assets/Scenes/sparring_yard.json` → 다른 레이아웃, 적 2마리, 플레이어 조작 정상.
 5. **트리거 로그**: sparring_yard에서 지정 영역 최초 진입 시 Visual Studio Output 창에 정확히 1회 로그. 재진입 시 무음.
 6. **스키마 v2 역호환**: 기존 v1 `arena_trial.json`(A-1 이전 스냅샷)도 수용된다는 것을 로더 유닛 수준에서 확인.
-7. **프리팹 축소 효과**: A-4 후 `arena_trial.json` 라인 수가 30% 이상 감소.
+7. **프리팹 축소 효과**: A-4 후 `ArenaWall.prefab.json`이 두 씬의 벽 `render` 블록을 단일 정의 지점으로 수렴시킨다 (8개소 → 1개). 라인 수 감소는 부차적 (shallow override 특성상 실질 0).
 8. **Startup validator**: 프리팹 JSON을 고의로 깨뜨리면 창 생성 전에 명확한 에러(`파일명: path: 사유`)로 종료. 정상 상태에서는 무음.
 9. **객체 이름 안정성**: `GameplaySceneIds::Player`/`EnemyScout` 조회가 두 씬 모두에서 동작.
 

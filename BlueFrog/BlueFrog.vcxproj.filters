@@ -327,5 +327,8 @@
     <None Include="Assets\Prefabs\EnemyScout.prefab.json">
       <Filter>Assets\Prefabs</Filter>
     </None>
+    <None Include="Assets\Prefabs\ArenaWall.prefab.json">
+      <Filter>Assets\Prefabs</Filter>
+    </None>
   </ItemGroup>
 </Project>

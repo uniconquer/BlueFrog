@@ -249,6 +249,7 @@
     <None Include="Assets\Scenes\sparring_yard.json" />
     <None Include="Assets\Prefabs\Player.prefab.json" />
     <None Include="Assets\Prefabs\EnemyScout.prefab.json" />
+    <None Include="Assets\Prefabs\ArenaWall.prefab.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
