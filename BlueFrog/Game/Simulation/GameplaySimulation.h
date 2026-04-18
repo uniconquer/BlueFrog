@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Engine/Camera/TopDownCamera.h"
+#include "../../Engine/Events/EventBus.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/UI/HudState.h"
 #include "GameplayCameraSystem.h"
@@ -23,4 +24,5 @@ private:
 	PlayerGameplaySystem  playerSystem;
 	EnemyGameplaySystem   enemySystem;
 	TriggerGameplaySystem triggerSystem;
+	EventBus              eventBus;  // Phase 6 A-1: tick-drained queue. No publishers yet.
 };

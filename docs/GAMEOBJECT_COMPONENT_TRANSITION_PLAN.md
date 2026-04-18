@@ -137,4 +137,5 @@ What we are not promising yet:
 - Phase C 마무리: `GameplaySimulation`의 하드코딩된 시스템 순서(카메라 → 플레이어 → 적)를 데이터 주도 등록으로 전환할지 결정한다.
 - Phase D 진입 전 조건: 컴포넌트 shape 안정화, 씬 오브젝트 이름 기반 조회(`GameplaySceneIds`)를 ID 핸들 기반으로 전환할지 검토한다. 단기적으로는 이름 기반을 유지하고, JSON 씬 파일의 객체명이 `GameplaySceneIds` 상수와 일치하는 것을 계약으로 삼는다.
 - Phase D 첫 단계(완료): `GameplayArenaBuilder`의 하드코딩된 아레나를 데이터 파일에서 불러오는 최소 로더로 교체한다. 이 작업은 [PHASE_4_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_4_EXECUTION_PLAN.md) 단계 B-1/B-2에서 완료됐다.
-- Phase D 진행(현재): 프리팹 / 다중 씬 / 트리거(상호작용 전제) / 로더 검증 강화가 [PHASE_5_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_5_EXECUTION_PLAN.md)에 실행 계획으로 잡혀 있다. "item and npc spawn data, quest and interaction trigger data" 중 **spawn data(프리팹)** + **trigger 데이터**의 최소 단위가 여기서 실현된다.
+- Phase D (완료): 프리팹 / 다중 씬 / 트리거(로그 전용) / 로더 검증 강화가 [PHASE_5_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_5_EXECUTION_PLAN.md)에서 실현됐다. "item and npc spawn data, quest and interaction trigger data" 중 **spawn data(프리팹)** + **trigger 데이터의 최소 형태(감지+로그)**가 shipped.
+- Phase D 확장(현재): 트리거→이벤트 계층, JSON 구동 `ObjectiveState`, 씬 전환이 [PHASE_6_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_6_EXECUTION_PLAN.md)에 실행 계획으로 잡혀 있다. Phase 5의 "로그 전용" 트리거에 실제 소비자(목표 시스템, 씬 전환)를 연결해 "quest and interaction trigger data"의 동작 계층을 완성한다.

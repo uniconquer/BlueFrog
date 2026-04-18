@@ -201,8 +201,10 @@ Phase 5 완료 판정은 아래 **모두** 만족 시.
 
 ## 진행 상태
 
-- [ ] A-1 프리팹 로더 + Player/EnemyScout 프리팹
-- [ ] A-2 두 번째 씬 + `--scene` 인자
-- [ ] A-3 TriggerComponent + TriggerGameplaySystem (로그 전용)
-- [ ] A-4 ArenaWall 프리팹 + 스키마 문서화
-- [ ] B-1 Startup validator + 에러 메시지 포맷 강화
+- [x] A-1 프리팹 로더 + Player/EnemyScout 프리팹 (`8fd23c0`)
+- [x] A-2 두 번째 씬 + `--scene` 인자 (`ef48d1c`)
+- [x] A-3 TriggerComponent + TriggerGameplaySystem (로그 전용) (`3e172b6`)
+- [x] A-4 ArenaWall 프리팹 + 스키마 문서화 (`15dc397`)
+- [x] B-1 Startup validator + 에러 메시지 포맷 강화 (`0717f59`)
+
+**Phase 5 완료.** 후속 계획은 [PHASE_6_EXECUTION_PLAN.md](PHASE_6_EXECUTION_PLAN.md) 참조 — 트리거 이벤트 계층, ObjectiveState, 씬 전환.
