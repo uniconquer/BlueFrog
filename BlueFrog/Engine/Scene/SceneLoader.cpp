@@ -100,13 +100,46 @@ static CombatComponent ParseCombat(const json& j)
 	return cc;
 }
 
-static TriggerComponent ParseTrigger(const json& j)
+// v1 trigger-action allow-list. Keep in sync with TriggerGameplaySystem's
+// dispatch switch — adding a new action type means a new case there and a
+// new entry here (and usually a matching GameEventType).
+static bool IsKnownTriggerActionType(const std::string& s)
 {
-	TriggerComponent tc;
-	if (j.contains("halfExtents")) tc.halfExtents = ParseFloat2(j["halfExtents"]);
-	if (j.contains("tag"))         tc.tag         = j["tag"].get<std::string>();
-	if (j.contains("fireOnce"))    tc.fireOnce    = j["fireOnce"].get<bool>();
-	return tc;
+	return s == "log" || s == "publish" || s == "load_scene";
+}
+
+// Returns true and leaves `outAction` populated if parsing succeeds. Returns
+// false with errorOut filled if the action block is malformed or uses an
+// unknown type. Absence of an "action" key is success with outAction unset
+// (equivalent to type "log").
+static bool ParseTriggerAction(const json& j, const std::filesystem::path& path, std::optional<TriggerAction>& outAction, std::string* errorOut)
+{
+	if (!j.contains("action"))
+	{
+		return true;
+	}
+	const json& a = j["action"];
+	if (!a.is_object())
+	{
+		return SetError(errorOut, PathPrefix(path) + "trigger.action must be a JSON object");
+	}
+	TriggerAction action;
+	action.type  = a.value("type", std::string{});
+	action.param = a.value("param", std::string{});
+	if (!IsKnownTriggerActionType(action.type))
+	{
+		return SetError(errorOut, PathPrefix(path) + "trigger.action.type: unknown '" + action.type + "' (expected 'log', 'publish', or 'load_scene')");
+	}
+	outAction = std::move(action);
+	return true;
+}
+
+static bool ParseTrigger(const json& j, const std::filesystem::path& path, TriggerComponent& outTc, std::string* errorOut)
+{
+	if (j.contains("halfExtents")) outTc.halfExtents = ParseFloat2(j["halfExtents"]);
+	if (j.contains("tag"))         outTc.tag         = j["tag"].get<std::string>();
+	if (j.contains("fireOnce"))    outTc.fireOnce    = j["fireOnce"].get<bool>();
+	return ParseTriggerAction(j, path, outTc.action, errorOut);
 }
 
 // ---- objective parsing ------------------------------------------------------
@@ -272,7 +305,12 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 		}
 		if (objJson.contains("trigger"))
 		{
-			obj.triggerComponent = ParseTrigger(objJson["trigger"]);
+			TriggerComponent tc;
+			if (!ParseTrigger(objJson["trigger"], path, tc, errorOut))
+			{
+				return false;
+			}
+			obj.triggerComponent = std::move(tc);
 		}
 	}
 
@@ -295,25 +333,35 @@ bool SceneLoader::Validate(const std::filesystem::path& path, std::string* error
 	const auto& sceneNode = root.value("scene", json::object());
 	for (const auto& obj : sceneNode.value("objects", json::array()))
 	{
-		if (!obj.contains("prefab"))
+		if (obj.contains("prefab"))
 		{
-			continue;
-		}
-		const std::string prefabPath = obj["prefab"].get<std::string>();
+			const std::string prefabPath = obj["prefab"].get<std::string>();
 
-		std::ifstream prefabFile(prefabPath);
-		if (!prefabFile.is_open())
-		{
-			return SetError(errorOut, PathPrefix(path) + "prefab not found: " + prefabPath);
+			std::ifstream prefabFile(prefabPath);
+			if (!prefabFile.is_open())
+			{
+				return SetError(errorOut, PathPrefix(path) + "prefab not found: " + prefabPath);
+			}
+			try
+			{
+				json dummy = json::parse(prefabFile);
+				(void)dummy;
+			}
+			catch (const json::parse_error& e)
+			{
+				return SetError(errorOut, PathPrefix(path) + "prefab '" + prefabPath + "' JSON parse error: " + e.what());
+			}
 		}
-		try
+
+		// Trigger action allow-list check mirrors Load's ParseTrigger, so
+		// a typoed "teleport"/"loadscene" is rejected before window creation.
+		if (obj.contains("trigger"))
 		{
-			json dummy = json::parse(prefabFile);
-			(void)dummy;
-		}
-		catch (const json::parse_error& e)
-		{
-			return SetError(errorOut, PathPrefix(path) + "prefab '" + prefabPath + "' JSON parse error: " + e.what());
+			std::optional<TriggerAction> scratchAction;
+			if (!ParseTriggerAction(obj["trigger"], path, scratchAction, errorOut))
+			{
+				return false;
+			}
 		}
 	}
 

@@ -39,6 +39,17 @@ void App::DoFrame(float dt)
 void App::UpdateModel(float dt) noexcept
 {
 	hudState = gameplaySimulation.Update(CollectGameplayInput(dt), scene, camera, dt);
+
+	// Honor LoadSceneRequested events drained during Update. Reload happens
+	// here — after every system has finished iterating the scene — so no
+	// live references into scene objects are invalidated mid-tick. We
+	// immediately re-BuildHudState against the new scene to avoid a
+	// 1-frame-stale title bar (same pattern as App's constructor).
+	if (auto path = gameplaySimulation.ConsumePendingSceneLoad())
+	{
+		gameplaySimulation.ReloadScene(*path, scene, camera);
+		hudState = gameplaySimulation.BuildHudState(scene);
+	}
 }
 
 GameplayInput App::CollectGameplayInput(float dt) noexcept

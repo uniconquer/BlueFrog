@@ -50,17 +50,61 @@ void TriggerGameplaySystem::Update(Scene& scene, EventBus& bus) noexcept
 		{
 			tc.fired = true;
 
-			const std::string msg =
-				"[Trigger] Player entered '" + tc.tag +
-				"' (object='" + obj.name + "')\n";
+			// Action-type resolution. Absent action => implicit "log" so
+			// Phase 5 scenes still behave identically.
+			const std::string& actionType = tc.action.has_value()
+				? tc.action->type
+				: std::string("log");
+			const std::string& actionParam = tc.action.has_value()
+				? tc.action->param
+				: std::string();
 
-			std::fputs(msg.c_str(), stdout);
-
+			if (actionType == "log")
+			{
+				const std::string msg =
+					"[Trigger] Player entered '" + tc.tag +
+					"' (object='" + obj.name + "')\n";
+				std::fputs(msg.c_str(), stdout);
 #ifdef _WIN32
-			::OutputDebugStringA(msg.c_str());
+				::OutputDebugStringA(msg.c_str());
 #endif
+			}
+			else if (actionType == "publish")
+			{
+				// Still log so debugging parity with "log" holds, then emit
+				// the event. Payload b carries the action param rather than
+				// the object name — `publish` is the action that gives the
+				// scene author full control over what downstream sees.
+				const std::string msg =
+					"[Trigger] Player entered '" + tc.tag +
+					"' (object='" + obj.name + "') -> publish param='" + actionParam + "'\n";
+				std::fputs(msg.c_str(), stdout);
+#ifdef _WIN32
+				::OutputDebugStringA(msg.c_str());
+#endif
+				bus.Publish({ GameEventType::TriggerFired, tc.tag, actionParam });
+				continue;
+			}
+			else if (actionType == "load_scene")
+			{
+				// Log only once (this is a one-shot by design — the scene
+				// about to load will wipe fired state anyway). Actual
+				// reload is handled by GameplaySimulation after Update
+				// returns, so no iterators here get invalidated.
+				const std::string msg =
+					"[Trigger] Player entered '" + tc.tag +
+					"' (object='" + obj.name + "') -> load_scene '" + actionParam + "'\n";
+				std::fputs(msg.c_str(), stdout);
+#ifdef _WIN32
+				::OutputDebugStringA(msg.c_str());
+#endif
+				bus.Publish({ GameEventType::LoadSceneRequested, actionParam, {} });
+				continue;
+			}
 
-			// Publish the TriggerFired event for downstream consumers.
+			// Default path (log-only actions) still publishes TriggerFired so
+			// other consumers that care about "player entered tag X" keep
+			// working without the scene needing to opt into "publish".
 			// Payload: a = tag (scene-defined intent), b = object name
 			// (useful when multiple trigger zones share a tag).
 			bus.Publish({ GameEventType::TriggerFired, tc.tag, obj.name });
