@@ -107,32 +107,49 @@ static TriggerComponent ParseTrigger(const json& j)
 
 // ---- public interface -------------------------------------------------------
 
-bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut)
+// Prefixes every error message with the source file path so multi-scene /
+// multi-prefab setups can identify the offender at a glance.
+static std::string PathPrefix(const std::filesystem::path& path)
+{
+	return path.string() + ": ";
+}
+
+// Shared parse: file -> JSON -> schemaVersion check. Returns false on failure.
+static bool ReadSceneRoot(const std::filesystem::path& path, json& root, std::string* errorOut)
 {
 	std::ifstream file(path);
 	if (!file.is_open())
 	{
-		return SetError(errorOut, "SceneLoader: cannot open file: " + path.string());
+		return SetError(errorOut, PathPrefix(path) + "cannot open file");
 	}
 
-	json root;
 	try
 	{
 		root = json::parse(file);
 	}
 	catch (const json::parse_error& e)
 	{
-		return SetError(errorOut, std::string("SceneLoader: JSON parse error: ") + e.what());
+		return SetError(errorOut, PathPrefix(path) + "JSON parse error: " + e.what());
 	}
 
 	if (!root.contains("schemaVersion"))
 	{
-		return SetError(errorOut, "SceneLoader: missing schemaVersion");
+		return SetError(errorOut, PathPrefix(path) + "missing schemaVersion");
 	}
 	const int schemaVersion = root["schemaVersion"].get<int>();
 	if (schemaVersion != 1 && schemaVersion != 2)
 	{
-		return SetError(errorOut, "SceneLoader: unsupported schemaVersion " + std::to_string(schemaVersion) + " (expected 1 or 2)");
+		return SetError(errorOut, PathPrefix(path) + "unsupported schemaVersion " + std::to_string(schemaVersion) + " (expected 1 or 2)");
+	}
+	return true;
+}
+
+bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut)
+{
+	json root;
+	if (!ReadSceneRoot(path, root, errorOut))
+	{
+		return false;
 	}
 
 	const auto& sceneNode = root["scene"];
@@ -162,7 +179,7 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 			std::string prefabError;
 			if (!PrefabLoader::LoadAndMerge(prefabPath, objJson, prefabCache, &prefabError))
 			{
-				return SetError(errorOut, "SceneLoader: " + prefabError);
+				return SetError(errorOut, PathPrefix(path) + prefabError);
 			}
 		}
 
@@ -188,6 +205,47 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 		if (objJson.contains("trigger"))
 		{
 			obj.triggerComponent = ParseTrigger(objJson["trigger"]);
+		}
+	}
+
+	return true;
+}
+
+bool SceneLoader::Validate(const std::filesystem::path& path, std::string* errorOut)
+{
+	json root;
+	if (!ReadSceneRoot(path, root, errorOut))
+	{
+		return false;
+	}
+
+	// Verify each referenced prefab file exists and parses. We do not
+	// validate component field shapes here -- that work happens in Load,
+	// which produces the same "<path>: <reason>" format. Validate's job is
+	// to catch the most common startup failures (typo in filename, stray
+	// comma in JSON, wrong schemaVersion) before the window is created.
+	const auto& sceneNode = root.value("scene", json::object());
+	for (const auto& obj : sceneNode.value("objects", json::array()))
+	{
+		if (!obj.contains("prefab"))
+		{
+			continue;
+		}
+		const std::string prefabPath = obj["prefab"].get<std::string>();
+
+		std::ifstream prefabFile(prefabPath);
+		if (!prefabFile.is_open())
+		{
+			return SetError(errorOut, PathPrefix(path) + "prefab not found: " + prefabPath);
+		}
+		try
+		{
+			json dummy = json::parse(prefabFile);
+			(void)dummy;
+		}
+		catch (const json::parse_error& e)
+		{
+			return SetError(errorOut, PathPrefix(path) + "prefab '" + prefabPath + "' JSON parse error: " + e.what());
 		}
 	}
 

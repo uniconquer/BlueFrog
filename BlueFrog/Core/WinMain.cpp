@@ -1,7 +1,11 @@
 #include "App.h"
+#include "../Engine/Scene/PrefabLoader.h"
+#include "../Engine/Scene/SceneLoader.h"
 
 #include <shellapi.h>
+#include <filesystem>
 #include <string>
+#include <system_error>
 
 namespace
 {
@@ -34,10 +38,61 @@ namespace
 		::LocalFree(argv);
 		return scenePath;
 	}
+
+	// Dry-run every shipped scene and prefab before the window is created.
+	// Catches typos, stray commas, and missing prefab references at startup
+	// instead of at scene-transition time. A missing directory is not fatal
+	// (fresh checkouts or partial installs may not have every folder), but
+	// any file that exists must parse cleanly.
+	bool ValidateAllAssets(std::string* errorOut)
+	{
+		auto sweep = [&](const std::filesystem::path& dir, const std::string& suffix, auto validator) -> bool
+		{
+			std::error_code ec;
+			if (!std::filesystem::exists(dir, ec) || !std::filesystem::is_directory(dir, ec))
+			{
+				return true; // nothing to validate
+			}
+			for (const auto& entry : std::filesystem::directory_iterator(dir, ec))
+			{
+				if (ec) break;
+				if (!entry.is_regular_file()) continue;
+				const std::string name = entry.path().filename().string();
+				if (name.size() < suffix.size()) continue;
+				if (name.compare(name.size() - suffix.size(), suffix.size(), suffix) != 0) continue;
+				if (!validator(entry.path(), errorOut))
+				{
+					return false;
+				}
+			}
+			return true;
+		};
+
+		if (!sweep(std::filesystem::path("Assets/Scenes"), ".json",
+			[](const std::filesystem::path& p, std::string* e) { return SceneLoader::Validate(p, e); }))
+		{
+			return false;
+		}
+		if (!sweep(std::filesystem::path("Assets/Prefabs"), ".prefab.json",
+			[](const std::filesystem::path& p, std::string* e) { return PrefabLoader::Validate(p, e); }))
+		{
+			return false;
+		}
+		return true;
+	}
 }
 
 int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
+	{
+		std::string validationError;
+		if (!ValidateAllAssets(&validationError))
+		{
+			MessageBoxA(nullptr, validationError.c_str(), "Asset Validation Failed", MB_OK | MB_ICONEXCLAMATION);
+			return -1;
+		}
+	}
+
 	try
 	{
 		return App{ ExtractScenePathFromCommandLine() }.Go();

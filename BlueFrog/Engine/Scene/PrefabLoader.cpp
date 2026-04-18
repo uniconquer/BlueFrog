@@ -53,3 +53,34 @@ bool PrefabLoader::LoadAndMerge(const std::filesystem::path& prefabPath,
 
 	return true;
 }
+
+bool PrefabLoader::Validate(const std::filesystem::path& prefabPath, std::string* errorOut)
+{
+	const std::string key = prefabPath.string();
+
+	std::ifstream file(prefabPath);
+	if (!file.is_open())
+	{
+		if (errorOut) *errorOut = key + ": cannot open prefab file";
+		return false;
+	}
+
+	nlohmann::json parsed;
+	try
+	{
+		parsed = nlohmann::json::parse(file);
+	}
+	catch (const nlohmann::json::parse_error& e)
+	{
+		if (errorOut) *errorOut = key + ": JSON parse error: " + e.what();
+		return false;
+	}
+
+	if (!parsed.is_object())
+	{
+		if (errorOut) *errorOut = key + ": root must be a JSON object";
+		return false;
+	}
+
+	return true;
+}

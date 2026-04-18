@@ -24,4 +24,10 @@ public:
 	                         nlohmann::json& targetObj,
 	                         Cache& cache,
 	                         std::string* errorOut);
+
+	// Dry-run parse for startup validation: verifies the file opens, parses,
+	// and the root is a JSON object. Error messages are prefixed with the
+	// prefab file path so a failing sweep can identify the offender.
+	static bool Validate(const std::filesystem::path& prefabPath,
+	                     std::string* errorOut);
 };
