@@ -6,6 +6,7 @@
 #include "RenderComponent.h"
 #include "SceneObject.h"
 #include "Transform.h"
+#include "TriggerComponent.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 
@@ -95,6 +96,15 @@ static CombatComponent ParseCombat(const json& j)
 	return cc;
 }
 
+static TriggerComponent ParseTrigger(const json& j)
+{
+	TriggerComponent tc;
+	if (j.contains("halfExtents")) tc.halfExtents = ParseFloat2(j["halfExtents"]);
+	if (j.contains("tag"))         tc.tag         = j["tag"].get<std::string>();
+	if (j.contains("fireOnce"))    tc.fireOnce    = j["fireOnce"].get<bool>();
+	return tc;
+}
+
 // ---- public interface -------------------------------------------------------
 
 bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut)
@@ -174,6 +184,10 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 		if (objJson.contains("combat"))
 		{
 			obj.combatComponent = ParseCombat(objJson["combat"]);
+		}
+		if (objJson.contains("trigger"))
+		{
+			obj.triggerComponent = ParseTrigger(objJson["trigger"]);
 		}
 	}
 

@@ -120,6 +120,9 @@
     <ClCompile Include="Game\Simulation\GameplaySimulation.cpp">
       <Filter>Game\Simulation</Filter>
     </ClCompile>
+    <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp">
+      <Filter>Game\Simulation</Filter>
+    </ClCompile>
     <ClCompile Include="Engine\Scene\Scene.cpp">
       <Filter>Engine\Scene</Filter>
     </ClCompile>
@@ -260,6 +263,9 @@
     <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Simulation\TriggerGameplaySystem.h">
+      <Filter>Game\Simulation</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Scene\Transform.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
@@ -273,6 +279,9 @@
       <Filter>Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\PrefabLoader.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\TriggerComponent.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\SceneObject.h">

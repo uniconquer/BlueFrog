@@ -8,6 +8,7 @@
 #include "GameplayInput.h"
 #include "GameplayArenaBuilder.h"
 #include "PlayerGameplaySystem.h"
+#include "TriggerGameplaySystem.h"
 #include <string>
 
 class GameplaySimulation final
@@ -18,7 +19,8 @@ public:
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
 private:
-	GameplayCameraSystem cameraSystem;
-	PlayerGameplaySystem playerSystem;
-	EnemyGameplaySystem enemySystem;
+	GameplayCameraSystem  cameraSystem;
+	PlayerGameplaySystem  playerSystem;
+	EnemyGameplaySystem   enemySystem;
+	TriggerGameplaySystem triggerSystem;
 };

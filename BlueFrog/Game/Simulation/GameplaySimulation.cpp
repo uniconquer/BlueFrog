@@ -11,6 +11,7 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 	cameraSystem.ApplyInput(input, camera);
 	playerSystem.Update(input, scene, camera, dt);
 	enemySystem.Update(scene, dt);
+	triggerSystem.Update(scene);
 	cameraSystem.FollowPlayer(scene, camera);
 	return BuildHudState(scene);
 }
