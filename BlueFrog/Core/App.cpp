@@ -1,13 +1,19 @@
 #include "App.h"
 
-App::App()
+namespace
+{
+	constexpr const char* kDefaultScenePath = "Assets/Scenes/arena_trial.json";
+}
+
+App::App(std::string scenePath)
 	:
 	wnd(800, 600, L"Blue Frog"),
 	renderer(wnd.Gfx()),
 	uiRenderer(wnd.Gfx()),
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
-	GameplaySimulation::BuildArena(scene, camera);
+	const std::string resolvedScene = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
+	GameplaySimulation::BuildArena(scene, camera, resolvedScene);
 	hudState = gameplaySimulation.BuildHudState(scene);
 }
 

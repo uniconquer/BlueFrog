@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 2,
+  "scene": {
+    "name": "SparringYard",
+    "camera": { "target": [-2.5, 1.25, 0.0] },
+    "objects": [
+      {
+        "name": "Ground",
+        "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [10.0, 1.0, 10.0] },
+        "render": {
+          "mesh": "plane",
+          "material": { "texture": "Assets/Textures/ground_checker.png", "tint": [1.0, 1.0, 1.0], "sampler": "wrap_linear" }
+        }
+      },
+      {
+        "name": "NorthWall",
+        "transform": { "position": [0.0, 1.0, 4.0], "rotation": [0.0, 0.0, 0.0], "scale": [4.0, 1.0, 0.6] },
+        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
+        "collision": { "halfExtents": [4.0, 0.6], "blocking": true }
+      },
+      {
+        "name": "SouthWall",
+        "transform": { "position": [0.0, 1.0, -4.0], "rotation": [0.0, 0.0, 0.0], "scale": [4.0, 1.0, 0.6] },
+        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
+        "collision": { "halfExtents": [4.0, 0.6], "blocking": true }
+      },
+      {
+        "name": "EastWall",
+        "transform": { "position": [4.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.6, 1.0, 4.0] },
+        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
+        "collision": { "halfExtents": [0.6, 4.0], "blocking": true }
+      },
+      {
+        "name": "WestWall",
+        "transform": { "position": [-4.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.6, 1.0, 4.0] },
+        "render": { "mesh": "cube", "material": { "tint": [0.86, 0.91, 1.0] } },
+        "collision": { "halfExtents": [0.6, 4.0], "blocking": true }
+      },
+      {
+        "name": "Player",
+        "prefab": "Assets/Prefabs/Player.prefab.json",
+        "transform": { "position": [-2.5, 1.25, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [0.7, 1.25, 0.7] }
+      },
+      {
+        "name": "EnemyScout",
+        "prefab": "Assets/Prefabs/EnemyScout.prefab.json",
+        "transform": { "position": [2.2, 1.0, 2.2], "rotation": [0.0, 0.0, 0.0], "scale": [0.75, 1.0, 0.75] }
+      },
+      {
+        "name": "EnemyScoutDummy",
+        "prefab": "Assets/Prefabs/EnemyScout.prefab.json",
+        "transform": { "position": [2.2, 1.0, -2.2], "rotation": [0.0, 0.0, 0.0], "scale": [0.75, 1.0, 0.75] }
+      }
+    ]
+  }
+}

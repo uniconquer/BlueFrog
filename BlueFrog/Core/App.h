@@ -7,11 +7,12 @@
 #include "../Engine/UI/HudState.h"
 #include "../Engine/UI/UIRenderer.h"
 #include "../Game/Simulation/GameplaySimulation.h"
+#include <string>
 
 class App
 {
 public:
-	App();
+	explicit App(std::string scenePath = {});
 	int Go();
 private:
 	void DoFrame(float dt);

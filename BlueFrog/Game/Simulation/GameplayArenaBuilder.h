@@ -4,16 +4,17 @@
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/Scene/SceneLoader.h"
 #include <cstdio>
+#include <string>
 
 class GameplayArenaBuilder final
 {
 public:
-	static void Build(Scene& scene, TopDownCamera& camera) noexcept
+	static void Build(Scene& scene, TopDownCamera& camera, const std::string& scenePath) noexcept
 	{
 		std::string error;
-		if (!SceneLoader::Load("Assets/Scenes/arena_trial.json", scene, camera, &error))
+		if (!SceneLoader::Load(scenePath, scene, camera, &error))
 		{
-			std::fprintf(stderr, "[GameplayArenaBuilder] SceneLoader failed: %s\n", error.c_str());
+			std::fprintf(stderr, "[GameplayArenaBuilder] SceneLoader failed for '%s': %s\n", scenePath.c_str(), error.c_str());
 		}
 	}
 };

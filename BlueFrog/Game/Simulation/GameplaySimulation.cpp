@@ -1,9 +1,9 @@
 #include "GameplaySimulation.h"
 #include <sstream>
 
-void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera) noexcept
+void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera, const std::string& scenePath) noexcept
 {
-	GameplayArenaBuilder::Build(scene, camera);
+	GameplayArenaBuilder::Build(scene, camera, scenePath);
 }
 
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept

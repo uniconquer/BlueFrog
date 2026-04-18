@@ -309,6 +309,9 @@
     <None Include="Assets\Scenes\arena_trial.json">
       <Filter>Assets\Scenes</Filter>
     </None>
+    <None Include="Assets\Scenes\sparring_yard.json">
+      <Filter>Assets\Scenes</Filter>
+    </None>
     <None Include="Assets\Prefabs\Player.prefab.json">
       <Filter>Assets\Prefabs</Filter>
     </None>
