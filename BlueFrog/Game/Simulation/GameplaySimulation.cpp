@@ -1,40 +1,16 @@
 #include "GameplaySimulation.h"
 #include <sstream>
 #include <string>
-
-#ifdef _WIN32
-#include "../../Core/BFWin.h"
-#endif
+#include <utility>
 
 void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera, const std::string& scenePath) noexcept
 {
-	GameplayArenaBuilder::Build(scene, camera, scenePath);
-}
-
-namespace
-{
-	// Phase 6 A-2: temporary debug drain. Proves that EnemyKilled and
-	// TriggerFired publish at the expected moments. A-3 replaces this with
-	// ObjectiveSystem consumption.
-	void DebugDumpEvents(const std::vector<GameEvent>& events)
-	{
-#ifndef _WIN32
-		(void)events;
-#else
-		for (const auto& e : events)
-		{
-			const char* name = "Unknown";
-			switch (e.type)
-			{
-			case GameEventType::EnemyKilled:        name = "EnemyKilled"; break;
-			case GameEventType::TriggerFired:       name = "TriggerFired"; break;
-			case GameEventType::LoadSceneRequested: name = "LoadSceneRequested"; break;
-			}
-			const std::string msg = std::string("[Event] ") + name + " a='" + e.a + "' b='" + e.b + "'\n";
-			::OutputDebugStringA(msg.c_str());
-		}
-#endif
-	}
+	// Scene JSON's "objective" block (if any) is parsed into `state`; absent
+	// block yields a default-constructed state so the system resets cleanly
+	// across mid-play reloads.
+	ObjectiveState state;
+	GameplayArenaBuilder::Build(scene, camera, scenePath, state);
+	objectiveSystem.Reset(std::move(state));
 }
 
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
@@ -45,16 +21,23 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 	triggerSystem.Update(scene, eventBus);
 	cameraSystem.FollowPlayer(scene, camera);
 
-	// Drain exactly once per tick after all systems have run. A-3 replaces
-	// this debug dump with ObjectiveSystem::Consume.
-	DebugDumpEvents(eventBus.Drain());
+	// Drain exactly once per tick after all systems have run. Feeding the
+	// full batch to ObjectiveSystem keeps condition matching deterministic
+	// with respect to publish order (A-4 will also scan for scene-load
+	// requests before consuming).
+	auto events = eventBus.Drain();
+	objectiveSystem.Consume(events);
 
-	return BuildHudState(scene);
+	HudState hud = BuildHudState(scene);
+	hud.objectiveText = objectiveSystem.CurrentText();
+	return hud;
 }
 
 HudState GameplaySimulation::BuildHudState(const Scene& scene) const noexcept
 {
-	return playerSystem.BuildHudState(scene);
+	HudState hud = playerSystem.BuildHudState(scene);
+	hud.objectiveText = objectiveSystem.CurrentText();
+	return hud;
 }
 
 std::wstring GameplaySimulation::BuildWindowTitle(const HudState& hudState) noexcept

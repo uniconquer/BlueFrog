@@ -4,6 +4,7 @@
 #include "../../Engine/Events/EventBus.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/UI/HudState.h"
+#include "../Objectives/ObjectiveSystem.h"
 #include "GameplayCameraSystem.h"
 #include "EnemyGameplaySystem.h"
 #include "GameplayInput.h"
@@ -15,7 +16,11 @@
 class GameplaySimulation final
 {
 public:
-	static void BuildArena(Scene& scene, TopDownCamera& camera, const std::string& scenePath) noexcept;
+	// Loads the scene at `scenePath` into `scene`/`camera` and resets the
+	// objective state from the scene JSON's "objective" block (empty if none).
+	// Non-static: owns the ObjectiveSystem whose state must also reset.
+	void BuildArena(Scene& scene, TopDownCamera& camera, const std::string& scenePath) noexcept;
+
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
@@ -24,5 +29,6 @@ private:
 	PlayerGameplaySystem  playerSystem;
 	EnemyGameplaySystem   enemySystem;
 	TriggerGameplaySystem triggerSystem;
-	EventBus              eventBus;  // Phase 6 A-1: tick-drained queue. No publishers yet.
+	ObjectiveSystem       objectiveSystem;
+	EventBus              eventBus;
 };

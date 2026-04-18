@@ -43,6 +43,9 @@
     <Filter Include="Engine\\Events">
       <UniqueIdentifier>{2f1e8b4c-6d3a-4d21-9a1b-7c8e4e2a6d11}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\\Objectives">
+      <UniqueIdentifier>{3c1f9a7d-5e26-4f87-b2a9-8d6c1f0e3a52}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Game\\Hud">
       <UniqueIdentifier>{a3d8c1eb-c298-4e30-8d4c-5ffbd88d4b2f}</UniqueIdentifier>
     </Filter>
@@ -134,6 +137,9 @@
     </ClCompile>
     <ClCompile Include="Engine\Events\EventBus.cpp">
       <Filter>Engine\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp">
+      <Filter>Game\Objectives</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Scene\PrefabLoader.cpp">
       <Filter>Engine\Scene</Filter>
@@ -295,6 +301,12 @@
     </ClInclude>
     <ClInclude Include="Engine\Events\GameEvent.h">
       <Filter>Engine\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Objectives\ObjectiveState.h">
+      <Filter>Game\Objectives</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Objectives\ObjectiveSystem.h">
+      <Filter>Game\Objectives</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\SceneObject.h">
       <Filter>Engine\Scene</Filter>

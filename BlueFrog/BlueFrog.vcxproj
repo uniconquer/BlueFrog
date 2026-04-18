@@ -167,6 +167,7 @@
     <ClCompile Include="Engine\UI\UIRenderer.cpp" />
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
+    <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp" />
     <ClCompile Include="Game\Player\PlayerController.cpp" />
     <ClCompile Include="Game\Simulation\GameplaySimulation.cpp" />
     <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp" />
@@ -205,6 +206,8 @@
     <ClInclude Include="Game\Hud\HudPresenter.h" />
     <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h" />
+    <ClInclude Include="Game\Objectives\ObjectiveState.h" />
+    <ClInclude Include="Game\Objectives\ObjectiveSystem.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
     <ClInclude Include="Game\Player\PlayerAimSystem.h" />
     <ClInclude Include="Game\Player\PlayerMovementSystem.h" />

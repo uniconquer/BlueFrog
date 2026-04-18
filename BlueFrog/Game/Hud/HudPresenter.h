@@ -28,7 +28,9 @@ public:
 		}
 
 		hudState.attackCooldown01 = playerController.GetAttackCooldownProgress01();
-		hudState.objectiveText = hudState.hasTarget ? L"Defeat the scout" : L"Arena cleared";
+		// objectiveText is injected by GameplaySimulation after BuildHudState so
+		// the HUD stays data-driven off ObjectiveSystem rather than deriving
+		// text from the scene's enemy roster.
 		return hudState;
 	}
 };

@@ -14,6 +14,10 @@ using json = nlohmann::json;
 
 // ---- helpers ---------------------------------------------------------------
 
+// Forward declaration: ParseObjective (defined mid-file) emits path-prefixed
+// error messages via PathPrefix, which lives near the public interface below.
+static std::string PathPrefix(const std::filesystem::path& path);
+
 static bool SetError(std::string* out, std::string msg)
 {
 	if (out) *out = std::move(msg);
@@ -105,6 +109,52 @@ static TriggerComponent ParseTrigger(const json& j)
 	return tc;
 }
 
+// ---- objective parsing ------------------------------------------------------
+
+// Narrow UTF-8 (std::string) to wchar_t for title-bar rendering. Scene JSON
+// holds ASCII-only strings in practice, so we widen 1:1. A non-ASCII byte
+// would simply appear as its code-point value; objectives never carry one.
+static std::wstring WidenAscii(const std::string& s)
+{
+	return std::wstring(s.begin(), s.end());
+}
+
+static bool ParseObjective(const json& objNode, const std::filesystem::path& path, ObjectiveState& out, std::string* errorOut)
+{
+	out.text           = WidenAscii(objNode.value("text", std::string{}));
+	out.completionText = WidenAscii(objNode.value("completionText", std::string{}));
+	out.conditions.clear();
+
+	if (!objNode.contains("conditions"))
+	{
+		return true;
+	}
+	if (!objNode["conditions"].is_array())
+	{
+		return SetError(errorOut, PathPrefix(path) + "objective.conditions must be an array");
+	}
+
+	for (const auto& c : objNode["conditions"])
+	{
+		if (!c.is_object())
+		{
+			return SetError(errorOut, PathPrefix(path) + "objective.conditions entry must be a JSON object");
+		}
+		ObjectiveCondition cond;
+		cond.type = c.value("type", std::string{});
+		cond.name = c.value("name", std::string{});
+
+		// v1 allow-list. Add new condition types here when their matcher is
+		// wired in ObjectiveSystem::Consume.
+		if (cond.type != "enemy_killed")
+		{
+			return SetError(errorOut, PathPrefix(path) + "objective.conditions: unknown type '" + cond.type + "' (expected 'enemy_killed')");
+		}
+		out.conditions.push_back(std::move(cond));
+	}
+	return true;
+}
+
 // ---- public interface -------------------------------------------------------
 
 // Prefixes every error message with the source file path so multi-scene /
@@ -144,7 +194,7 @@ static bool ReadSceneRoot(const std::filesystem::path& path, json& root, std::st
 	return true;
 }
 
-bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut)
+bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut, ObjectiveState* objectiveOut)
 {
 	json root;
 	if (!ReadSceneRoot(path, root, errorOut))
@@ -153,6 +203,24 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 	}
 
 	const auto& sceneNode = root["scene"];
+
+	// Reset objective to empty defaults; a scene without an "objective" block
+	// should clear any prior state (important on mid-play reload).
+	if (objectiveOut)
+	{
+		*objectiveOut = {};
+	}
+	if (objectiveOut && root.contains("objective"))
+	{
+		if (!root["objective"].is_object())
+		{
+			return SetError(errorOut, PathPrefix(path) + "objective must be a JSON object");
+		}
+		if (!ParseObjective(root["objective"], path, *objectiveOut, errorOut))
+		{
+			return false;
+		}
+	}
 
 	scene.Clear();
 
@@ -246,6 +314,22 @@ bool SceneLoader::Validate(const std::filesystem::path& path, std::string* error
 		catch (const json::parse_error& e)
 		{
 			return SetError(errorOut, PathPrefix(path) + "prefab '" + prefabPath + "' JSON parse error: " + e.what());
+		}
+	}
+
+	// Validate optional objective block: we run the same ParseObjective the
+	// real Load path uses, which rejects unknown condition types with a
+	// path-prefixed error before the window is ever created.
+	if (root.contains("objective"))
+	{
+		if (!root["objective"].is_object())
+		{
+			return SetError(errorOut, PathPrefix(path) + "objective must be a JSON object");
+		}
+		ObjectiveState scratch;
+		if (!ParseObjective(root["objective"], path, scratch, errorOut))
+		{
+			return false;
 		}
 	}
 

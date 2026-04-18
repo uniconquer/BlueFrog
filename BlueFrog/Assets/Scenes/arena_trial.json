@@ -1,5 +1,12 @@
 {
   "schemaVersion": 2,
+  "objective": {
+    "text": "Defeat the scout",
+    "completionText": "Arena cleared",
+    "conditions": [
+      { "type": "enemy_killed", "name": "EnemyScout" }
+    ]
+  },
   "scene": {
     "name": "ArenaTrial",
     "camera": { "target": [-4.0, 1.25, 0.0] },

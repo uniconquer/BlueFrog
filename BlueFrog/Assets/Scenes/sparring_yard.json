@@ -1,5 +1,12 @@
 {
   "schemaVersion": 2,
+  "objective": {
+    "text": "Defeat the scout",
+    "completionText": "Yard cleared",
+    "conditions": [
+      { "type": "enemy_killed", "name": "EnemyScout" }
+    ]
+  },
   "scene": {
     "name": "SparringYard",
     "camera": { "target": [-2.5, 1.25, 0.0] },

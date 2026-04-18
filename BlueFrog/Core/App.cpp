@@ -13,7 +13,7 @@ App::App(std::string scenePath)
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
 	const std::string resolvedScene = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
-	GameplaySimulation::BuildArena(scene, camera, resolvedScene);
+	gameplaySimulation.BuildArena(scene, camera, resolvedScene);
 	hudState = gameplaySimulation.BuildHudState(scene);
 }
 
