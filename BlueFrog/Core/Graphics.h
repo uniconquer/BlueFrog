@@ -2,6 +2,8 @@
 #include "BFWin.h"
 #include "BFException.h"
 #include <d3d11.h>
+#include <d2d1.h>
+#include <dwrite.h>
 #include <wrl/client.h>
 
 class Graphics
@@ -29,12 +31,22 @@ public:
 	void DrawIndexed(UINT count) noexcept;
 	ID3D11Device* GetDevice() noexcept;
 	ID3D11DeviceContext* GetContext() noexcept;
+	ID2D1RenderTarget* GetD2DTarget() noexcept;
+	IDWriteFactory* GetDWriteFactory() noexcept;
+	void BeginTextDraw() noexcept;
+	HRESULT EndTextDraw() noexcept;
+private:
+	void RecreateD2DTarget();
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView;
+	Microsoft::WRL::ComPtr<ID2D1Factory> pD2DFactory;
+	Microsoft::WRL::ComPtr<IDWriteFactory> pDWriteFactory;
+	Microsoft::WRL::ComPtr<ID2D1RenderTarget> pD2DTarget;
+	bool d2dTargetNeedsRecreate = false;
 };
 
 #define BFGFX_EXCEPT(hr) Graphics::Exception(__LINE__, __FILE__, hr)

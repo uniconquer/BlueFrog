@@ -10,6 +10,7 @@ App::App(std::string scenePath)
 	wnd(800, 600, L"Blue Frog"),
 	renderer(wnd.Gfx()),
 	uiRenderer(wnd.Gfx()),
+	textRenderer(wnd.Gfx()),
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
 	const std::string resolvedScene = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
@@ -107,5 +108,8 @@ void App::ComposeFrame()
 	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
 	renderer.Render(scene, camera);
 	uiRenderer.Render(hudState);
+	wnd.Gfx().BeginTextDraw();
+	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight());
+	(void)wnd.Gfx().EndTextDraw();
 	wnd.Gfx().EndFrame();
 }

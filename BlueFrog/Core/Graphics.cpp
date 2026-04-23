@@ -2,6 +2,7 @@
 #include "Dxerr/dxerr.h"
 #include <sstream>
 #include <wrl/client.h>
+#include <dxgi.h>
 
 Graphics::Exception::Exception(int line, const char* file, HRESULT hr) noexcept
 	:
@@ -74,13 +75,13 @@ Graphics::Graphics(HWND hWnd)
 
 	// Create device and front/back buffers, and swap chain rendering context
 	if (FAILED(hr = D3D11CreateDeviceAndSwapChain(
-		nullptr, 
-		D3D_DRIVER_TYPE_HARDWARE, 
-		nullptr, 
-		0, 
-		nullptr, 
-		0, 
-		D3D11_SDK_VERSION, 
+		nullptr,
+		D3D_DRIVER_TYPE_HARDWARE,
+		nullptr,
+		D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+		nullptr,
+		0,
+		D3D11_SDK_VERSION,
 		&swapChainDesc,
 		pSwapChain.GetAddressOf(), 
 		pDevice.GetAddressOf(), 
@@ -143,12 +144,49 @@ Graphics::Graphics(HWND hWnd)
 		1.0f
 	};
 	pContext->RSSetViewports(1u, &viewport);
+
+	// D2D / DWrite factories (required for in-viewport text overlay).
+	if (FAILED(hr = D2D1CreateFactory(
+		D2D1_FACTORY_TYPE_SINGLE_THREADED,
+		__uuidof(ID2D1Factory),
+		reinterpret_cast<void**>(pD2DFactory.GetAddressOf()))))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
+	if (FAILED(hr = DWriteCreateFactory(
+		DWRITE_FACTORY_TYPE_SHARED,
+		__uuidof(IDWriteFactory),
+		reinterpret_cast<IUnknown**>(pDWriteFactory.GetAddressOf()))))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
+
+	RecreateD2DTarget();
 }
 
 Graphics::~Graphics() = default;
 
 void Graphics::BeginFrame(float red, float green, float blue) noexcept
 {
+	// Defensive re-bind: D2D's EndDraw can clobber OM state. Without this,
+	// any frame after a text pass would lose the render target and render black.
+	ID3D11RenderTargetView* const renderTargets[] = { pRenderTarget.Get() };
+	pContext->OMSetRenderTargets(1u, renderTargets, pDepthStencilView.Get());
+
+	if (d2dTargetNeedsRecreate)
+	{
+		pD2DTarget.Reset();
+		try
+		{
+			RecreateD2DTarget();
+		}
+		catch (...)
+		{
+			// Swallow: text will be skipped until the next successful recreate.
+		}
+		d2dTargetNeedsRecreate = false;
+	}
+
 	const float color[] = { red, green, blue, 1.0f };
 	pContext->ClearRenderTargetView(pRenderTarget.Get(), color);
 	pContext->ClearDepthStencilView(pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
@@ -172,6 +210,64 @@ void Graphics::DrawIndexed(UINT count) noexcept
 void Graphics::EndFrame()
 {
 	if (const HRESULT hr = pSwapChain->Present(1u, 0u); FAILED(hr))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
+}
+
+ID2D1RenderTarget* Graphics::GetD2DTarget() noexcept
+{
+	return pD2DTarget.Get();
+}
+
+IDWriteFactory* Graphics::GetDWriteFactory() noexcept
+{
+	return pDWriteFactory.Get();
+}
+
+void Graphics::BeginTextDraw() noexcept
+{
+	if (pD2DTarget)
+	{
+		pD2DTarget->BeginDraw();
+	}
+}
+
+HRESULT Graphics::EndTextDraw() noexcept
+{
+	if (!pD2DTarget)
+	{
+		return S_OK;
+	}
+	const HRESULT hr = pD2DTarget->EndDraw();
+	if (hr == D2DERR_RECREATE_TARGET)
+	{
+		d2dTargetNeedsRecreate = true;
+	}
+	return hr;
+}
+
+void Graphics::RecreateD2DTarget()
+{
+	using Microsoft::WRL::ComPtr;
+
+	ComPtr<IDXGISurface> pBackSurface;
+	HRESULT hr;
+	if (FAILED(hr = pSwapChain->GetBuffer(0u, __uuidof(IDXGISurface), reinterpret_cast<void**>(pBackSurface.GetAddressOf()))))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
+
+	const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+		D2D1_RENDER_TARGET_TYPE_DEFAULT,
+		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
+		0.0f,
+		0.0f);
+
+	if (FAILED(hr = pD2DFactory->CreateDxgiSurfaceRenderTarget(
+		pBackSurface.Get(),
+		&props,
+		pD2DTarget.ReleaseAndGetAddressOf())))
 	{
 		throw BFGFX_EXCEPT(hr);
 	}

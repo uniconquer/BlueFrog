@@ -114,6 +114,9 @@
     <ClCompile Include="Engine\UI\UIRenderer.cpp">
       <Filter>Engine\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\UI\TextRenderer.cpp">
+      <Filter>Engine\UI</Filter>
+    </ClCompile>
     <ClCompile Include="Game\Combat\CombatSystem.cpp">
       <Filter>Game\Combat</Filter>
     </ClCompile>
@@ -318,6 +321,12 @@
       <Filter>Engine\UI</Filter>
     </ClInclude>
     <ClInclude Include="Engine\UI\UIRenderer.h">
+      <Filter>Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\UI\TextRenderer.h">
+      <Filter>Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\UI\TextLayout.h">
       <Filter>Engine\UI</Filter>
     </ClInclude>
   </ItemGroup>

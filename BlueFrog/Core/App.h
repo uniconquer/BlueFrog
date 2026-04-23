@@ -6,6 +6,7 @@
 #include "../Engine/Scene/Scene.h"
 #include "../Engine/UI/HudState.h"
 #include "../Engine/UI/UIRenderer.h"
+#include "../Engine/UI/TextRenderer.h"
 #include "../Game/Simulation/GameplaySimulation.h"
 #include <string>
 
@@ -23,6 +24,7 @@ private:
 	Window wnd;
 	Renderer renderer;
 	UIRenderer uiRenderer;
+	TextRenderer textRenderer;
 	TopDownCamera camera;
 	Scene scene;
 	HudState hudState;
