@@ -1,6 +1,19 @@
 #include "TextRenderer.h"
 
 #include "TextLayout.h"
+#include "UILayout.h"
+
+#include <string>
+
+namespace
+{
+    std::wstring FormatMeter(const HudMeter& meter)
+    {
+        return std::to_wstring(static_cast<int>(meter.current))
+            + L"/"
+            + std::to_wstring(static_cast<int>(meter.max));
+    }
+}
 
 TextRenderer::TextRenderer(Graphics& gfxIn)
     :
@@ -85,5 +98,52 @@ void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH) noe
             DWRITE_MEASURING_MODE_NATURAL);
     }
 
-    (void)viewportH; // β-2 will use this for HP numerics layout.
+    // HP numerics: placed just to the right of each bar, vertically centered
+    // on the bar row. Bar rects are expressed in NDC by UILayout — we mirror
+    // that here so bar + text stay in lockstep if either constant changes.
+    if (numericFormat)
+    {
+        const float barHalfHeightDip = UiLayout::PlayerHealthHeight * 0.5f * static_cast<float>(viewportH);
+
+        const float playerRightNdc = UiLayout::PlayerHealthCenterX + UiLayout::PlayerHealthWidth * 0.5f;
+        const float playerRightPx = TextLayout::NdcToPixelX(playerRightNdc, viewportW);
+        const float playerCenterYpx = TextLayout::NdcToPixelY(UiLayout::PlayerHealthCenterY, viewportH);
+
+        const std::wstring playerText = FormatMeter(hud.playerHealth);
+        const D2D1_RECT_F playerRect = D2D1::RectF(
+            playerRightPx + TextLayout::HealthNumericGapDip,
+            playerCenterYpx - barHalfHeightDip,
+            playerRightPx + TextLayout::HealthNumericGapDip + TextLayout::HealthNumericWidthDip,
+            playerCenterYpx + barHalfHeightDip);
+        target->DrawText(
+            playerText.c_str(),
+            static_cast<UINT32>(playerText.size()),
+            numericFormat.Get(),
+            playerRect,
+            whiteBrush.Get(),
+            D2D1_DRAW_TEXT_OPTIONS_NONE,
+            DWRITE_MEASURING_MODE_NATURAL);
+
+        if (hud.hasTarget)
+        {
+            const float targetRightNdc = UiLayout::TargetHealthCenterX + UiLayout::TargetHealthWidth * 0.5f;
+            const float targetRightPx = TextLayout::NdcToPixelX(targetRightNdc, viewportW);
+            const float targetCenterYpx = TextLayout::NdcToPixelY(UiLayout::TargetHealthCenterY, viewportH);
+
+            const std::wstring targetText = FormatMeter(hud.targetHealth);
+            const D2D1_RECT_F targetRect = D2D1::RectF(
+                targetRightPx + TextLayout::HealthNumericGapDip,
+                targetCenterYpx - barHalfHeightDip,
+                targetRightPx + TextLayout::HealthNumericGapDip + TextLayout::HealthNumericWidthDip,
+                targetCenterYpx + barHalfHeightDip);
+            target->DrawText(
+                targetText.c_str(),
+                static_cast<UINT32>(targetText.size()),
+                numericFormat.Get(),
+                targetRect,
+                whiteBrush.Get(),
+                D2D1_DRAW_TEXT_OPTIONS_NONE,
+                DWRITE_MEASURING_MODE_NATURAL);
+        }
+    }
 }

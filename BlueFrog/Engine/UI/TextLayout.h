@@ -21,4 +21,23 @@ namespace TextLayout
     {
         return pt * 96.0f / 72.0f;
     }
+
+    // Gap (in DIP) between the right edge of an HP bar and the start of its
+    // numeric readout.
+    inline constexpr float HealthNumericGapDip = 8.0f;
+
+    // Max layout-rect width for HP numerics. 80 DIP comfortably fits strings
+    // like "999/999" at NumericPointSize without clipping.
+    inline constexpr float HealthNumericWidthDip = 80.0f;
+
+    // NDC is x=[-1,+1] left→right, y=[+1,-1] top→bottom (flipped). Convert to
+    // D2D pixel coordinates (origin top-left).
+    inline float NdcToPixelX(float ndc, int viewportW) noexcept
+    {
+        return (ndc * 0.5f + 0.5f) * static_cast<float>(viewportW);
+    }
+    inline float NdcToPixelY(float ndc, int viewportH) noexcept
+    {
+        return (1.0f - (ndc * 0.5f + 0.5f)) * static_cast<float>(viewportH);
+    }
 }

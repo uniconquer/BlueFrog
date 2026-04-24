@@ -7,9 +7,13 @@
 > - A-2 Publisher 배선 + 임시 디버그 drain — `69515c9`
 > - A-3 ObjectiveState/System + HUD 동적화 — `c35256d`
 > - A-4 트리거 액션 + 씬 전환 — `0267930`
-> - A-5 문서 / validator 스윕 — 본 커밋
+> - A-5 문서 / validator 스윕 — `332ce9e`
+> - β-1 D2D/DWrite 인프라 + in-viewport 목표 텍스트 — `3704586`
+> - β-2 HP 숫자 오버레이 — 본 커밋
 >
 > Phase 7 이후 연기 항목(이벤트 pub/sub 리스너 모델, 다이얼로그, 인벤토리, 퀘스트 상태 머신, 조건식 OR/count-N, 세이브/로드, 플레이어 상태 이관)은 본 계획 "Verification" 섹션 아래 표 그대로 유효하다.
+>
+> **β Follow-up (shipped).** 플래닝 시 "데이터 모델 이미 완성, α 중/후 독립 커밋으로 편입 가능"으로 유보됐던 in-viewport HUD 텍스트 오버레이가 두 커밋(β-1/β-2)으로 드롭-인 완료. DirectWrite + Direct2D 오버레이가 게임 창 내부에 목표 텍스트와 HP 숫자(`5/5`)를 표시 — 기존 창 타이틀바는 디버그 용도로 병존. 세부는 `BlueFrog/Engine/UI/TextRenderer.{h,cpp}` + `TextLayout.h`. 주요 safeguards: `D3D11_CREATE_DEVICE_BGRA_SUPPORT` 디바이스 플래그, `BeginFrame`의 defensive `OMSetRenderTargets` rebind, `D2DERR_RECREATE_TARGET` 복구 경로.
 
 ## Context
 
