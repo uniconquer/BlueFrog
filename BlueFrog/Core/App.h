@@ -7,6 +7,7 @@
 #include "../Engine/UI/HudState.h"
 #include "../Engine/UI/UIRenderer.h"
 #include "../Engine/UI/TextRenderer.h"
+#include "../Engine/Render/DebugRenderer.h"
 #include "../Game/Simulation/GameplaySimulation.h"
 #include <string>
 
@@ -19,15 +20,18 @@ private:
 	void DoFrame(float dt);
 	void UpdateModel(float dt) noexcept;
 	GameplayInput CollectGameplayInput(float dt) noexcept;
+	void PollDebugToggles() noexcept;
 	void ComposeFrame();
 private:
 	Window wnd;
 	Renderer renderer;
 	UIRenderer uiRenderer;
 	TextRenderer textRenderer;
+	DebugRenderer debugRenderer;
 	TopDownCamera camera;
 	Scene scene;
 	HudState hudState;
 	GameplaySimulation gameplaySimulation;
 	BFTimer timer;
+	bool debugGizmosEnabled = false;
 };

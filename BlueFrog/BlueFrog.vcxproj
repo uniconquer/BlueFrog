@@ -166,6 +166,7 @@
     <ClCompile Include="Engine\Physics\CollisionSystem.cpp" />
     <ClCompile Include="Engine\UI\UIRenderer.cpp" />
     <ClCompile Include="Engine\UI\TextRenderer.cpp" />
+    <ClCompile Include="Engine\Render\DebugRenderer.cpp" />
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp" />
@@ -252,6 +253,8 @@
     <ClInclude Include="Engine\UI\UIRenderer.h" />
     <ClInclude Include="Engine\UI\TextRenderer.h" />
     <ClInclude Include="Engine\UI\TextLayout.h" />
+    <ClInclude Include="Engine\Render\DebugRenderer.h" />
+    <ClInclude Include="Engine\Render\DebugPipeline.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Textures\ground_checker.png" />

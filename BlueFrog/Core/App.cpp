@@ -11,6 +11,7 @@ App::App(std::string scenePath)
 	renderer(wnd.Gfx()),
 	uiRenderer(wnd.Gfx()),
 	textRenderer(wnd.Gfx()),
+	debugRenderer(wnd.Gfx()),
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
 	const std::string resolvedScene = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
@@ -33,8 +34,23 @@ int App::Go()
 
 void App::DoFrame(float dt)
 {
+	PollDebugToggles();
 	UpdateModel(dt);
 	ComposeFrame();
+}
+
+void App::PollDebugToggles() noexcept
+{
+	// Drain the keyboard event queue and edge-trigger toggles. KeyIsPressed
+	// (held-state bitset) used by gameplay code is independent of this queue,
+	// so consuming events here does not break movement input.
+	while (const auto e = wnd.kbd.ReadKey())
+	{
+		if (e->IsPress() && e->GetCode() == VK_F1)
+		{
+			debugGizmosEnabled = !debugGizmosEnabled;
+		}
+	}
 }
 
 void App::UpdateModel(float dt) noexcept
@@ -107,6 +123,12 @@ void App::ComposeFrame()
 
 	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
 	renderer.Render(scene, camera);
+	if (debugGizmosEnabled)
+	{
+		// Draw between 3D and 2D so collision/trigger boxes sit in world
+		// space but the HUD/text overlays still come on top.
+		debugRenderer.Render(scene, camera);
+	}
 	uiRenderer.Render(hudState);
 	wnd.Gfx().BeginTextDraw();
 	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight());

@@ -105,6 +105,9 @@
     <ClCompile Include="Engine\Render\VertexShader.cpp">
       <Filter>Engine\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Render\DebugRenderer.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
     <ClCompile Include="Engine\Camera\TopDownCamera.cpp">
       <Filter>Engine\Camera</Filter>
     </ClCompile>
@@ -213,6 +216,12 @@
       <Filter>Engine\Render</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Render\VertexShader.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\DebugRenderer.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\DebugPipeline.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Camera\TopDownCamera.h">
