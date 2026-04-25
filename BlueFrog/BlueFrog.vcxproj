@@ -219,6 +219,7 @@
     <ClInclude Include="Game\Simulation\GameplaySceneIds.h" />
     <ClInclude Include="Game\Simulation\GameplaySimulation.h" />
     <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h" />
+    <ClInclude Include="Game\Simulation\SystemContext.h" />
     <ClInclude Include="Game\Simulation\TriggerGameplaySystem.h" />
     <ClInclude Include="Engine\Scene\TriggerComponent.h" />
     <ClInclude Include="Engine\Events\EventBus.h" />

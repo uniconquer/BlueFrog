@@ -1,4 +1,5 @@
 #include "GameplaySimulation.h"
+#include "SystemContext.h"
 #include <sstream>
 #include <string>
 #include <utility>
@@ -32,11 +33,24 @@ std::optional<std::string> GameplaySimulation::ConsumePendingSceneLoad() noexcep
 
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
 {
-	cameraSystem.ApplyInput(input, camera);
-	playerSystem.Update(input, scene, camera, dt, eventBus);
-	enemySystem.Update(scene, dt, eventBus);
-	triggerSystem.Update(scene, eventBus);
-	cameraSystem.FollowPlayer(scene, camera);
+	// System ordering contract (see SystemContext.h for why this is
+	// intentionally not data-driven):
+	//   1. camera.ApplyInput  — fold orbit/zoom input before anyone reads
+	//      the camera.
+	//   2. player.Update      — player movement + attack + aim. Must run
+	//      before enemy AI which may read player position, and before
+	//      trigger checks which key off the player's post-move position.
+	//   3. enemy.Update       — enemy AI reacts to the just-moved player.
+	//   4. trigger.Update     — checks overlaps using the post-move player
+	//      position; may publish LoadSceneRequested.
+	//   5. camera.FollowPlayer — snap camera target after the player has
+	//      moved so the view stays locked.
+	const SystemContext ctx{ input, scene, camera, eventBus, dt };
+	cameraSystem.ApplyInput(ctx);
+	playerSystem.Update(ctx);
+	enemySystem.Update(ctx);
+	triggerSystem.Update(ctx);
+	cameraSystem.FollowPlayer(ctx);
 
 	// Drain exactly once per tick after all systems have run. Scene-load
 	// requests are captured first so they latch even if the drain occurs in

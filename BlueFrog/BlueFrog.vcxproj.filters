@@ -278,6 +278,9 @@
     <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Simulation\SystemContext.h">
+      <Filter>Game\Simulation</Filter>
+    </ClInclude>
     <ClInclude Include="Game\Simulation\TriggerGameplaySystem.h">
       <Filter>Game\Simulation</Filter>
     </ClInclude>

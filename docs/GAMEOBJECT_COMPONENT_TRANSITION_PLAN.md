@@ -1,10 +1,10 @@
 # BlueFrog GameObject-Component Transition Plan
 
-## Status (2026-04-10 기준)
+## Status (2026-04-24 기준)
 
 - Phase A (Scene Foundations): 완료 — `Transform`, `SceneObject`, `Scene`이 `Engine/Scene/`에 존재하며 `GameplayArenaBuilder`가 이를 사용한다.
 - Phase B (First Components): 완료 — `RenderComponent`, `CollisionComponent`, `CombatComponent`가 optional 컴포넌트로 붙는 구조.
-- Phase C (Systems Around Components): 진행 중 — `GameplayCameraSystem`, `PlayerGameplaySystem`, `EnemyGameplaySystem`, `CollisionSystem`, `CombatSystem`이 도입됐으며 `GameplaySimulation`이 시스템 업데이트 순서를 담당한다.
+- Phase C (Systems Around Components): 완료 — `GameplayCameraSystem`, `PlayerGameplaySystem`, `EnemyGameplaySystem`, `TriggerGameplaySystem`, `CollisionSystem`, `CombatSystem`이 도입됐고 `GameplaySimulation`이 `SystemContext` 번들을 통해 통일된 시그니처로 시스템을 순차 호출한다. 데이터 주도 registry는 **명시적으로 거부** — 시스템 간 순서 제약(카메라 input → 플레이어 → 적 → 트리거 → 카메라 follow)이 semantic이고, 우선순위 숫자로 매핑되지 않으며, 씬별 토글 유스케이스가 없다. 근거는 `SystemContext.h` 주석.
 - Phase D (Serialization): 완료 — Phase 4(씬 로더) → Phase 5(프리팹·다중 씬·로그 트리거·검증기) → Phase 6(이벤트 버스·`ObjectiveState`·씬 전환)까지 layering 완료. 세부는 [PHASE_6_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_6_EXECUTION_PLAN.md).
 - Phase E (Editor-Oriented Features): 미착수.
 
@@ -134,7 +134,7 @@ What we are not promising yet:
 
 초기 "Transform / TopDownCamera / 탑다운 테스트 맵" 단계는 이미 완료됐다. 이어지는 실행 순서는 아래와 같다.
 
-- Phase C 마무리: `GameplaySimulation`의 하드코딩된 시스템 순서(카메라 → 플레이어 → 적)를 데이터 주도 등록으로 전환할지 결정한다.
+- Phase C 마무리(완료): `GameplaySimulation`의 시스템 호출 시그니처를 `SystemContext` 번들로 통일하고, **하드코딩된 순서는 유지**한다는 결정이 기록됐다. 데이터 주도 registry는 거부. 근거: 시스템 간 순서 제약이 semantic(camera input이 player 전, player가 enemy/trigger 전, camera follow가 player 후)이고, 우선순위 숫자로 매핑되지 않으며, 씬별 on/off 유스케이스가 없고, 테스트 이득도 없다. 새 시스템은 `SystemContext&` 한 인자를 받는 `Update`를 구현하고 `GameplaySimulation::Update` 시퀀스에 명시적으로 끼워 넣는다. 상세는 `BlueFrog/Game/Simulation/SystemContext.h` 주석.
 - Phase D 진입 전 조건: 컴포넌트 shape 안정화, 씬 오브젝트 이름 기반 조회(`GameplaySceneIds`)를 ID 핸들 기반으로 전환할지 검토한다. 단기적으로는 이름 기반을 유지하고, JSON 씬 파일의 객체명이 `GameplaySceneIds` 상수와 일치하는 것을 계약으로 삼는다.
 - Phase D 첫 단계(완료): `GameplayArenaBuilder`의 하드코딩된 아레나를 데이터 파일에서 불러오는 최소 로더로 교체한다. 이 작업은 [PHASE_4_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_4_EXECUTION_PLAN.md) 단계 B-1/B-2에서 완료됐다.
 - Phase D (완료): 프리팹 / 다중 씬 / 트리거(로그 전용) / 로더 검증 강화가 [PHASE_5_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_5_EXECUTION_PLAN.md)에서 실현됐다. "item and npc spawn data, quest and interaction trigger data" 중 **spawn data(프리팹)** + **trigger 데이터의 최소 형태(감지+로그)**가 shipped.

@@ -12,8 +12,10 @@
 #include "../../Core/BFWin.h"
 #endif
 
-void TriggerGameplaySystem::Update(Scene& scene, EventBus& bus) noexcept
+void TriggerGameplaySystem::Update(const SystemContext& ctx) noexcept
 {
+	Scene& scene = ctx.scene;
+	EventBus& bus = ctx.eventBus;
 	const SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 	if (player == nullptr)
 	{

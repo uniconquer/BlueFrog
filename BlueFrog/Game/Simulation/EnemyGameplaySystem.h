@@ -1,14 +1,14 @@
 #pragma once
 
-#include "../../Engine/Events/EventBus.h"
 #include "../NPC/SimpleEnemyController.h"
+#include "SystemContext.h"
 
 class EnemyGameplaySystem final
 {
 public:
-	void Update(Scene& scene, float dt, EventBus& bus) noexcept
+	void Update(const SystemContext& ctx) noexcept
 	{
-		enemyController.Update(scene, dt, bus);
+		enemyController.Update(ctx.scene, ctx.dt, ctx.eventBus);
 	}
 
 private:
