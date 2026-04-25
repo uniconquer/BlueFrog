@@ -152,6 +152,35 @@ static std::wstring WidenAscii(const std::string& s)
 	return std::wstring(s.begin(), s.end());
 }
 
+// Parses a single leaf-shaped JSON object into an ObjectiveLeaf. Used both for
+// top-level leaf conditions and for the entries inside an "any" group's
+// "anyOf" array. Rejects unknown types and non-positive counts.
+static bool ParseObjectiveLeaf(const json& leafNode, const std::filesystem::path& path, ObjectiveLeaf& out, std::string* errorOut)
+{
+	if (!leafNode.is_object())
+	{
+		return SetError(errorOut, PathPrefix(path) + "objective leaf must be a JSON object");
+	}
+	out.type = leafNode.value("type", std::string{});
+	out.name = leafNode.value("name", std::string{});
+
+	// v1 leaf allow-list. Add new leaf types here when their matcher is wired
+	// in ObjectiveSystem::Consume.
+	if (out.type != "enemy_killed")
+	{
+		return SetError(errorOut, PathPrefix(path) + "objective leaf: unknown type '" + out.type + "' (expected 'enemy_killed')");
+	}
+
+	// "count" is optional; absence means 1 (the v1 single-kill default).
+	out.required = leafNode.value("count", 1);
+	if (out.required < 1)
+	{
+		return SetError(errorOut, PathPrefix(path) + "objective leaf 'count' must be >= 1 (got " + std::to_string(out.required) + ")");
+	}
+	out.progress = 0;
+	return true;
+}
+
 static bool ParseObjective(const json& objNode, const std::filesystem::path& path, ObjectiveState& out, std::string* errorOut)
 {
 	out.text           = WidenAscii(objNode.value("text", std::string{}));
@@ -173,16 +202,39 @@ static bool ParseObjective(const json& objNode, const std::filesystem::path& pat
 		{
 			return SetError(errorOut, PathPrefix(path) + "objective.conditions entry must be a JSON object");
 		}
-		ObjectiveCondition cond;
-		cond.type = c.value("type", std::string{});
-		cond.name = c.value("name", std::string{});
 
-		// v1 allow-list. Add new condition types here when their matcher is
-		// wired in ObjectiveSystem::Consume.
-		if (cond.type != "enemy_killed")
+		ObjectiveCondition cond;
+		const std::string slotType = c.value("type", std::string{});
+
+		if (slotType == "any")
 		{
-			return SetError(errorOut, PathPrefix(path) + "objective.conditions: unknown type '" + cond.type + "' (expected 'enemy_killed')");
+			// OR group. The slot itself carries no name/count; "anyOf" lists
+			// the leaves whose disjunction is the slot's truth value.
+			if (!c.contains("anyOf") || !c["anyOf"].is_array() || c["anyOf"].empty())
+			{
+				return SetError(errorOut, PathPrefix(path) + "objective 'any' condition requires non-empty 'anyOf' array");
+			}
+			for (const auto& leafNode : c["anyOf"])
+			{
+				ObjectiveLeaf leaf;
+				if (!ParseObjectiveLeaf(leafNode, path, leaf, errorOut))
+				{
+					return false;
+				}
+				cond.leaves.push_back(std::move(leaf));
+			}
 		}
+		else
+		{
+			// Single-leaf condition (v1 shape). The leaf is the slot itself.
+			ObjectiveLeaf leaf;
+			if (!ParseObjectiveLeaf(c, path, leaf, errorOut))
+			{
+				return false;
+			}
+			cond.leaves.push_back(std::move(leaf));
+		}
+
 		out.conditions.push_back(std::move(cond));
 	}
 	return true;

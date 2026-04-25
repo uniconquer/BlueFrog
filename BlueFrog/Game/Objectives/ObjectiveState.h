@@ -2,16 +2,41 @@
 #include <string>
 #include <vector>
 
-// A single objective condition. v1 recognizes one type:
-//   "enemy_killed" - marks met when an EnemyKilled event arrives whose
-//                    payload name matches `name`.
-// Forward compatibility: adding "trigger_fired" (match on tag) or
-// "reach_zone" is a one-case-in-ObjectiveSystem::Consume extension.
-struct ObjectiveCondition
+// A single leaf-level condition. v1 recognizes one type:
+//   "enemy_killed" - increments `progress` for every EnemyKilled event whose
+//                    payload name matches `name`. Met when progress >= required.
+// `required` defaults to 1 (the v1 single-kill behavior).
+struct ObjectiveLeaf
 {
 	std::string type;
 	std::string name;
-	bool met = false;
+	int         required = 1;
+	int         progress = 0;
+
+	bool IsMet() const noexcept { return progress >= required; }
+};
+
+// One slot in the objective's top-level conditions array.
+//
+// - Size 1 = a plain leaf (the v1 single-condition shape; backward-compatible).
+// - Size > 1 = an OR group: ANY met leaf satisfies the slot.
+//
+// The objective's top-level `conditions` vector is still AND-combined, so the
+// full evaluation is `AND_i (OR_j leaves[i][j])` — sufficient for "Kill A AND
+// (B OR C)" patterns without dragging in a full expression tree.
+struct ObjectiveCondition
+{
+	std::vector<ObjectiveLeaf> leaves;
+
+	bool IsMet() const noexcept
+	{
+		if (leaves.empty()) return true; // vacuously met
+		for (const auto& l : leaves)
+		{
+			if (l.IsMet()) return true;
+		}
+		return false;
+	}
 };
 
 // Scene-level objective data. Parsed from the top-level "objective" block
@@ -24,6 +49,8 @@ struct ObjectiveState
 	std::wstring completionText;  // shown once every condition is met
 	std::vector<ObjectiveCondition> conditions;
 
-	// AND-combined. Empty conditions list => trivially complete.
+	// AND-combined across the top-level vector. Empty conditions list =>
+	// trivially complete. Each ObjectiveCondition is itself OR-combined
+	// across its leaves (size 1 = degenerate OR of one).
 	bool IsComplete() const noexcept;
 };

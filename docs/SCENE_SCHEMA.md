@@ -54,14 +54,43 @@ Drives the dynamic objective text segment of the title bar. `ObjectiveSystem` co
 |---|---|---|
 | `text` | In-progress title string (ASCII). | `""` |
 | `completionText` | Shown once all conditions are met. | `""` |
-| `conditions` | Array of condition objects (**AND-combined** in v1). Empty or missing = trivially complete (title always shows `completionText`). | `[]` |
+| `conditions` | Array of condition slots (**AND-combined** at the top level). Empty or missing = trivially complete (title always shows `completionText`). | `[]` |
 
-Condition fields:
+Each entry in `conditions` is one of:
+
+**1. Single leaf (v1 shape, unchanged):**
+
+```json
+{ "type": "enemy_killed", "name": "EnemyScout" }
+{ "type": "enemy_killed", "name": "EnemyScout", "count": 3 }
+```
 
 | Field | Values | Notes |
 |---|---|---|
-| `type` | `"enemy_killed"` (v1) | Allow-list enforced by `SceneLoader::Validate`; typoed types reject at startup with a path-prefixed error. |
+| `type` | `"enemy_killed"` | Allow-list enforced by `SceneLoader::Validate`; typoed types reject at startup with a path-prefixed error. |
 | `name` | Scene-object name to match. | For `enemy_killed`, the defeated object's `name` must equal this string. |
+| `count` | Integer ≥ 1. | How many matching events the slot needs before it counts as met. Defaults to `1` (v1 single-kill). Negative or zero rejects at validate. |
+
+**2. OR group (`any`):**
+
+```json
+{
+  "type": "any",
+  "anyOf": [
+    { "type": "enemy_killed", "name": "EnemyScout", "count": 2 },
+    { "type": "enemy_killed", "name": "EnemyElite" }
+  ]
+}
+```
+
+| Field | Values | Notes |
+|---|---|---|
+| `type` | `"any"` | Marks the slot as an OR group. The slot has no `name`/`count` of its own. |
+| `anyOf` | Non-empty array of leaves (same shape as case 1). | Slot is met as soon as **any** leaf is met. Each leaf accumulates progress independently — useful for "Kill 3 scouts OR 1 elite". |
+
+The full evaluation is `AND_i (OR_j leaves[i][j])`. To express "Kill A AND (B OR C)": one leaf slot for A, one `any` slot listing B and C. To express plain AND of multiple kills: one leaf slot per kill, no `any`.
+
+Per-leaf `count` is independent: each leaf has its own `progress` counter that climbs from `0` to `required`, capped (so re-publishing the same kill event does not over-count). Scene reload resets every counter via `ObjectiveSystem::Reset`.
 
 ## Scene object
 
@@ -203,6 +232,6 @@ Reload is deferred to **after** `GameplaySimulation::Update` returns. Systems ne
 ## Versioning policy
 
 - `1`: original schema. No `prefab`, no `trigger`, no `objective`. Still accepted by the v2 loader without modification.
-- `2`: adds optional `prefab`/`trigger` scene-level structures (Phase 5) and optional top-level `objective` block plus optional `trigger.action` (Phase 6). All additions are structurally optional — a v2 scene that uses none of them is indistinguishable from a v1 scene, and v1 scenes load unchanged.
+- `2`: adds optional `prefab`/`trigger` scene-level structures (Phase 5), optional top-level `objective` block plus optional `trigger.action` (Phase 6), and optional `count` / `any`+`anyOf` shapes inside `objective.conditions` (Phase 7 first slice). All additions are structurally optional — a v2 scene that uses none of them is indistinguishable from a v1 scene, and v1 scenes load unchanged.
 
 When a breaking change is introduced, bump `schemaVersion` and make the loader accept the previous version's structure verbatim while rejecting future versions with a clear error.

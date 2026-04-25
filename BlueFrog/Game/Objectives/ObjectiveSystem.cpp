@@ -4,7 +4,7 @@ bool ObjectiveState::IsComplete() const noexcept
 {
 	for (const auto& c : conditions)
 	{
-		if (!c.met)
+		if (!c.IsMet())
 		{
 			return false;
 		}
@@ -25,11 +25,20 @@ void ObjectiveSystem::Consume(const std::vector<GameEvent>& events) noexcept
 		{
 			continue;
 		}
-		for (auto& c : state_.conditions)
+		// A single event may match multiple leaves across multiple conditions
+		// (e.g. one OR group asks for EnemyScout, another counts toward
+		// "any enemy"). Walk all of them so each independent counter advances.
+		for (auto& cond : state_.conditions)
 		{
-			if (c.type == "enemy_killed" && c.name == e.a)
+			for (auto& leaf : cond.leaves)
 			{
-				c.met = true;
+				if (leaf.type == "enemy_killed" && leaf.name == e.a)
+				{
+					if (leaf.progress < leaf.required)
+					{
+						++leaf.progress;
+					}
+				}
 			}
 		}
 	}
