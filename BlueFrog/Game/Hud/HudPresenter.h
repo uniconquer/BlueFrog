@@ -17,6 +17,7 @@ public:
 		{
 			hudState.playerHealth.current = static_cast<float>(player->combatComponent->health);
 			hudState.playerHealth.max = static_cast<float>(player->combatComponent->maxHealth);
+			hudState.playerDefeated = !player->combatComponent->IsAlive();
 		}
 
 		const SceneObject* enemy = scene.FindObject(GameplaySceneIds::EnemyScout);

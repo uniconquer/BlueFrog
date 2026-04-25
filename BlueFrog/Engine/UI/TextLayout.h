@@ -12,6 +12,7 @@ namespace TextLayout
 {
     inline constexpr float ObjectivePointSize    = 20.0f;
     inline constexpr float NumericPointSize      = 14.0f;
+    inline constexpr float DefeatedPointSize     = 48.0f;
     inline constexpr float ObjectiveTopInsetDip  = 16.0f;
 
     inline constexpr wchar_t kFontFamily[] = L"Segoe UI";

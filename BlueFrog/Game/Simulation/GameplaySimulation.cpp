@@ -4,6 +4,14 @@
 #include <string>
 #include <utility>
 
+namespace
+{
+	// Delay between the player crossing into HP <= 0 and the auto-reload of
+	// the current scene. Long enough for the "Defeated" text to register, short
+	// enough not to feel like punishment.
+	constexpr float kDeathReloadDelay = 1.5f;
+}
+
 void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera, const std::string& scenePath) noexcept
 {
 	// Scene JSON's "objective" block (if any) is parsed into `state`; absent
@@ -19,9 +27,14 @@ void GameplaySimulation::ReloadScene(const std::string& scenePath, Scene& scene,
 	// A reload is semantically a full reset: Scene::Clear (inside Load) wipes
 	// all objects including trigger fired-flags, ObjectiveSystem::Reset
 	// discards objective progress, and pendingSceneLoad is cleared so we
-	// don't trigger a second reload next tick from a stale request.
+	// don't trigger a second reload next tick from a stale request. The
+	// death-sequence state belongs to the *previous* run, so it resets here
+	// too — the new player has full HP and is alive.
 	BuildArena(scene, camera, scenePath);
 	pendingSceneLoad.reset();
+	deathTimer          = 0.0f;
+	deathSequenceActive = false;
+	pendingDeathReload  = false;
 }
 
 std::optional<std::string> GameplaySimulation::ConsumePendingSceneLoad() noexcept
@@ -29,6 +42,13 @@ std::optional<std::string> GameplaySimulation::ConsumePendingSceneLoad() noexcep
 	std::optional<std::string> out;
 	out.swap(pendingSceneLoad);
 	return out;
+}
+
+bool GameplaySimulation::ConsumePendingDeathReload() noexcept
+{
+	const bool consumed = pendingDeathReload;
+	pendingDeathReload = false;
+	return consumed;
 }
 
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
@@ -72,6 +92,29 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 
 	HudState hud = BuildHudState(scene);
 	hud.objectiveText = objectiveSystem.CurrentText();
+
+	// Death-sequence bookkeeping. HudPresenter sets playerDefeated when the
+	// player's combat component crosses to dead; we latch that into a
+	// time-counted "show Defeated text, then reload" sequence. Once the
+	// pendingDeathReload flag is set, the App's UpdateModel post-pass
+	// performs the actual ReloadScene against its tracked currentScenePath.
+	if (hud.playerDefeated)
+	{
+		if (!deathSequenceActive)
+		{
+			deathSequenceActive = true;
+			deathTimer = 0.0f;
+		}
+		deathTimer += dt;
+		if (deathTimer >= kDeathReloadDelay)
+		{
+			pendingDeathReload = true;
+			// Don't clear the sequence-active flag here — ReloadScene resets
+			// it. Until then we keep advancing the timer so a missed
+			// consume (shouldn't happen) doesn't latch forever.
+		}
+	}
+
 	return hud;
 }
 

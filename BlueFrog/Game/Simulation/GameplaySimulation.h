@@ -36,6 +36,13 @@ public:
 	// scene while systems still hold live references into it.
 	[[nodiscard]] std::optional<std::string> ConsumePendingSceneLoad() noexcept;
 
+	// Returns true exactly once per death sequence: after the player has
+	// remained dead for kDeathReloadDelay seconds. The caller is responsible
+	// for performing the actual ReloadScene against its tracked
+	// currentScenePath — GameplaySimulation does not know the scene path the
+	// app booted with. Subsequent calls return false until the next death.
+	[[nodiscard]] bool ConsumePendingDeathReload() noexcept;
+
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
@@ -47,4 +54,7 @@ private:
 	ObjectiveSystem              objectiveSystem;
 	EventBus                     eventBus;
 	std::optional<std::string>   pendingSceneLoad;
+	float                        deathTimer        = 0.0f;
+	bool                         deathSequenceActive = false;
+	bool                         pendingDeathReload  = false;
 };

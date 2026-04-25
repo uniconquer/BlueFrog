@@ -64,9 +64,32 @@ TextRenderer::TextRenderer(Graphics& gfxIn)
     numericFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
     numericFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
 
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::DefeatedPointSize),
+        TextLayout::kFontLocale,
+        defeatedFormat.GetAddressOf());
+    if (FAILED(hr))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    defeatedFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    defeatedFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    defeatedFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
     if (FAILED(hr = target->CreateSolidColorBrush(
         D2D1::ColorF(D2D1::ColorF::White, 1.0f),
         whiteBrush.GetAddressOf())))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    if (FAILED(hr = target->CreateSolidColorBrush(
+        D2D1::ColorF(0.95f, 0.18f, 0.18f, 1.0f),
+        redBrush.GetAddressOf())))
     {
         throw BFGFX_EXCEPT(hr);
     }
@@ -94,6 +117,28 @@ void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH) noe
             objectiveFormat.Get(),
             layoutRect,
             whiteBrush.Get(),
+            D2D1_DRAW_TEXT_OPTIONS_NONE,
+            DWRITE_MEASURING_MODE_NATURAL);
+    }
+
+    if (hud.playerDefeated && defeatedFormat && redBrush)
+    {
+        // Big red center-screen "Defeated" text. The auto-reload timer in
+        // GameplaySimulation gives this ~1.5s of screen time before the
+        // scene resets — long enough to read, short enough to stay snappy.
+        const wchar_t kDefeatedText[] = L"Defeated";
+        const D2D1_RECT_F fullViewport = D2D1::RectF(
+            0.0f,
+            0.0f,
+            static_cast<float>(viewportW),
+            static_cast<float>(viewportH));
+        constexpr UINT32 kDefeatedLen = (sizeof(kDefeatedText) / sizeof(wchar_t)) - 1u;
+        target->DrawText(
+            kDefeatedText,
+            kDefeatedLen,
+            defeatedFormat.Get(),
+            fullViewport,
+            redBrush.Get(),
             D2D1_DRAW_TEXT_OPTIONS_NONE,
             DWRITE_MEASURING_MODE_NATURAL);
     }

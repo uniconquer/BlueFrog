@@ -97,6 +97,15 @@ void App::UpdateModel(float dt) noexcept
 		gameplaySimulation.ReloadScene(currentScenePath, scene, camera);
 		hudState = gameplaySimulation.BuildHudState(scene);
 	}
+
+	// Player-death auto-reload. Same path as F5: full ReloadScene against
+	// currentScenePath, which clears every gameplay flag including the
+	// death-sequence state itself.
+	if (gameplaySimulation.ConsumePendingDeathReload())
+	{
+		gameplaySimulation.ReloadScene(currentScenePath, scene, camera);
+		hudState = gameplaySimulation.BuildHudState(scene);
+	}
 }
 
 GameplayInput App::CollectGameplayInput(float dt) noexcept

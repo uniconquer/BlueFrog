@@ -25,5 +25,7 @@ private:
     Graphics& gfx;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> objectiveFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> numericFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> defeatedFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> whiteBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> redBrush;
 };
