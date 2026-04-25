@@ -14,8 +14,8 @@ App::App(std::string scenePath)
 	debugRenderer(wnd.Gfx()),
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
-	const std::string resolvedScene = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
-	gameplaySimulation.BuildArena(scene, camera, resolvedScene);
+	currentScenePath = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
+	gameplaySimulation.BuildArena(scene, camera, currentScenePath);
 	hudState = gameplaySimulation.BuildHudState(scene);
 }
 
@@ -46,9 +46,25 @@ void App::PollDebugToggles() noexcept
 	// so consuming events here does not break movement input.
 	while (const auto e = wnd.kbd.ReadKey())
 	{
-		if (e->IsPress() && e->GetCode() == VK_F1)
+		if (!e->IsPress())
 		{
+			continue;
+		}
+		switch (e->GetCode())
+		{
+		case VK_F1:
 			debugGizmosEnabled = !debugGizmosEnabled;
+			break;
+		case VK_F5:
+			// Hot-reload: latch the request and let UpdateModel apply it
+			// after Update returns, matching the trigger-driven scene-load
+			// flow so no system holds live scene-graph references when the
+			// reload runs. Multiple presses in one tick coalesce — same
+			// last-write-wins semantics as the LoadSceneRequested path.
+			reloadRequested = true;
+			break;
+		default:
+			break;
 		}
 	}
 }
@@ -64,7 +80,21 @@ void App::UpdateModel(float dt) noexcept
 	// 1-frame-stale title bar (same pattern as App's constructor).
 	if (auto path = gameplaySimulation.ConsumePendingSceneLoad())
 	{
-		gameplaySimulation.ReloadScene(*path, scene, camera);
+		// Trigger-driven scene transition. Capture the new path so a
+		// subsequent F5 reloads the *new* scene, not the previous one.
+		currentScenePath = *path;
+		gameplaySimulation.ReloadScene(currentScenePath, scene, camera);
+		hudState = gameplaySimulation.BuildHudState(scene);
+	}
+
+	// F5 hot-reload runs after the trigger-driven path so a same-tick combo
+	// (rare: triggered transition AND F5 in one frame) ends up reloading the
+	// scene we just transitioned into, which is what the developer pressing
+	// F5 in that frame would visually expect.
+	if (reloadRequested)
+	{
+		reloadRequested = false;
+		gameplaySimulation.ReloadScene(currentScenePath, scene, camera);
 		hudState = gameplaySimulation.BuildHudState(scene);
 	}
 }

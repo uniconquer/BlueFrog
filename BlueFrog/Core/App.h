@@ -33,5 +33,7 @@ private:
 	HudState hudState;
 	GameplaySimulation gameplaySimulation;
 	BFTimer timer;
+	std::string currentScenePath;
 	bool debugGizmosEnabled = false;
+	bool reloadRequested    = false;
 };

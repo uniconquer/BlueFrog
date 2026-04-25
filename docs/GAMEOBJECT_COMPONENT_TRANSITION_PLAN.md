@@ -6,7 +6,11 @@
 - Phase B (First Components): 완료 — `RenderComponent`, `CollisionComponent`, `CombatComponent`가 optional 컴포넌트로 붙는 구조.
 - Phase C (Systems Around Components): 완료 — `GameplayCameraSystem`, `PlayerGameplaySystem`, `EnemyGameplaySystem`, `TriggerGameplaySystem`, `CollisionSystem`, `CombatSystem`이 도입됐고 `GameplaySimulation`이 `SystemContext` 번들을 통해 통일된 시그니처로 시스템을 순차 호출한다. 데이터 주도 registry는 **명시적으로 거부** — 시스템 간 순서 제약(카메라 input → 플레이어 → 적 → 트리거 → 카메라 follow)이 semantic이고, 우선순위 숫자로 매핑되지 않으며, 씬별 토글 유스케이스가 없다. 근거는 `SystemContext.h` 주석.
 - Phase D (Serialization): 완료 — Phase 4(씬 로더) → Phase 5(프리팹·다중 씬·로그 트리거·검증기) → Phase 6(이벤트 버스·`ObjectiveState`·씬 전환)까지 layering 완료. 세부는 [PHASE_6_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_6_EXECUTION_PLAN.md).
-- Phase E (Editor-Oriented Features): 시작됨 — **디버그 기즈모** (`DebugRenderer`)가 첫 sub-track으로 shipped. F1로 토글되는 wireframe 오버레이가 모든 `CollisionComponent`(시안)와 `TriggerComponent`(마젠타)를 XZ-평면 사각형으로 그린다. 깊이 테스트 비활성으로 벽을 통해서도 보이며, 다이내믹 라인 VB는 매 프레임 `WRITE_DISCARD`로 재업로드된다. 후속 sub-track(hot-reload, scene inspect CLI, 런타임 인스펙터 오버레이)은 미착수.
+- Phase E (Editor-Oriented Features): 진행 중 — 두 개의 dev-iteration sub-track이 shipped:
+  - **디버그 기즈모** (`DebugRenderer`): F1로 토글되는 wireframe 오버레이. 모든 `CollisionComponent`(시안)와 `TriggerComponent`(마젠타)를 XZ-평면 사각형으로, 깊이 테스트 비활성으로 그린다. 다이내믹 라인 VB는 매 프레임 `WRITE_DISCARD`로 재업로드.
+  - **Hot-reload** (`App::PollDebugToggles` + `currentScenePath`): F5로 현 씬 JSON을 재로드. `GameplaySimulation::ReloadScene` 기존 인프라 재사용 — `Scene::Clear` + `ObjectiveSystem::Reset` 보장된 풀 리셋. 트리거 구동 씬 전환 직후의 F5는 새 씬을 reload (currentScenePath가 transition 시 갱신).
+
+  후속 sub-track(scene inspect CLI, 런타임 인스펙터 오버레이)은 미착수.
 
 ## Goal
 
