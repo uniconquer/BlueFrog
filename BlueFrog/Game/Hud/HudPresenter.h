@@ -1,9 +1,11 @@
 #pragma once
 
+#include "../../Engine/Scene/CombatComponent.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/UI/HudState.h"
 #include "../Player/PlayerController.h"
 #include "../Simulation/GameplaySceneIds.h"
+#include <cmath>
 
 class HudPresenter final
 {
@@ -20,12 +22,37 @@ public:
 			hudState.playerDefeated = !player->combatComponent->IsAlive();
 		}
 
-		const SceneObject* enemy = scene.FindObject(GameplaySceneIds::EnemyScout);
-		if (enemy != nullptr && enemy->combatComponent.has_value() && enemy->combatComponent->IsAlive())
+		// Pick the nearest alive enemy-faction combatant as the HUD target.
+		// Walking the scene each frame matches what SimpleEnemyController
+		// does for AI; consistent target selection across systems means a
+		// scene with multiple enemies always shows the threat the player
+		// most needs to read.
+		if (player != nullptr)
 		{
-			hudState.hasTarget = true;
-			hudState.targetHealth.current = static_cast<float>(enemy->combatComponent->health);
-			hudState.targetHealth.max = static_cast<float>(enemy->combatComponent->maxHealth);
+			const SceneObject* nearest = nullptr;
+			float nearestDistSq = 0.0f;
+			for (const SceneObject& obj : scene.GetObjects())
+			{
+				if (&obj == player) continue;
+				if (!obj.combatComponent.has_value()) continue;
+				if (obj.combatComponent->faction != CombatFaction::Enemy) continue;
+				if (!obj.combatComponent->IsAlive()) continue;
+
+				const float dx = obj.transform.position.x - player->transform.position.x;
+				const float dz = obj.transform.position.z - player->transform.position.z;
+				const float distSq = dx * dx + dz * dz;
+				if (nearest == nullptr || distSq < nearestDistSq)
+				{
+					nearest = &obj;
+					nearestDistSq = distSq;
+				}
+			}
+			if (nearest != nullptr)
+			{
+				hudState.hasTarget = true;
+				hudState.targetHealth.current = static_cast<float>(nearest->combatComponent->health);
+				hudState.targetHealth.max = static_cast<float>(nearest->combatComponent->maxHealth);
+			}
 		}
 
 		hudState.attackCooldown01 = playerController.GetAttackCooldownProgress01();

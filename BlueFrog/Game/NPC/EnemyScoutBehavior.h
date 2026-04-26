@@ -8,19 +8,25 @@
 #include <algorithm>
 #include <cmath>
 
+// Stateless scout-style melee behavior. The per-instance cooldown timer
+// lives on the CombatComponent so SimpleEnemyController can drive any number
+// of scouts with a single behavior object. Movement: chase the player when
+// inside chaseRange; melee strike when inside attackRange and cooldown is
+// spent.
 class EnemyScoutBehavior final
 {
 public:
-	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus) noexcept
+	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus) const noexcept
 	{
-		attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
-
 		if (!enemy.combatComponent.has_value() || !player.combatComponent.has_value())
 		{
 			return;
 		}
 
-		if (!enemy.combatComponent->IsAlive())
+		auto& cc = enemy.combatComponent.value();
+		cc.attackCooldownRemaining = std::max(0.0f, cc.attackCooldownRemaining - dt);
+
+		if (!cc.IsAlive())
 		{
 			UpdateTint(enemy, false);
 			return;
@@ -56,9 +62,9 @@ public:
 			return;
 		}
 
-		if (attackCooldownRemaining <= 0.0f && CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f, &bus))
+		if (cc.attackCooldownRemaining <= 0.0f && CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f, &bus))
 		{
-			attackCooldownRemaining = attackCooldown;
+			cc.attackCooldownRemaining = attackCooldown;
 		}
 	}
 
@@ -68,7 +74,7 @@ private:
 		return std::atan2(to.x - from.x, to.z - from.z);
 	}
 
-	void UpdateTint(SceneObject& enemy, bool chasing) const noexcept
+	static void UpdateTint(SceneObject& enemy, bool chasing) noexcept
 	{
 		if (!enemy.renderComponent.has_value() || !enemy.renderComponent->material.has_value())
 		{
@@ -85,10 +91,9 @@ private:
 	}
 
 private:
-	float attackCooldownRemaining = 0.0f;
 	static constexpr float moveSpeed = 2.8f;
 	static constexpr float chaseRange = 12.0f;
 	static constexpr float attackRange = 1.8f;
 	static constexpr float attackCooldown = 1.15f;
-	static constexpr int attackDamage = 1;
+	static constexpr int   attackDamage = 1;
 };

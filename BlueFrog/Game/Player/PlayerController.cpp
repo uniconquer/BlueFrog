@@ -1,5 +1,6 @@
 #include "PlayerController.h"
 #include "../../Engine/Physics/CollisionSystem.h"
+#include "../../Engine/Scene/CombatComponent.h"
 #include "PlayerAimSystem.h"
 #include "../Simulation/GameplaySceneIds.h"
 #include "../Combat/CombatSystem.h"
@@ -61,12 +62,34 @@ SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 
 bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bus) noexcept
 {
-	if (SceneObject* enemy = scene.FindObject(GameplaySceneIds::EnemyScout))
+	// Hit the nearest alive enemy combatant within range. Iterating each
+	// attack is fine — scenes have a handful of objects, and centralizing
+	// "what counts as a valid target" here avoids the hardcoded-name lookup
+	// that broke as soon as a scene added a second enemy.
+	SceneObject* best = nullptr;
+	float bestDistSq = attackRange * attackRange;
+	for (SceneObject& obj : scene.GetObjects())
 	{
-		return CombatSystem::TryMeleeAttack(player, *enemy, attackDamage, attackRange, &bus);
+		if (&obj == &player) continue;
+		if (!obj.combatComponent.has_value()) continue;
+		if (obj.combatComponent->faction != CombatFaction::Enemy) continue;
+		if (!obj.combatComponent->IsAlive()) continue;
+
+		const float dx = obj.transform.position.x - player.transform.position.x;
+		const float dz = obj.transform.position.z - player.transform.position.z;
+		const float distSq = dx * dx + dz * dz;
+		if (distSq < bestDistSq)
+		{
+			best = &obj;
+			bestDistSq = distSq;
+		}
 	}
 
-	return false;
+	if (best == nullptr)
+	{
+		return false;
+	}
+	return CombatSystem::TryMeleeAttack(player, *best, attackDamage, attackRange, &bus);
 }
 
 void PlayerController::UpdateTint(SceneObject& player) const noexcept
