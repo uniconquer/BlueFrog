@@ -1,5 +1,6 @@
 #include "TextRenderer.h"
 
+#include "InspectorFields.h"
 #include "TextLayout.h"
 #include "UILayout.h"
 
@@ -303,7 +304,7 @@ void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH) noe
     }
 }
 
-void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int viewportW, int viewportH) noexcept
+void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int fieldIndex, int viewportW, int viewportH) noexcept
 {
     ID2D1RenderTarget* const target = gfx.GetD2DTarget();
     if (target == nullptr || !inspectorFormat || !inspectorTitleFormat || !panelBrush)
@@ -325,17 +326,22 @@ void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int vi
 
     float y = panelTop + padX;
 
-    // 2. Title row.
+    // 2. Title + key-binding hint rows. Two short lines so each binding
+    //    cluster fits without truncation.
     {
-        wchar_t titleBuf[64];
-        const int n = std::swprintf(titleBuf, 64, L"INSPECTOR  Tab/Shift+Tab  F2 close");
-        if (n > 0)
-        {
-            target->DrawText(titleBuf, static_cast<UINT32>(n), inspectorTitleFormat.Get(),
-                D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH * 1.4f),
-                whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
-        }
+        const wchar_t titleBuf[] = L"INSPECTOR  F2 close";
+        constexpr UINT32 titleLen = (sizeof(titleBuf) / sizeof(wchar_t)) - 1u;
+        target->DrawText(titleBuf, titleLen, inspectorTitleFormat.Get(),
+            D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH * 1.4f),
+            whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
         y += lineH * 1.6f;
+
+        const wchar_t hintBuf[] = L"Tab obj  PgUp/Dn field  L/R edit  +Shift x10";
+        constexpr UINT32 hintLen = (sizeof(hintBuf) / sizeof(wchar_t)) - 1u;
+        target->DrawText(hintBuf, hintLen, inspectorFormat.Get(),
+            D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH),
+            dimBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+        y += lineH * 1.4f;
     }
 
     // 3. Object count.
@@ -405,16 +411,40 @@ void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int vi
         y += lineH;
     }
 
-    auto DrawLine = [&](const wchar_t* fmt, auto... args)
+    // Render one detail line. `editKind` is the field this line represents
+    // for the live-edit cursor (or COUNT if the line is read-only). When
+    // editKind matches the current fieldIndex, the line is highlighted and
+    // prefixed with '*' so the user can see which value Left/Right will
+    // mutate.
+    const InspectorFields::Kind activeKind = static_cast<InspectorFields::Kind>(fieldIndex);
+    auto DrawLine = [&](InspectorFields::Kind editKind, const wchar_t* fmt, auto... args)
     {
-        wchar_t buf[160];
-        const int n = std::swprintf(buf, 160, fmt, args...);
-        if (n > 0 && y < panelBot - lineH)
+        if (y >= panelBot - lineH)
         {
-            target->DrawText(buf, static_cast<UINT32>(n), inspectorFormat.Get(),
-                D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH),
-                whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+            y += lineH;
+            return;
         }
+        wchar_t buf[160];
+        const bool isEdit = (editKind != InspectorFields::Kind::COUNT) && (editKind == activeKind);
+        const wchar_t prefix = isEdit ? L'*' : L' ';
+        wchar_t lineBuf[176];
+        // Inline the prefix into the format result to keep alignment stable.
+        const int n = std::swprintf(buf, 160, fmt, args...);
+        if (n <= 0)
+        {
+            y += lineH;
+            return;
+        }
+        const int total = std::swprintf(lineBuf, 176, L"%c %ls", prefix, buf);
+        if (total <= 0)
+        {
+            y += lineH;
+            return;
+        }
+        ID2D1SolidColorBrush* brush = isEdit ? highlightBrush.Get() : whiteBrush.Get();
+        target->DrawText(lineBuf, static_cast<UINT32>(total), inspectorFormat.Get(),
+            D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH),
+            brush, D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
         y += lineH;
     };
 
@@ -422,10 +452,13 @@ void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int vi
     const auto& p = sel.transform.position;
     const auto& r = sel.transform.rotation;
     const auto& s = sel.transform.scale;
-    DrawLine(L"pos    %6.2f %6.2f %6.2f", p.x, p.y, p.z);
-    DrawLine(L"rot    %6.2f %6.2f %6.2f", r.x, r.y, r.z);
-    DrawLine(L"scale  %6.2f %6.2f %6.2f", s.x, s.y, s.z);
-    DrawLine(L"enabled=%s", sel.enabled ? L"Y" : L"N");
+    // Position is split per-axis so each axis has its own edit row.
+    DrawLine(InspectorFields::Kind::PosX, L"pos.x  %6.2f", p.x);
+    DrawLine(InspectorFields::Kind::PosY, L"pos.y  %6.2f", p.y);
+    DrawLine(InspectorFields::Kind::PosZ, L"pos.z  %6.2f", p.z);
+    DrawLine(InspectorFields::Kind::RotY, L"rot.y  %6.2f  (rot.xz %5.2f %5.2f)", r.y, r.x, r.z);
+    DrawLine(InspectorFields::Kind::COUNT, L"scale  %5.2f %5.2f %5.2f", s.x, s.y, s.z);
+    DrawLine(InspectorFields::Kind::COUNT, L"enabled=%s", sel.enabled ? L"Y" : L"N");
 
     if (sel.renderComponent.has_value())
     {
@@ -433,43 +466,43 @@ void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int vi
         if (rc.material.has_value())
         {
             const auto& mat = rc.material.value();
-            DrawLine(L"render mesh=%ls tint=(%.2f %.2f %.2f)",
+            DrawLine(InspectorFields::Kind::COUNT, L"render mesh=%ls tint=(%.2f %.2f %.2f)",
                 MeshLabel(rc.meshType), mat.tint.x, mat.tint.y, mat.tint.z);
         }
         else
         {
-            DrawLine(L"render mesh=%ls (no material)", MeshLabel(rc.meshType));
+            DrawLine(InspectorFields::Kind::COUNT, L"render mesh=%ls (no material)", MeshLabel(rc.meshType));
         }
     }
     if (sel.collisionComponent.has_value())
     {
         const auto& cc = sel.collisionComponent.value();
-        DrawLine(L"collide hx=%.2f hz=%.2f blocks=%s",
+        DrawLine(InspectorFields::Kind::COUNT, L"collide hx=%.2f hz=%.2f blocks=%s",
             cc.halfExtents.x, cc.halfExtents.y, cc.blocksMovement ? L"Y" : L"N");
     }
     if (sel.combatComponent.has_value())
     {
         const auto& bc = sel.combatComponent.value();
-        DrawLine(L"combat faction=%ls hp=%d/%d cd=%.2f",
-            FactionLabel(bc.faction), bc.health, bc.maxHealth, bc.attackCooldownRemaining);
+        DrawLine(InspectorFields::Kind::CombatHP, L"combat hp=%d/%d faction=%ls cd=%.2f",
+            bc.health, bc.maxHealth, FactionLabel(bc.faction), bc.attackCooldownRemaining);
     }
     if (sel.enemyBehaviorComponent.has_value())
     {
         const std::wstring btype = Widen(sel.enemyBehaviorComponent->type);
-        DrawLine(L"behavior type=%ls", btype.c_str());
+        DrawLine(InspectorFields::Kind::COUNT, L"behavior type=%ls", btype.c_str());
     }
     if (sel.triggerComponent.has_value())
     {
         const auto& tc = sel.triggerComponent.value();
         const std::wstring tag = Widen(tc.tag);
-        DrawLine(L"trigger tag='%ls' once=%s fired=%s",
+        DrawLine(InspectorFields::Kind::COUNT, L"trigger tag='%ls' once=%s fired=%s",
             tag.c_str(), tc.fireOnce ? L"Y" : L"N", tc.fired ? L"Y" : L"N");
-        DrawLine(L"        hx=%.2f hz=%.2f", tc.halfExtents.x, tc.halfExtents.y);
+        DrawLine(InspectorFields::Kind::COUNT, L"        hx=%.2f hz=%.2f", tc.halfExtents.x, tc.halfExtents.y);
         if (tc.action.has_value())
         {
             const std::wstring atype = Widen(tc.action->type);
             const std::wstring aparam = Widen(tc.action->param);
-            DrawLine(L"        action=%ls param='%ls'", atype.c_str(), aparam.c_str());
+            DrawLine(InspectorFields::Kind::COUNT, L"        action=%ls param='%ls'", atype.c_str(), aparam.c_str());
         }
     }
 }

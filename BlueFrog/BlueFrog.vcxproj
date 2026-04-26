@@ -255,6 +255,7 @@
     <ClInclude Include="Engine\UI\UIRenderer.h" />
     <ClInclude Include="Engine\UI\TextRenderer.h" />
     <ClInclude Include="Engine\UI\TextLayout.h" />
+    <ClInclude Include="Engine\UI\InspectorFields.h" />
     <ClInclude Include="Engine\Render\DebugRenderer.h" />
     <ClInclude Include="Engine\Render\DebugPipeline.h" />
   </ItemGroup>

@@ -347,6 +347,9 @@
     <ClInclude Include="Engine\UI\TextLayout.h">
       <Filter>Engine\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\UI\InspectorFields.h">
+      <Filter>Engine\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Assets">

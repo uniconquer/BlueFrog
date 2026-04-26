@@ -38,4 +38,5 @@ private:
 	bool reloadRequested     = false;
 	bool inspectorEnabled    = false;
 	int  inspectorSelected   = 0;
+	int  inspectorFieldIndex = 0;
 };

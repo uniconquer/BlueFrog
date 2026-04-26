@@ -1,5 +1,7 @@
 #include "App.h"
 
+#include "../Engine/UI/InspectorFields.h"
+
 namespace
 {
 	constexpr const char* kDefaultScenePath = "Assets/Scenes/arena_trial.json";
@@ -69,13 +71,51 @@ void App::PollDebugToggles() noexcept
 		case VK_TAB:
 			if (inspectorEnabled)
 			{
-				const int count = static_cast<int>(scene.GetObjects().size());
+				const auto& objs = scene.GetObjects();
+				const int count = static_cast<int>(objs.size());
 				if (count > 0)
 				{
 					// Shift held = previous, otherwise next. Wrap on both
 					// ends so the user never gets stuck at an edge.
 					const bool reverse = wnd.kbd.KeyIsPressed(VK_SHIFT);
 					inspectorSelected = (inspectorSelected + (reverse ? -1 : 1) + count) % count;
+					// New object may not carry the previously-selected field
+					// (e.g. picking a wall after editing the Player's HP).
+					// Snap to the first available field on the new object.
+					inspectorFieldIndex = InspectorFields::FirstAvailable(objs[inspectorSelected]);
+				}
+			}
+			break;
+		case VK_PRIOR: // PageUp
+		case VK_NEXT:  // PageDown
+			if (inspectorEnabled)
+			{
+				const auto& objs = scene.GetObjects();
+				if (!objs.empty())
+				{
+					const int sel = std::clamp(inspectorSelected, 0, static_cast<int>(objs.size()) - 1);
+					const int dir = (e->GetCode() == VK_NEXT) ? 1 : -1;
+					inspectorFieldIndex = InspectorFields::CycleAvailable(inspectorFieldIndex, dir, objs[sel]);
+				}
+			}
+			break;
+		case VK_LEFT:
+		case VK_RIGHT:
+			if (inspectorEnabled)
+			{
+				auto& objs = scene.GetObjects();
+				if (!objs.empty())
+				{
+					const int sel = std::clamp(inspectorSelected, 0, static_cast<int>(objs.size()) - 1);
+					const auto kind = static_cast<InspectorFields::Kind>(inspectorFieldIndex);
+					if (InspectorFields::IsAvailable(kind, objs[sel]))
+					{
+						const float sign = (e->GetCode() == VK_RIGHT) ? 1.0f : -1.0f;
+						const float scale = wnd.kbd.KeyIsPressed(VK_SHIFT) ? 10.0f : 1.0f;
+						const float delta = InspectorFields::DefaultStep(kind) * sign * scale;
+						const float current = InspectorFields::GetValue(kind, objs[sel]);
+						InspectorFields::SetValue(kind, objs[sel], current + delta);
+					}
 				}
 			}
 			break;
@@ -189,7 +229,7 @@ void App::ComposeFrame()
 	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight());
 	if (inspectorEnabled)
 	{
-		textRenderer.RenderInspector(scene, inspectorSelected, wnd.GetWidth(), wnd.GetHeight());
+		textRenderer.RenderInspector(scene, inspectorSelected, inspectorFieldIndex, wnd.GetWidth(), wnd.GetHeight());
 	}
 	(void)wnd.Gfx().EndTextDraw();
 	wnd.Gfx().EndFrame();

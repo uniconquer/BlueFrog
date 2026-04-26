@@ -9,9 +9,10 @@
 - Phase E (Editor-Oriented Features): 진행 중 — 세 개의 dev-iteration sub-track이 shipped:
   - **디버그 기즈모** (`DebugRenderer`): F1로 토글되는 wireframe 오버레이. 모든 `CollisionComponent`(시안)와 `TriggerComponent`(마젠타)를 XZ-평면 사각형으로, 깊이 테스트 비활성으로 그린다. 다이내믹 라인 VB는 매 프레임 `WRITE_DISCARD`로 재업로드.
   - **Hot-reload** (`App::PollDebugToggles` + `currentScenePath`): F5로 현 씬 JSON을 재로드. `GameplaySimulation::ReloadScene` 기존 인프라 재사용 — `Scene::Clear` + `ObjectiveSystem::Reset` 보장된 풀 리셋. 트리거 구동 씬 전환 직후의 F5는 새 씬을 reload (currentScenePath가 transition 시 갱신).
-  - **런타임 인스펙터** (`TextRenderer::RenderInspector`): F2로 토글되는 우측 도킹 패널. 씬 오브젝트 리스트(`[TRCBG]` 컴포넌트 플래그 + 이름), Tab/Shift+Tab으로 선택 cycle, 선택 객체의 transform/render/collision/combat/trigger 컴포넌트 전체 덤프. Consolas 모노스페이스 + D2D `FillRectangle` 반투명 배경.
+  - **런타임 인스펙터** (`TextRenderer::RenderInspector`): F2로 토글되는 우측 도킹 패널. 씬 오브젝트 리스트(`[TRCBGE]` 컴포넌트 플래그 + 이름), Tab/Shift+Tab으로 선택 cycle, 선택 객체의 transform/render/collision/combat/behavior/trigger 컴포넌트 전체 덤프. Consolas 모노스페이스 + D2D `FillRectangle` 반투명 배경.
+  - **인스펙터 라이브 편집** (`Engine/UI/InspectorFields.h`): PageUp/Down으로 편집 필드 cycle, Left/Right로 1 step 증감, Shift 동시 누름 = ×10. v1 편집 가능 필드는 `position.{x,y,z}` / `rotation.y` / `combat.health`. 편집 중인 필드는 패널에서 노란색 `*` 마커로 하이라이트. SceneObject가 직접 수정되므로 `Renderer`/`CollisionSystem`/`HudPresenter` 모두 즉시 반영. "tools can inspect and modify runtime objects" 첫 절반 ✓.
 
-  후속 sub-track(scene inspect CLI)은 미착수. 런타임 편집(필드 직접 수정)은 다이얼로그/입력 인프라 필요로 Phase 8+ 검토.
+  후속 sub-track(scene save → inspect CLI → in-engine 객체 생성/배치 → tint·scale·trigger 같은 추가 필드 편집)은 미착수.
 
 ## Goal
 

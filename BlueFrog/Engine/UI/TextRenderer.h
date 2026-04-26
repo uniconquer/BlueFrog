@@ -26,8 +26,9 @@ public:
     // Right-side scene inspector panel. Renders a translucent dark column,
     // a per-object summary list with component flags, and a detail dump for
     // the selected object. App owns the toggle/selection state; this just
-    // draws what it is asked to draw.
-    void RenderInspector(const Scene& scene, int selectedIndex, int viewportW, int viewportH) noexcept;
+    // draws what it is asked to draw. fieldIndex selects which transform/
+    // combat field is the live-edit cursor (highlighted in the panel).
+    void RenderInspector(const Scene& scene, int selectedIndex, int fieldIndex, int viewportW, int viewportH) noexcept;
 private:
     Graphics& gfx;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    objectiveFormat;
