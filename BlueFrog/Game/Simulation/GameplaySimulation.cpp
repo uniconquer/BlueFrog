@@ -51,6 +51,11 @@ bool GameplaySimulation::ConsumePendingDeathReload() noexcept
 	return consumed;
 }
 
+const ObjectiveState& GameplaySimulation::GetObjectiveState() const noexcept
+{
+	return objectiveSystem.GetState();
+}
+
 HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept
 {
 	// System ordering contract (see SystemContext.h for why this is
@@ -133,6 +138,6 @@ std::wstring GameplaySimulation::BuildWindowTitle(const HudState& hudState) noex
 	{
 		oss << L" | Enemy " << static_cast<int>(hudState.targetHealth.current) << L"/" << static_cast<int>(hudState.targetHealth.max);
 	}
-	oss << L" | " << hudState.objectiveText << L" | Q/E orbit | Wheel zoom | F1 gizmos | F2 inspector | F5 reload";
+	oss << L" | " << hudState.objectiveText << L" | Q/E orbit | Wheel zoom | F1 gizmos | F2 inspector | F5 reload | F12 save";
 	return oss.str();
 }

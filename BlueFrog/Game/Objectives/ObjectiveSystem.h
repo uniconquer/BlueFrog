@@ -21,6 +21,10 @@ public:
 	// in-progress text. Either may be empty if the scene has no objective.
 	std::wstring CurrentText() const noexcept;
 
+	// Read-only access to the underlying state. Used by SceneSerializer to
+	// write the objective block back to JSON on save.
+	const ObjectiveState& GetState() const noexcept { return state_; }
+
 private:
 	ObjectiveState state_;
 };

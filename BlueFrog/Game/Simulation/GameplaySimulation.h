@@ -46,6 +46,12 @@ public:
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
+
+	// Read-only access to the current ObjectiveState. SceneSerializer reads
+	// this to write the objective block back to JSON on save. The exposed
+	// reference points at live system state — do not stash it past a
+	// ReloadScene call, which swaps the underlying object.
+	[[nodiscard]] const ObjectiveState& GetObjectiveState() const noexcept;
 private:
 	GameplayCameraSystem         cameraSystem;
 	PlayerGameplaySystem         playerSystem;

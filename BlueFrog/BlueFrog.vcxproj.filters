@@ -141,6 +141,9 @@
     <ClCompile Include="Engine\Scene\SceneLoader.cpp">
       <Filter>Engine\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Scene\SceneSerializer.cpp">
+      <Filter>Engine\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="Engine\Events\EventBus.cpp">
       <Filter>Engine\Events</Filter>
     </ClCompile>
@@ -309,6 +312,9 @@
       <Filter>Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\SceneLoader.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\SceneSerializer.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Scene\PrefabLoader.h">

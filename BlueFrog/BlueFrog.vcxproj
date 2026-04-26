@@ -184,6 +184,7 @@
     <ClCompile Include="Engine\Scene\PrefabLoader.cpp" />
     <ClCompile Include="Engine\Scene\Scene.cpp" />
     <ClCompile Include="Engine\Scene\SceneLoader.cpp" />
+    <ClCompile Include="Engine\Scene\SceneSerializer.cpp" />
     <ClCompile Include="Core\Graphics.cpp" />
     <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\Mouse.cpp" />
@@ -243,6 +244,7 @@
     <ClInclude Include="Engine\Scene\PrefabLoader.h" />
     <ClInclude Include="Engine\Scene\Scene.h" />
     <ClInclude Include="Engine\Scene\SceneLoader.h" />
+    <ClInclude Include="Engine\Scene\SceneSerializer.h" />
     <ClInclude Include="Engine\Scene\SceneObject.h" />
     <ClInclude Include="Engine\Scene\Transform.h" />
     <ClInclude Include="Core\Graphics.h" />

@@ -1,11 +1,23 @@
 # BlueFrog Scene JSON Schema (v2)
 
-This document describes the on-disk format for scenes and prefabs used by `SceneLoader` and `PrefabLoader`. The schema is deliberately small; extend it only when a real consumer exists.
+This document describes the on-disk format for scenes and prefabs used by `SceneLoader`, `PrefabLoader`, and `SceneSerializer`. The schema is deliberately small; extend it only when a real consumer exists.
 
 - Scene files live in `BlueFrog/Assets/Scenes/*.json`.
 - Prefab files live in `BlueFrog/Assets/Prefabs/*.prefab.json`.
 - Relative paths are resolved against the **current working directory** at launch (typically `$(ProjectDir)` = `BlueFrog/BlueFrog/` under Visual Studio). Move the CWD and scene/prefab references break the same way.
-- Both loaders use [`nlohmann/json`](https://github.com/nlohmann/json); trailing commas, comments, and other JSON5 features are not supported.
+- All three modules use [`nlohmann/json`](https://github.com/nlohmann/json); trailing commas, comments, and other JSON5 features are not supported.
+
+## Save (F12)
+
+`SceneSerializer::Save` writes the live `Scene` + camera target + `ObjectiveState` back to JSON in the same v2 shape `SceneLoader` consumes. App binds it to **F12**, targeting the current scene path (`currentScenePath` — what booted, plus any trigger-driven transitions). The save / reload pair (F12 → F5) closes the editor round-trip: tweak via the F2 inspector, F12 to persist, F5 to verify.
+
+Lossiness in v1:
+
+- **Prefab references are not preserved.** Objects originally loaded via `"prefab": "..."` get their merged form serialized into the scene file; the prefab reference is dropped. Loading the saved file works, but subsequent prefab edits no longer flow through to that object.
+- **Runtime mutation persists.** Anything currently in the live scene is what gets written: a partially-killed enemy is saved with its current HP, a fired trigger is saved with `fired: true` would have been lossy if we wrote it (we don't — see below). Save before gameplay-induced mutations if you want pristine data.
+- **Runtime-scratch fields are dropped on save:** `CombatComponent::attackCooldownRemaining`, `TriggerComponent::fired`, `ObjectiveLeaf::progress`. The reload always starts fresh.
+- **Float formatting expands.** nlohmann's `dump(2)` writes floats with full IEEE precision (`1.350000023841858` instead of `1.35`). Hand-authored files stay terse; saved files are noisier but functionally identical on reload.
+- **`scene.name`** is not round-tripped (the loader treats it as informational and never stores it).
 
 ## Top-level scene
 

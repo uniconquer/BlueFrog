@@ -1,6 +1,11 @@
 #include "App.h"
 
+#include "../Engine/Scene/SceneSerializer.h"
 #include "../Engine/UI/InspectorFields.h"
+
+#include <cstdio>
+#include <filesystem>
+#include <string>
 
 namespace
 {
@@ -68,6 +73,31 @@ void App::PollDebugToggles() noexcept
 			// last-write-wins semantics as the LoadSceneRequested path.
 			reloadRequested = true;
 			break;
+		case VK_F12:
+		{
+			// Save: serialize the live scene + camera + objective spec back
+			// to currentScenePath. Pairs with F5 (reload) as the editor
+			// round-trip — edit via inspector → F12 → F5 → verify on disk.
+			std::string err;
+			const bool ok = SceneSerializer::Save(
+				std::filesystem::path(currentScenePath),
+				scene, camera,
+				gameplaySimulation.GetObjectiveState(),
+				&err);
+			if (ok)
+			{
+				const std::string msg = "[Save] wrote " + currentScenePath + "\n";
+				std::fputs(msg.c_str(), stdout);
+				::OutputDebugStringA(msg.c_str());
+			}
+			else
+			{
+				const std::string msg = "[Save] FAILED: " + err + "\n";
+				std::fputs(msg.c_str(), stdout);
+				::OutputDebugStringA(msg.c_str());
+			}
+			break;
+		}
 		case VK_TAB:
 			if (inspectorEnabled)
 			{
