@@ -66,7 +66,15 @@ static void ParseTransform(const json& j, Transform& t)
 static RenderComponent ParseRender(const json& j)
 {
 	RenderComponent rc;
-	if (j.contains("mesh"))
+	// `meshPath` wins over `mesh` when both are present — an external mesh
+	// is opt-in via the explicit path. This keeps every existing scene
+	// (which only carries "mesh": "cube"/"plane") loading unchanged.
+	if (j.contains("meshPath"))
+	{
+		rc.meshType = RenderMeshType::External;
+		rc.meshPath = j["meshPath"].get<std::string>();
+	}
+	else if (j.contains("mesh"))
 	{
 		rc.meshType = ParseMeshType(j["mesh"].get<std::string>());
 	}

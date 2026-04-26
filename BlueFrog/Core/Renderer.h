@@ -66,7 +66,7 @@ public:
 
 private:
 	void BindLitState() noexcept;
-	const MeshBuffers& ResolveMesh(RenderMeshType meshType) const noexcept;
+	const MeshBuffers& ResolveMesh(const RenderComponent& renderComponent);
 	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
 	Texture2D& ResolveTexture(const std::string& path);
 	const Sampler& ResolveSampler(SamplerPreset preset) const noexcept;
@@ -79,6 +79,10 @@ private:
 	Graphics& gfx;
 	MeshBuffers cubeMesh;
 	MeshBuffers planeMesh;
+	// Imported glTF meshes, keyed by source path. Loaded lazily on the first
+	// frame a scene object referencing the path is rendered. Same lifetime
+	// model as textureCache below — survives scene reloads.
+	std::unordered_map<std::string, MeshBuffers> importedMeshCache;
 	VertexShader litVertexShader;
 	PixelShader litPixelShader;
 	InputLayout litInputLayout;

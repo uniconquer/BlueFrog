@@ -81,7 +81,16 @@ namespace
 	json EncodeRender(const RenderComponent& rc)
 	{
 		json j = json::object();
-		j["mesh"] = MeshToString(rc.meshType);
+		// External mesh: write meshPath only (the loader's meshPath-wins
+		// rule means we don't need a redundant "mesh": "external" tag).
+		if (rc.meshType == RenderMeshType::External)
+		{
+			j["meshPath"] = rc.meshPath;
+		}
+		else
+		{
+			j["mesh"] = MeshToString(rc.meshType);
+		}
 		if (rc.material.has_value())
 		{
 			j["material"] = EncodeMaterial(rc.material.value());

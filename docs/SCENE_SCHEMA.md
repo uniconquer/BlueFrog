@@ -158,9 +158,26 @@ All three fields are `[x, y, z]` arrays. Rotation is Euler radians (roll/pitch/y
 | Field | Values | Default |
 |---|---|---|
 | `mesh` | `"cube"`, `"plane"` | `"cube"` |
+| `meshPath` | Path to a glTF file (Stage 1 imports). When present, takes precedence over `mesh`. | (none) |
 | `material.texture` | Path to texture (WIC-supported format). Omit for untextured. | (none) |
 | `material.tint` | `[r, g, b]` in 0..1 linear space | `[1, 1, 1]` |
 | `material.sampler` | `"wrap_linear"`, `"clamp_linear"`, `"wrap_point"` | `"wrap_linear"` |
+
+#### External meshes (`meshPath`)
+
+When the scene-object's render block carries `meshPath`, the renderer loads the referenced glTF file via `MeshImporter` and caches the resulting vertex/index buffers per path (same lifetime as the texture cache — survives scene reloads). The `mesh` enum is ignored in this case.
+
+v1 glTF subset accepted by `MeshImporter`:
+
+- glTF 2.0 JSON only (no `.glb` binary container yet).
+- Single buffer with a `data:application/octet-stream;base64,...` URI. External `.bin` references are not supported — keep authored test assets self-contained.
+- Single mesh with a single primitive, mode `4` (TRIANGLES).
+- Attributes: `POSITION` (required, FLOAT VEC3), `NORMAL` and `TEXCOORD_0` (optional, FLOAT VEC3 / VEC2).
+- Indices: UNSIGNED_SHORT only (≤ 65535 vertices). UNSIGNED_INT rejects with a clear error at load.
+
+Anything outside this subset rejects at startup via `SceneLoader::Validate`'s asset-sweep path.
+
+Stage 2 (skinned mesh + animation) will widen the subset and most likely vendor `cgltf` to handle skin matrices, animation channels, and `.glb`. Today's parser is documented as the v1 throwaway in `MeshImporter.h`.
 
 ### Collision component
 

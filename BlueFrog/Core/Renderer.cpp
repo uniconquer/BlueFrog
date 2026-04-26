@@ -1,6 +1,9 @@
 #include "Renderer.h"
 #include "../Engine/Render/ImageLoader.h"
+#include "../Engine/Render/MeshImporter.h"
 #include <DirectXMath.h>
+#include <filesystem>
+#include <stdexcept>
 
 Renderer::MeshBuffers::MeshBuffers(Graphics& gfx, const LitVertex* vertices, UINT vertexCount, const unsigned short* indices, UINT indexCount)
 	:
@@ -127,9 +130,70 @@ void Renderer::BindLitState() noexcept
 	litPixelShader.Bind(gfx);
 }
 
-const Renderer::MeshBuffers& Renderer::ResolveMesh(RenderMeshType meshType) const noexcept
+const Renderer::MeshBuffers& Renderer::ResolveMesh(const RenderComponent& renderComponent)
 {
-	switch (meshType)
+	if (renderComponent.meshType == RenderMeshType::External)
+	{
+		const std::string& path = renderComponent.meshPath;
+		auto it = importedMeshCache.find(path);
+		if (it != importedMeshCache.end())
+		{
+			return it->second;
+		}
+
+		// First reference: load + convert + upload. Failure throws so the
+		// asset validator's path-prefixed error matches the engine's other
+		// "missing asset" failure modes; bad meshes are caught at boot.
+		ImportedMesh imported;
+		std::string err;
+		if (!MeshImporter::Load(std::filesystem::path(path), imported, &err))
+		{
+			throw std::runtime_error("MeshImporter failed: " + err);
+		}
+
+		const std::size_t vertexCount = imported.positions.size() / 3;
+		std::vector<LitVertex> verts(vertexCount);
+		for (std::size_t i = 0; i < vertexCount; ++i)
+		{
+			verts[i].x = imported.positions[i * 3 + 0];
+			verts[i].y = imported.positions[i * 3 + 1];
+			verts[i].z = imported.positions[i * 3 + 2];
+			if (imported.normals.size() >= (i + 1) * 3)
+			{
+				verts[i].nx = imported.normals[i * 3 + 0];
+				verts[i].ny = imported.normals[i * 3 + 1];
+				verts[i].nz = imported.normals[i * 3 + 2];
+			}
+			else
+			{
+				// glTF allows omitting normals; pick (0,1,0) so the lit pass
+				// still produces a non-black surface.
+				verts[i].nx = 0.0f; verts[i].ny = 1.0f; verts[i].nz = 0.0f;
+			}
+			if (imported.uvs.size() >= (i + 1) * 2)
+			{
+				verts[i].u = imported.uvs[i * 2 + 0];
+				verts[i].v = imported.uvs[i * 2 + 1];
+			}
+			else
+			{
+				verts[i].u = 0.0f; verts[i].v = 0.0f;
+			}
+		}
+
+		auto [emplacedIt, ok] = importedMeshCache.emplace(
+			std::piecewise_construct,
+			std::forward_as_tuple(path),
+			std::forward_as_tuple(
+				gfx,
+				verts.data(),
+				static_cast<UINT>(verts.size()),
+				imported.indices.data(),
+				static_cast<UINT>(imported.indices.size())));
+		return emplacedIt->second;
+	}
+
+	switch (renderComponent.meshType)
 	{
 	case RenderMeshType::Plane: return planeMesh;
 	case RenderMeshType::Cube:
@@ -211,6 +275,6 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
 		{
 			continue;
 		}
-		DrawMesh(ResolveMesh(object.renderComponent->meshType), object.transform, *object.renderComponent, camera);
+		DrawMesh(ResolveMesh(*object.renderComponent), object.transform, *object.renderComponent, camera);
 	}
 }

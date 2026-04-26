@@ -87,6 +87,9 @@
     <ClCompile Include="Engine\Render\ImageLoader.cpp">
       <Filter>Engine\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Render\MeshImporter.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
     <ClCompile Include="Engine\Render\IndexBuffer.cpp">
       <Filter>Engine\Render</Filter>
     </ClCompile>
@@ -186,6 +189,9 @@
       <Filter>Dxerr</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Render\ImageLoader.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Render\MeshImporter.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Render\ConstantBuffer.h">
@@ -370,6 +376,9 @@
     <Filter Include="Assets\\Prefabs">
       <UniqueIdentifier>{a5b6c7d8-e9f0-4a1b-8c2d-3e4f5a6b7c8d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\\Models">
+      <UniqueIdentifier>{b6c7d8e9-f0a1-4b2c-9d3e-4f5a6b7c8d9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Textures\ground_checker.png">
@@ -392,6 +401,9 @@
     </None>
     <None Include="Assets\Prefabs\ArenaWall.prefab.json">
       <Filter>Assets\Prefabs</Filter>
+    </None>
+    <None Include="Assets\Models\tetrahedron.gltf">
+      <Filter>Assets\Models</Filter>
     </None>
   </ItemGroup>
 </Project>
