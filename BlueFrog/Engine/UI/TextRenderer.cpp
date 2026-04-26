@@ -3,6 +3,10 @@
 #include "TextLayout.h"
 #include "UILayout.h"
 
+#include "../Scene/SceneObject.h"
+
+#include <algorithm>
+#include <cstdio>
 #include <string>
 
 namespace
@@ -12,6 +16,54 @@ namespace
         return std::to_wstring(static_cast<int>(meter.current))
             + L"/"
             + std::to_wstring(static_cast<int>(meter.max));
+    }
+
+    // Cheap ASCII narrow-to-wide. Scene/object names are ASCII by contract
+    // (validator path-prefixed errors enforce this earlier), so we don't
+    // need a real codecvt round trip here.
+    std::wstring Widen(const std::string& s)
+    {
+        std::wstring out;
+        out.reserve(s.size());
+        for (char c : s)
+        {
+            out.push_back(static_cast<wchar_t>(static_cast<unsigned char>(c)));
+        }
+        return out;
+    }
+
+    const wchar_t* FactionLabel(CombatFaction f)
+    {
+        switch (f)
+        {
+        case CombatFaction::Player:  return L"player";
+        case CombatFaction::Enemy:   return L"enemy";
+        case CombatFaction::Neutral:
+        default:                     return L"neutral";
+        }
+    }
+
+    const wchar_t* MeshLabel(RenderMeshType m)
+    {
+        switch (m)
+        {
+        case RenderMeshType::Plane: return L"plane";
+        case RenderMeshType::Cube:
+        default:                    return L"cube";
+        }
+    }
+
+    // Build the "[T-CB-]" component-flag string for the per-object summary.
+    std::wstring ComponentFlags(const SceneObject& obj)
+    {
+        wchar_t buf[6];
+        buf[0] = L'T'; // Transform always present
+        buf[1] = obj.renderComponent.has_value()    ? L'R' : L'-';
+        buf[2] = obj.collisionComponent.has_value() ? L'C' : L'-';
+        buf[3] = obj.combatComponent.has_value()    ? L'B' : L'-';
+        buf[4] = obj.triggerComponent.has_value()   ? L'G' : L'-';
+        buf[5] = L'\0';
+        return std::wstring(buf);
     }
 }
 
@@ -90,6 +142,63 @@ TextRenderer::TextRenderer(Graphics& gfxIn)
     if (FAILED(hr = target->CreateSolidColorBrush(
         D2D1::ColorF(0.95f, 0.18f, 0.18f, 1.0f),
         redBrush.GetAddressOf())))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+
+    // Inspector resources. Consolas because the panel renders aligned
+    // ASCII rows where proportional fonts would mis-align everything.
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kInspectorFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::InspectorPointSize),
+        TextLayout::kFontLocale,
+        inspectorFormat.GetAddressOf());
+    if (FAILED(hr))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    inspectorFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    inspectorFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    inspectorFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kInspectorFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::InspectorTitlePointSize),
+        TextLayout::kFontLocale,
+        inspectorTitleFormat.GetAddressOf());
+    if (FAILED(hr))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    inspectorTitleFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    inspectorTitleFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    inspectorTitleFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+    // Translucent dark slate for the inspector panel background. D2D handles
+    // the pre-multiply for the PREMULTIPLIED render target.
+    if (FAILED(hr = target->CreateSolidColorBrush(
+        D2D1::ColorF(0.05f, 0.07f, 0.12f, 0.82f),
+        panelBrush.GetAddressOf())))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    if (FAILED(hr = target->CreateSolidColorBrush(
+        D2D1::ColorF(0.62f, 0.68f, 0.78f, 1.0f),
+        dimBrush.GetAddressOf())))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    if (FAILED(hr = target->CreateSolidColorBrush(
+        D2D1::ColorF(1.0f, 0.88f, 0.32f, 1.0f),
+        highlightBrush.GetAddressOf())))
     {
         throw BFGFX_EXCEPT(hr);
     }
@@ -189,6 +298,172 @@ void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH) noe
                 whiteBrush.Get(),
                 D2D1_DRAW_TEXT_OPTIONS_NONE,
                 DWRITE_MEASURING_MODE_NATURAL);
+        }
+    }
+}
+
+void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int viewportW, int viewportH) noexcept
+{
+    ID2D1RenderTarget* const target = gfx.GetD2DTarget();
+    if (target == nullptr || !inspectorFormat || !inspectorTitleFormat || !panelBrush)
+    {
+        return;
+    }
+
+    const auto& objects = scene.GetObjects();
+    const float panelW = TextLayout::InspectorPanelWidthDip;
+    const float panelLeft  = static_cast<float>(viewportW) - panelW;
+    const float panelTop   = 0.0f;
+    const float panelRight = static_cast<float>(viewportW);
+    const float panelBot   = static_cast<float>(viewportH);
+    const float padX       = TextLayout::InspectorPanelMarginDip;
+    const float lineH      = TextLayout::InspectorLineHeightDip;
+
+    // 1. Translucent background.
+    target->FillRectangle(D2D1::RectF(panelLeft, panelTop, panelRight, panelBot), panelBrush.Get());
+
+    float y = panelTop + padX;
+
+    // 2. Title row.
+    {
+        wchar_t titleBuf[64];
+        const int n = std::swprintf(titleBuf, 64, L"INSPECTOR  Tab/Shift+Tab  F2 close");
+        if (n > 0)
+        {
+            target->DrawText(titleBuf, static_cast<UINT32>(n), inspectorTitleFormat.Get(),
+                D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH * 1.4f),
+                whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+        }
+        y += lineH * 1.6f;
+    }
+
+    // 3. Object count.
+    {
+        wchar_t buf[64];
+        const int n = std::swprintf(buf, 64, L"Objects: %zu", objects.size());
+        if (n > 0)
+        {
+            target->DrawText(buf, static_cast<UINT32>(n), inspectorFormat.Get(),
+                D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH),
+                dimBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+        }
+        y += lineH * 1.4f;
+    }
+
+    // 4. Object list. Selected index is clamped here; App keeps it in
+    //    [0, objects.size()) but a scene reload while the inspector is open
+    //    can easily push it out of range.
+    const int clampedSel = objects.empty()
+        ? -1
+        : std::max(0, std::min(selectedIndex, static_cast<int>(objects.size()) - 1));
+
+    for (size_t i = 0; i < objects.size(); ++i)
+    {
+        const SceneObject& obj = objects[i];
+        const std::wstring flags = ComponentFlags(obj);
+        const std::wstring name = Widen(obj.name.empty() ? std::string("(unnamed)") : obj.name);
+
+        wchar_t row[160];
+        const wchar_t cursor = (static_cast<int>(i) == clampedSel) ? L'>' : L' ';
+        const int n = std::swprintf(row, 160, L"%c %2zu [%s] %ls", cursor, i, flags.c_str(), name.c_str());
+        if (n > 0)
+        {
+            ID2D1SolidColorBrush* brush = (static_cast<int>(i) == clampedSel) ? highlightBrush.Get() : whiteBrush.Get();
+            target->DrawText(row, static_cast<UINT32>(n), inspectorFormat.Get(),
+                D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH),
+                brush, D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+        }
+        y += lineH;
+
+        // Page-overflow guard: if the list outgrows the panel before we even
+        // reach the detail block, we just stop drawing further rows. This
+        // keeps the renderer fail-safe; pagination is a future improvement.
+        if (y > panelBot - lineH * 12.0f)
+        {
+            break;
+        }
+    }
+
+    if (clampedSel < 0)
+    {
+        return;
+    }
+
+    // 5. Detail dump for the selected object.
+    y += lineH * 0.6f;
+    {
+        wchar_t sep[80];
+        const std::wstring name = Widen(objects[clampedSel].name);
+        const int n = std::swprintf(sep, 80, L"--- %ls ---", name.c_str());
+        if (n > 0)
+        {
+            target->DrawText(sep, static_cast<UINT32>(n), inspectorFormat.Get(),
+                D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH),
+                highlightBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+        }
+        y += lineH;
+    }
+
+    auto DrawLine = [&](const wchar_t* fmt, auto... args)
+    {
+        wchar_t buf[160];
+        const int n = std::swprintf(buf, 160, fmt, args...);
+        if (n > 0 && y < panelBot - lineH)
+        {
+            target->DrawText(buf, static_cast<UINT32>(n), inspectorFormat.Get(),
+                D2D1::RectF(panelLeft + padX, y, panelRight - padX, y + lineH),
+                whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+        }
+        y += lineH;
+    };
+
+    const SceneObject& sel = objects[clampedSel];
+    const auto& p = sel.transform.position;
+    const auto& r = sel.transform.rotation;
+    const auto& s = sel.transform.scale;
+    DrawLine(L"pos    %6.2f %6.2f %6.2f", p.x, p.y, p.z);
+    DrawLine(L"rot    %6.2f %6.2f %6.2f", r.x, r.y, r.z);
+    DrawLine(L"scale  %6.2f %6.2f %6.2f", s.x, s.y, s.z);
+    DrawLine(L"enabled=%s", sel.enabled ? L"Y" : L"N");
+
+    if (sel.renderComponent.has_value())
+    {
+        const auto& rc = sel.renderComponent.value();
+        if (rc.material.has_value())
+        {
+            const auto& mat = rc.material.value();
+            DrawLine(L"render mesh=%ls tint=(%.2f %.2f %.2f)",
+                MeshLabel(rc.meshType), mat.tint.x, mat.tint.y, mat.tint.z);
+        }
+        else
+        {
+            DrawLine(L"render mesh=%ls (no material)", MeshLabel(rc.meshType));
+        }
+    }
+    if (sel.collisionComponent.has_value())
+    {
+        const auto& cc = sel.collisionComponent.value();
+        DrawLine(L"collide hx=%.2f hz=%.2f blocks=%s",
+            cc.halfExtents.x, cc.halfExtents.y, cc.blocksMovement ? L"Y" : L"N");
+    }
+    if (sel.combatComponent.has_value())
+    {
+        const auto& bc = sel.combatComponent.value();
+        DrawLine(L"combat faction=%ls hp=%d/%d cd=%.2f",
+            FactionLabel(bc.faction), bc.health, bc.maxHealth, bc.attackCooldownRemaining);
+    }
+    if (sel.triggerComponent.has_value())
+    {
+        const auto& tc = sel.triggerComponent.value();
+        const std::wstring tag = Widen(tc.tag);
+        DrawLine(L"trigger tag='%ls' once=%s fired=%s",
+            tag.c_str(), tc.fireOnce ? L"Y" : L"N", tc.fired ? L"Y" : L"N");
+        DrawLine(L"        hx=%.2f hz=%.2f", tc.halfExtents.x, tc.halfExtents.y);
+        if (tc.action.has_value())
+        {
+            const std::wstring atype = Widen(tc.action->type);
+            const std::wstring aparam = Widen(tc.action->param);
+            DrawLine(L"        action=%ls param='%ls'", atype.c_str(), aparam.c_str());
         }
     }
 }

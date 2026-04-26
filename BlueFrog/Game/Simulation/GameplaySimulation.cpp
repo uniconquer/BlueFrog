@@ -133,6 +133,6 @@ std::wstring GameplaySimulation::BuildWindowTitle(const HudState& hudState) noex
 	{
 		oss << L" | Enemy " << static_cast<int>(hudState.targetHealth.current) << L"/" << static_cast<int>(hudState.targetHealth.max);
 	}
-	oss << L" | " << hudState.objectiveText << L" | Q/E: orbit | Wheel: zoom | F1: gizmos | F5: reload";
+	oss << L" | " << hudState.objectiveText << L" | Q/E orbit | Wheel zoom | F1 gizmos | F2 inspector | F5 reload";
 	return oss.str();
 }

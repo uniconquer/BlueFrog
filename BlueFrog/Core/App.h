@@ -34,6 +34,8 @@ private:
 	GameplaySimulation gameplaySimulation;
 	BFTimer timer;
 	std::string currentScenePath;
-	bool debugGizmosEnabled = false;
-	bool reloadRequested    = false;
+	bool debugGizmosEnabled  = false;
+	bool reloadRequested     = false;
+	bool inspectorEnabled    = false;
+	int  inspectorSelected   = 0;
 };

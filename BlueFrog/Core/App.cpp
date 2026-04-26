@@ -55,6 +55,9 @@ void App::PollDebugToggles() noexcept
 		case VK_F1:
 			debugGizmosEnabled = !debugGizmosEnabled;
 			break;
+		case VK_F2:
+			inspectorEnabled = !inspectorEnabled;
+			break;
 		case VK_F5:
 			// Hot-reload: latch the request and let UpdateModel apply it
 			// after Update returns, matching the trigger-driven scene-load
@@ -62,6 +65,19 @@ void App::PollDebugToggles() noexcept
 			// reload runs. Multiple presses in one tick coalesce — same
 			// last-write-wins semantics as the LoadSceneRequested path.
 			reloadRequested = true;
+			break;
+		case VK_TAB:
+			if (inspectorEnabled)
+			{
+				const int count = static_cast<int>(scene.GetObjects().size());
+				if (count > 0)
+				{
+					// Shift held = previous, otherwise next. Wrap on both
+					// ends so the user never gets stuck at an edge.
+					const bool reverse = wnd.kbd.KeyIsPressed(VK_SHIFT);
+					inspectorSelected = (inspectorSelected + (reverse ? -1 : 1) + count) % count;
+				}
+			}
 			break;
 		default:
 			break;
@@ -171,6 +187,10 @@ void App::ComposeFrame()
 	uiRenderer.Render(hudState);
 	wnd.Gfx().BeginTextDraw();
 	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight());
+	if (inspectorEnabled)
+	{
+		textRenderer.RenderInspector(scene, inspectorSelected, wnd.GetWidth(), wnd.GetHeight());
+	}
 	(void)wnd.Gfx().EndTextDraw();
 	wnd.Gfx().EndFrame();
 }

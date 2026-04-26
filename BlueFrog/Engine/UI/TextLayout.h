@@ -13,7 +13,15 @@ namespace TextLayout
     inline constexpr float ObjectivePointSize    = 20.0f;
     inline constexpr float NumericPointSize      = 14.0f;
     inline constexpr float DefeatedPointSize     = 48.0f;
+    inline constexpr float InspectorPointSize    = 11.0f;
+    inline constexpr float InspectorTitlePointSize = 13.0f;
     inline constexpr float ObjectiveTopInsetDip  = 16.0f;
+
+    // Inspector panel docks to the right edge of the viewport.
+    inline constexpr float InspectorPanelWidthDip   = 320.0f;
+    inline constexpr float InspectorPanelMarginDip  = 8.0f;
+    inline constexpr float InspectorLineHeightDip   = 16.0f;
+    inline constexpr wchar_t kInspectorFontFamily[] = L"Consolas";
 
     inline constexpr wchar_t kFontFamily[] = L"Segoe UI";
     inline constexpr wchar_t kFontLocale[] = L"en-us";

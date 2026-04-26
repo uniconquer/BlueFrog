@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Core/Graphics.h"
+#include "../Scene/Scene.h"
 #include "HudState.h"
 #include <d2d1.h>
 #include <dwrite.h>
@@ -21,11 +22,22 @@ public:
     // pending); in that case nothing happens and the caller's EndTextDraw
     // returns S_OK.
     void Render(const HudState& hud, int viewportW, int viewportH) noexcept;
+
+    // Right-side scene inspector panel. Renders a translucent dark column,
+    // a per-object summary list with component flags, and a detail dump for
+    // the selected object. App owns the toggle/selection state; this just
+    // draws what it is asked to draw.
+    void RenderInspector(const Scene& scene, int selectedIndex, int viewportW, int viewportH) noexcept;
 private:
     Graphics& gfx;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> objectiveFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> numericFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> defeatedFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    objectiveFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    numericFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    defeatedFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    inspectorFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    inspectorTitleFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> whiteBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> redBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> dimBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> highlightBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> panelBrush;
 };
