@@ -104,7 +104,8 @@ Each entry in `scene.objects` maps to one `SceneObject`. Component keys are all 
   "render":    { "mesh": "cube", "material": { "tint": [1, 1, 1] } },
   "collision": { "halfExtents": [0.45, 0.45], "blocking": true },
   "combat":    { "faction": "player", "maxHp": 5, "currentHp": 5 },
-  "trigger":   { "halfExtents": [1.5, 1.5], "tag": "center_zone", "fireOnce": true }
+  "trigger":   { "halfExtents": [1.5, 1.5], "tag": "center_zone", "fireOnce": true },
+  "behavior":  { "type": "archer" }
 }
 ```
 
@@ -117,6 +118,7 @@ Each entry in `scene.objects` maps to one `SceneObject`. Component keys are all 
 | `collision` | See *Collision component*. |
 | `combat` | See *Combat component*. |
 | `trigger` | See *Trigger component*. |
+| `behavior` | See *Enemy behavior component*. |
 
 ### Transform
 
@@ -164,6 +166,20 @@ XZ axis-aligned box used by the gameplay-level `CollisionSystem`.
 | `faction` | `"player"`, `"enemy"`, `"neutral"` | `"neutral"` |
 | `maxHp` | Integer | `1` |
 | `currentHp` | Integer | `1` |
+
+### Enemy behavior component
+
+Picks the AI class that drives an enemy-faction `SceneObject`. Absent on player and neutral objects; absent on enemies means `"scout"` (the chase + melee default). `SimpleEnemyController` dispatches off `type` each tick.
+
+```json
+"behavior": { "type": "archer" }
+```
+
+| Field | Values | Default |
+|---|---|---|
+| `type` | `"scout"` (chase + melee), `"archer"` (stationary hitscan) | `"scout"` |
+
+Validator rejects any other type with a path-prefixed error before the window is created. Adding a new behavior is: extend the allow-list in `SceneLoader.cpp::IsKnownEnemyBehavior`, add a dispatch case to `SimpleEnemyController::Update`, and define the behavior class in `Game/NPC/`.
 
 ### Trigger component
 
@@ -232,6 +248,6 @@ Reload is deferred to **after** `GameplaySimulation::Update` returns. Systems ne
 ## Versioning policy
 
 - `1`: original schema. No `prefab`, no `trigger`, no `objective`. Still accepted by the v2 loader without modification.
-- `2`: adds optional `prefab`/`trigger` scene-level structures (Phase 5), optional top-level `objective` block plus optional `trigger.action` (Phase 6), and optional `count` / `any`+`anyOf` shapes inside `objective.conditions` (Phase 7 first slice). All additions are structurally optional — a v2 scene that uses none of them is indistinguishable from a v1 scene, and v1 scenes load unchanged.
+- `2`: adds optional `prefab`/`trigger` scene-level structures (Phase 5), optional top-level `objective` block plus optional `trigger.action` (Phase 6), optional `count` / `any`+`anyOf` shapes inside `objective.conditions` (Phase 7 first slice), and optional `behavior` per scene-object (archer enemy slice). All additions are structurally optional — a v2 scene that uses none of them is indistinguishable from a v1 scene, and v1 scenes load unchanged.
 
 When a breaking change is introduced, bump `schemaVersion` and make the loader accept the previous version's structure verbatim while rejecting future versions with a clear error.

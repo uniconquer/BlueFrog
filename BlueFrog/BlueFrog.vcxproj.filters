@@ -242,6 +242,9 @@
     <ClInclude Include="Engine\Scene\CombatComponent.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\UI\HealthBar.h">
       <Filter>Engine\UI</Filter>
     </ClInclude>
@@ -255,6 +258,9 @@
       <Filter>Game\NPC</Filter>
     </ClInclude>
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h">
+      <Filter>Game\NPC</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\NPC\EnemyArcherBehavior.h">
       <Filter>Game\NPC</Filter>
     </ClInclude>
     <ClInclude Include="Game\Player\PlayerController.h">
@@ -370,6 +376,9 @@
       <Filter>Assets\Prefabs</Filter>
     </None>
     <None Include="Assets\Prefabs\EnemyScout.prefab.json">
+      <Filter>Assets\Prefabs</Filter>
+    </None>
+    <None Include="Assets\Prefabs\EnemyArcher.prefab.json">
       <Filter>Assets\Prefabs</Filter>
     </None>
     <None Include="Assets\Prefabs\ArenaWall.prefab.json">

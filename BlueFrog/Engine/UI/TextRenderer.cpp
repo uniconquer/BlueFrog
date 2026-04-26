@@ -53,16 +53,17 @@ namespace
         }
     }
 
-    // Build the "[T-CB-]" component-flag string for the per-object summary.
+    // Build the "[TRCBGE]" component-flag string for the per-object summary.
     std::wstring ComponentFlags(const SceneObject& obj)
     {
-        wchar_t buf[6];
+        wchar_t buf[7];
         buf[0] = L'T'; // Transform always present
-        buf[1] = obj.renderComponent.has_value()    ? L'R' : L'-';
-        buf[2] = obj.collisionComponent.has_value() ? L'C' : L'-';
-        buf[3] = obj.combatComponent.has_value()    ? L'B' : L'-';
-        buf[4] = obj.triggerComponent.has_value()   ? L'G' : L'-';
-        buf[5] = L'\0';
+        buf[1] = obj.renderComponent.has_value()        ? L'R' : L'-';
+        buf[2] = obj.collisionComponent.has_value()     ? L'C' : L'-';
+        buf[3] = obj.combatComponent.has_value()        ? L'B' : L'-';
+        buf[4] = obj.triggerComponent.has_value()       ? L'G' : L'-';
+        buf[5] = obj.enemyBehaviorComponent.has_value() ? L'E' : L'-';
+        buf[6] = L'\0';
         return std::wstring(buf);
     }
 }
@@ -451,6 +452,11 @@ void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int vi
         const auto& bc = sel.combatComponent.value();
         DrawLine(L"combat faction=%ls hp=%d/%d cd=%.2f",
             FactionLabel(bc.faction), bc.health, bc.maxHealth, bc.attackCooldownRemaining);
+    }
+    if (sel.enemyBehaviorComponent.has_value())
+    {
+        const std::wstring btype = Widen(sel.enemyBehaviorComponent->type);
+        DrawLine(L"behavior type=%ls", btype.c_str());
     }
     if (sel.triggerComponent.has_value())
     {

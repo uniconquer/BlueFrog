@@ -1,10 +1,11 @@
 {
   "schemaVersion": 2,
   "objective": {
-    "text": "Defeat the scout",
+    "text": "Defeat the scout and the archer",
     "completionText": "Arena cleared",
     "conditions": [
-      { "type": "enemy_killed", "name": "EnemyScout" }
+      { "type": "enemy_killed", "name": "EnemyScout" },
+      { "type": "enemy_killed", "name": "EnemyArcher" }
     ]
   },
   "scene": {
@@ -73,6 +74,11 @@
         "name": "EnemyScout",
         "prefab": "Assets/Prefabs/EnemyScout.prefab.json",
         "transform": { "position": [3.8, 1.0, -3.8], "rotation": [0.0, 0.0, 0.0], "scale": [0.75, 1.0, 0.75] }
+      },
+      {
+        "name": "EnemyArcher",
+        "prefab": "Assets/Prefabs/EnemyArcher.prefab.json",
+        "transform": { "position": [4.0, 1.0, 4.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.7, 1.0, 0.7] }
       }
     ]
   }

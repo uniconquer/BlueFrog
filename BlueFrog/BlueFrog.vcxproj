@@ -208,6 +208,8 @@
     <ClInclude Include="Game\Hud\HudPresenter.h" />
     <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h" />
+    <ClInclude Include="Game\NPC\EnemyArcherBehavior.h" />
+    <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h" />
     <ClInclude Include="Game\Objectives\ObjectiveState.h" />
     <ClInclude Include="Game\Objectives\ObjectiveSystem.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
@@ -262,6 +264,7 @@
     <None Include="Assets\Scenes\sparring_yard.json" />
     <None Include="Assets\Prefabs\Player.prefab.json" />
     <None Include="Assets\Prefabs\EnemyScout.prefab.json" />
+    <None Include="Assets\Prefabs\EnemyArcher.prefab.json" />
     <None Include="Assets\Prefabs\ArenaWall.prefab.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

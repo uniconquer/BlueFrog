@@ -100,6 +100,27 @@ static CombatComponent ParseCombat(const json& j)
 	return cc;
 }
 
+// v1 enemy-behavior allow-list. Keep in sync with SimpleEnemyController's
+// dispatch — adding a new behavior is a new entry here and a new case there.
+static bool IsKnownEnemyBehavior(const std::string& s)
+{
+	return s == "scout" || s == "archer";
+}
+
+static bool ParseEnemyBehavior(const json& j, const std::filesystem::path& path, EnemyBehaviorComponent& out, std::string* errorOut)
+{
+	if (!j.is_object())
+	{
+		return SetError(errorOut, PathPrefix(path) + "behavior must be a JSON object");
+	}
+	out.type = j.value("type", std::string{"scout"});
+	if (!IsKnownEnemyBehavior(out.type))
+	{
+		return SetError(errorOut, PathPrefix(path) + "behavior.type: unknown '" + out.type + "' (expected 'scout' or 'archer')");
+	}
+	return true;
+}
+
 // v1 trigger-action allow-list. Keep in sync with TriggerGameplaySystem's
 // dispatch switch — adding a new action type means a new case there and a
 // new entry here (and usually a matching GameEventType).
@@ -364,6 +385,15 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 			}
 			obj.triggerComponent = std::move(tc);
 		}
+		if (objJson.contains("behavior"))
+		{
+			EnemyBehaviorComponent bc;
+			if (!ParseEnemyBehavior(objJson["behavior"], path, bc, errorOut))
+			{
+				return false;
+			}
+			obj.enemyBehaviorComponent = std::move(bc);
+		}
 	}
 
 	return true;
@@ -411,6 +441,14 @@ bool SceneLoader::Validate(const std::filesystem::path& path, std::string* error
 		{
 			std::optional<TriggerAction> scratchAction;
 			if (!ParseTriggerAction(obj["trigger"], path, scratchAction, errorOut))
+			{
+				return false;
+			}
+		}
+		if (obj.contains("behavior"))
+		{
+			EnemyBehaviorComponent scratchBehavior;
+			if (!ParseEnemyBehavior(obj["behavior"], path, scratchBehavior, errorOut))
 			{
 				return false;
 			}

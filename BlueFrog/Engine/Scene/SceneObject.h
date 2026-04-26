@@ -1,6 +1,7 @@
 #pragma once
 #include "CollisionComponent.h"
 #include "CombatComponent.h"
+#include "EnemyBehaviorComponent.h"
 #include "RenderComponent.h"
 #include "Transform.h"
 #include "TriggerComponent.h"
@@ -16,6 +17,7 @@ struct SceneObject
 	std::optional<CollisionComponent> collisionComponent;
 	std::optional<CombatComponent>   combatComponent;
 	std::optional<TriggerComponent>  triggerComponent;
+	std::optional<EnemyBehaviorComponent> enemyBehaviorComponent;
 
 	bool CanRender() const noexcept
 	{

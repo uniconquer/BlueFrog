@@ -1,0 +1,6 @@
+{
+  "render":    { "mesh": "cube", "material": { "tint": [0.32, 0.66, 0.78] } },
+  "collision": { "halfExtents": [0.55, 0.55], "blocking": true },
+  "combat":    { "faction": "enemy", "maxHp": 2, "currentHp": 2 },
+  "behavior":  { "type": "archer" }
+}
