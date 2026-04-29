@@ -16,29 +16,30 @@ struct ImportedMesh
 	std::vector<std::uint16_t>  indices;
 };
 
-// Minimal glTF 2.0 subset loader. Targets the assets BlueFrog actually
-// authors and ships at Stage 1 of the rendering climb (static meshes only).
+// glTF 2.0 mesh importer, backed by cgltf v1.15 (vendored under
+// `vendor/cgltf/`). Replaced the hand-written subset parser when Stage 2
+// arrived — cgltf carries the weight of skin matrices, animation channels,
+// sparse accessors, .glb binary containers, and edge cases we'd otherwise
+// have to reinvent.
 //
-// **Future migration note:** when Stage 2 adds skinned-mesh + animation
-// support, vendor `cgltf.h` (single-header, MIT, well-maintained) and
-// replace this parser. cgltf handles skin matrices, animation channels,
-// sparse accessors, and .glb binary containers that this v1 parser does
-// not. The current ~100-line implementation is right-sized for the
-// "decode one base64 buffer into a vertex stream" job and not worth
-// pulling 5000 lines of cgltf for.
+// What still applies at Stage 1 (this header):
 //
-// v1 supports:
-//
-//   - Single buffer with a `data:` URI (base64). External .bin files are NOT
-//     supported in v1 — keep test assets self-contained.
-//   - Single mesh with a single primitive.
-//   - mode = 4 (TRIANGLES) only.
-//   - Attributes: POSITION (required), NORMAL (optional), TEXCOORD_0
-//     (optional). All FLOAT (componentType 5126).
-//   - Indices: UNSIGNED_SHORT (5123) only. Imported meshes must have < 65536
-//     vertices. Validator rejects UNSIGNED_INT with a clear error.
-//   - Accessors must have byteOffset 0 within their bufferView (no
-//     interleaved attributes — the parser walks one attribute at a time).
+//   - We still consume one mesh / one primitive per file. Multi-mesh
+//     authoring is a content-pipeline question we'll revisit when we have
+//     real DCC export needs.
+//   - mode = TRIANGLES only.
+//   - Attributes parsed: POSITION (required), NORMAL (optional),
+//     TEXCOORD_0 (optional). cgltf normalizes / converts so the source
+//     accessor's component type doesn't matter from our side.
+//   - Indices flatten to uint16 — cgltf upcasts/downcasts as needed but
+//     `ImportedMesh::indices` is still uint16 so meshes > 65535 vertices
+//     reject with a clear error.
+//   - Both embedded `data:` URIs (our hand-authored tetrahedron) and
+//     external `.bin` references (Khronos sample assets) work — cgltf
+//     resolves both via `cgltf_load_buffers`.
+//   - Skin / joint / weight attributes are silently ignored at Stage 1
+//     and consumed at Stage 2 once we add the SkinnedVertex format and
+//     skinning shader pipeline.
 //
 // Returns true on success. On failure errorOut (if non-null) is filled with
 // a path-prefixed message matching the SceneLoader error style.
