@@ -90,6 +90,9 @@
     <ClCompile Include="Engine\Render\MeshImporter.cpp">
       <Filter>Engine\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Render\cgltf_impl.cpp">
+      <Filter>Engine\Render</Filter>
+    </ClCompile>
     <ClCompile Include="Engine\Render\IndexBuffer.cpp">
       <Filter>Engine\Render</Filter>
     </ClCompile>

@@ -175,6 +175,7 @@
     <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp" />
     <ClCompile Include="Engine\Render\ImageLoader.cpp" />
     <ClCompile Include="Engine\Render\MeshImporter.cpp" />
+    <ClCompile Include="Engine\Render\cgltf_impl.cpp" />
     <ClCompile Include="Engine\Render\IndexBuffer.cpp" />
     <ClCompile Include="Engine\Render\InputLayout.cpp" />
     <ClCompile Include="Engine\Render\PixelShader.cpp" />
