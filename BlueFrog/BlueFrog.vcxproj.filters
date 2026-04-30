@@ -197,6 +197,9 @@
     <ClInclude Include="Engine\Render\MeshImporter.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Render\SkinnedPipeline.h">
+      <Filter>Engine\Render</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Render\ConstantBuffer.h">
       <Filter>Engine\Render</Filter>
     </ClInclude>
@@ -406,6 +409,9 @@
       <Filter>Assets\Prefabs</Filter>
     </None>
     <None Include="Assets\Models\tetrahedron.gltf">
+      <Filter>Assets\Models</Filter>
+    </None>
+    <None Include="Assets\Models\RiggedSimple\RiggedSimple.gltf">
       <Filter>Assets\Models</Filter>
     </None>
   </ItemGroup>

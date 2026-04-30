@@ -127,6 +127,8 @@ namespace MeshImporter
 		const cgltf_accessor* accPos = nullptr;
 		const cgltf_accessor* accNor = nullptr;
 		const cgltf_accessor* accUv  = nullptr;
+		const cgltf_accessor* accJoints = nullptr;
+		const cgltf_accessor* accWeights = nullptr;
 		for (cgltf_size i = 0; i < prim.attributes_count; ++i)
 		{
 			const cgltf_attribute& a = prim.attributes[i];
@@ -137,7 +139,13 @@ namespace MeshImporter
 			case cgltf_attribute_type_texcoord:
 				if (a.index == 0) accUv = a.data; // only TEXCOORD_0 in v1
 				break;
-			default: break; // joints / weights etc. ignored until Stage 2
+			case cgltf_attribute_type_joints:
+				if (a.index == 0) accJoints = a.data; // only JOINTS_0 — Stage 2 supports 4 influences
+				break;
+			case cgltf_attribute_type_weights:
+				if (a.index == 0) accWeights = a.data; // only WEIGHTS_0
+				break;
+			default: break;
 			}
 		}
 
@@ -193,6 +201,86 @@ namespace MeshImporter
 		{
 			cgltf_free(data);
 			return SetError(errorOut, prefix + "TEXCOORD_0 count does not match POSITION count");
+		}
+
+		// Skin data extraction (Stage 2). Both JOINTS_0 and WEIGHTS_0 must
+		// be present, plus a node referencing the mesh that points at a
+		// skin block carrying inverse bind matrices. If any piece is
+		// missing we treat the mesh as static (existing Stage 1 behavior).
+		const cgltf_skin* skin = nullptr;
+		for (cgltf_size i = 0; i < data->nodes_count && skin == nullptr; ++i)
+		{
+			const cgltf_node& n = data->nodes[i];
+			if (n.mesh == &mesh && n.skin != nullptr)
+			{
+				skin = n.skin;
+			}
+		}
+
+		if (accJoints && accWeights && skin && skin->joints_count > 0)
+		{
+			// Joints: read as uint, stride 4. cgltf's read_uint handles the
+			// underlying UNSIGNED_BYTE / UNSIGNED_SHORT representations
+			// uniformly so we don't have to branch on accessor componentType.
+			out.jointIndices.resize(vertexCount * 4);
+			for (cgltf_size i = 0; i < vertexCount; ++i)
+			{
+				cgltf_uint tmp[4] = {};
+				if (!cgltf_accessor_read_uint(accJoints, i, tmp, 4))
+				{
+					cgltf_free(data);
+					return SetError(errorOut, prefix + "JOINTS_0 read failed at vertex " + std::to_string(i));
+				}
+				for (int k = 0; k < 4; ++k)
+				{
+					out.jointIndices[i * 4 + k] = static_cast<std::uint16_t>(tmp[k]);
+				}
+			}
+
+			// Weights: float vec4 stream.
+			if (!UnpackFloatAttribute(accWeights, out.jointWeights, errorOut, prefix, "WEIGHTS_0"))
+			{
+				cgltf_free(data);
+				return false;
+			}
+			if (out.jointWeights.size() / 4 != vertexCount)
+			{
+				cgltf_free(data);
+				return SetError(errorOut, prefix + "WEIGHTS_0 count does not match POSITION count");
+			}
+
+			// Inverse bind matrices: mat4 array, one per joint. cgltf gives
+			// them as 16 floats in column-major order — DirectXMath's
+			// XMMatrix... functions interpret memory as row-major, so the
+			// renderer is responsible for the transpose when uploading to
+			// the cbuffer (this layer just stores the raw glTF stream).
+			if (skin->inverse_bind_matrices)
+			{
+				const cgltf_size jointCount = skin->joints_count;
+				if (skin->inverse_bind_matrices->count != jointCount)
+				{
+					cgltf_free(data);
+					return SetError(errorOut, prefix + "skin.inverseBindMatrices.count != joints.count");
+				}
+				out.inverseBindMatrices.resize(jointCount * 16);
+				const cgltf_size unpackedIBM = cgltf_accessor_unpack_floats(
+					skin->inverse_bind_matrices,
+					out.inverseBindMatrices.data(),
+					jointCount * 16);
+				if (unpackedIBM != jointCount * 16)
+				{
+					cgltf_free(data);
+					return SetError(errorOut, prefix + "inverseBindMatrices unpack failed");
+				}
+				out.jointCount = static_cast<std::uint32_t>(jointCount);
+			}
+			else
+			{
+				// glTF allows omitting IBMs (defaults to identity per joint),
+				// but our renderer wants explicit matrices. Stage 2 rejects.
+				cgltf_free(data);
+				return SetError(errorOut, prefix + "skin.inverseBindMatrices is required (Stage 2 does not synthesize identity defaults)");
+			}
 		}
 
 		cgltf_free(data);

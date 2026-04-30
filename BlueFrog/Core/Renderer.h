@@ -6,6 +6,7 @@
 #include "../Engine/Render/InputLayout.h"
 #include "../Engine/Render/LitPipeline.h"
 #include "../Engine/Render/PixelShader.h"
+#include "../Engine/Render/SkinnedPipeline.h"
 #include "../Engine/Render/Sampler.h"
 #include "../Engine/Render/Texture2D.h"
 #include "../Engine/Render/Topology.h"
@@ -58,6 +59,27 @@ private:
 		IndexBuffer indexBuffer;
 	};
 
+	// SkinnedMeshBuffers carries the SkinnedVertex stride (56B) plus the
+	// per-mesh inverse-bind-matrix array. Joint matrices are uploaded per
+	// frame by Renderer; the IBMs live here because they're a property of
+	// the asset, not the per-frame pose.
+	struct SkinnedMeshBuffers
+	{
+		SkinnedMeshBuffers(Graphics& gfx,
+			const SkinnedPipeline::SkinnedVertex* vertices, UINT vertexCount,
+			const unsigned short* indices, UINT indexCount,
+			std::vector<DirectX::XMFLOAT4X4>&& inverseBindMatrices);
+
+		VertexBuffer vertexBuffer;
+		IndexBuffer indexBuffer;
+		std::vector<DirectX::XMFLOAT4X4> inverseBindMatrices; // one per joint
+	};
+
+	struct SkinningData
+	{
+		DirectX::XMFLOAT4X4 jointMatrices[SkinnedPipeline::MaxJoints];
+	};
+
 public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
@@ -66,8 +88,11 @@ public:
 
 private:
 	void BindLitState() noexcept;
+	void BindSkinnedState() noexcept;
 	const MeshBuffers& ResolveMesh(const RenderComponent& renderComponent);
+	const SkinnedMeshBuffers* ResolveSkinnedMesh(const RenderComponent& renderComponent);
 	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
+	void DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
 	Texture2D& ResolveTexture(const std::string& path);
 	const Sampler& ResolveSampler(SamplerPreset preset) const noexcept;
 	static const std::array<LitVertex, 24>& GetCubeVertices() noexcept;
@@ -83,12 +108,17 @@ private:
 	// frame a scene object referencing the path is rendered. Same lifetime
 	// model as textureCache below — survives scene reloads.
 	std::unordered_map<std::string, MeshBuffers> importedMeshCache;
+	std::unordered_map<std::string, SkinnedMeshBuffers> skinnedMeshCache;
 	VertexShader litVertexShader;
 	PixelShader litPixelShader;
 	InputLayout litInputLayout;
+	VertexShader skinnedVertexShader;
+	PixelShader skinnedPixelShader;
+	InputLayout skinnedInputLayout;
 	VertexConstantBuffer<TransformData> transformBuffer;
 	PixelConstantBuffer<MaterialData> materialBuffer;
 	PixelConstantBuffer<LightData> lightBuffer;
+	VertexConstantBuffer<SkinningData> skinningBuffer;
 	Texture2D defaultWhiteTexture;
 	std::unordered_map<std::string, Texture2D> textureCache;
 	Sampler samplerWrapLinear;

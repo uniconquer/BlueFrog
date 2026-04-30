@@ -5,15 +5,32 @@
 #include <string>
 #include <vector>
 
+// std::uint16_t / std::uint32_t are referenced below via cstdint above.
+
 // Imported mesh in the engine's interleave-friendly form. The renderer copies
-// these streams into a LitVertex array; consumers outside the renderer that
-// need different layouts can transform from here.
+// these streams into a LitVertex (or SkinnedVertex when `IsSkinned()`) array;
+// consumers outside the renderer that need different layouts can transform
+// from here.
 struct ImportedMesh
 {
 	std::vector<float>          positions; // x,y,z stride 3
 	std::vector<float>          normals;   // x,y,z stride 3 (optional; empty = generate flat per-tri)
 	std::vector<float>          uvs;       // u,v   stride 2 (optional; empty = (0,0))
 	std::vector<std::uint16_t>  indices;
+
+	// Skin data — present when both jointIndices and jointWeights are
+	// non-empty. cgltf gives us up to 4 influences per vertex (vec4 of
+	// joint indices + matching weights); meshes with more influences get
+	// truncated by the asset pipeline before reaching us.
+	std::vector<std::uint16_t>  jointIndices;        // stride 4
+	std::vector<float>          jointWeights;        // stride 4
+	std::vector<float>          inverseBindMatrices; // stride 16 (column-major mat4)
+	std::uint32_t               jointCount = 0;
+
+	bool IsSkinned() const noexcept
+	{
+		return !jointIndices.empty() && !jointWeights.empty() && jointCount > 0;
+	}
 };
 
 // glTF 2.0 mesh importer, backed by cgltf v1.15 (vendored under
