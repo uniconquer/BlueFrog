@@ -6,11 +6,12 @@
 - Phase B (First Components): 완료 — `RenderComponent`, `CollisionComponent`, `CombatComponent`가 optional 컴포넌트로 붙는 구조.
 - Phase C (Systems Around Components): 완료 — `GameplayCameraSystem`, `PlayerGameplaySystem`, `EnemyGameplaySystem`, `TriggerGameplaySystem`, `CollisionSystem`, `CombatSystem`이 도입됐고 `GameplaySimulation`이 `SystemContext` 번들을 통해 통일된 시그니처로 시스템을 순차 호출한다. 데이터 주도 registry는 **명시적으로 거부** — 시스템 간 순서 제약(카메라 input → 플레이어 → 적 → 트리거 → 카메라 follow)이 semantic이고, 우선순위 숫자로 매핑되지 않으며, 씬별 토글 유스케이스가 없다. 근거는 `SystemContext.h` 주석.
 - Phase D (Serialization): 완료 — Phase 4(씬 로더) → Phase 5(프리팹·다중 씬·로그 트리거·검증기) → Phase 6(이벤트 버스·`ObjectiveState`·씬 전환)까지 layering 완료. 세부는 [PHASE_6_EXECUTION_PLAN.md](/D:/Work/Projects/BlueFrog/docs/PHASE_6_EXECUTION_PLAN.md).
-- Phase F (3D Rendering Capability): 진행 중 — Stage 1, Stage 2가 shipped:
+- Phase F (3D Rendering Capability): 진행 중 — Stage 1, 2, 3이 shipped:
   - **Stage 1** (정적 메시 import): `MeshImporter`가 cgltf 기반으로 .gltf를 파싱하고 `Renderer`가 path 키 기반 import 메시 캐시를 유지. `RenderComponent::meshPath` 추가, arena_trial의 `PillarA`는 hand-authored tetrahedron 메시. cgltf v1.15가 `vendor/cgltf/`에 도입돼 single-TU `cgltf_impl.cpp`로 컴파일 검증.
-  - **Stage 2** (skinned mesh + GPU 스키닝, bind pose only): `MeshImporter`가 JOINTS_0 / WEIGHTS_0 / `skin.inverseBindMatrices`까지 추출. 신규 `SkinnedPipeline` (5-attr input layout: POSITION + NORMAL + TEXCOORD + JOINTS u16x4 + WEIGHTS f32x4) + 64-joint matrix palette cbuffer. `Renderer`가 lit / skinned 두 패스로 분리, skinned 자산은 자동 분기. 첫 사례: Khronos `RiggedSimple` 샘플 (2개 박스 + 1 조인트)이 arena_trial에 배치, identity joint matrix로 bind pose 렌더. 셰이더 스키닝 수식이 매 프레임 실행되는 것이 검증돼 Stage 3 애니메이션은 joint matrix 소스만 교체하면 됨.
+  - **Stage 2** (skinned mesh + GPU 스키닝, bind pose only): `MeshImporter`가 JOINTS_0 / WEIGHTS_0 / `skin.inverseBindMatrices`까지 추출. 신규 `SkinnedPipeline` (5-attr input layout: POSITION + NORMAL + TEXCOORD + JOINTS u16x4 + WEIGHTS f32x4) + 64-joint matrix palette cbuffer. `Renderer`가 lit / skinned 두 패스로 분리, skinned 자산은 자동 분기. 첫 사례: Khronos `RiggedSimple` 샘플(2개 박스 + 1 조인트)이 arena_trial에 배치, identity joint matrix로 bind pose 렌더.
+  - **Stage 3** (애니메이션 클립 재생): `MeshImporter`가 추가로 joint hierarchy(jointParents) + bind-pose local TRS + 첫 animation clip(channels: Translation/Rotation/Scale, Linear/Step interpolation)을 추출. `App`이 `animationClock`을 dt로 누적해 `Renderer::Render(scene, camera, animTime)`로 전달. `DrawSkinnedMesh`가 매 프레임 `fmod(animTime, clip.duration)` 시점의 채널을 샘플해 per-joint TRS를 계산, `S*R*T`로 local matrix 합성, 부모→자식 hierarchy walk로 joint world matrix 계산, `IBM * jointWorld` 후 transpose해서 SkinningBuffer에 업로드. 셰이더 코드는 Stage 2에서 변경 없음 — joint matrix 소스만 교체. RiggedSimple이 arena_trial에서 자체 애니메이션 클립을 루프하며 움직임.
 
-  후속 Stage(3 애니메이션 클립 재생, 4 애니메이션 상태 머신)는 미착수.
+  후속 Stage(4 애니메이션 상태 머신, 다중 클립 블렌딩, IK)는 미착수.
 
 - Phase E (Editor-Oriented Features): 진행 중 — 세 개의 dev-iteration sub-track이 shipped:
   - **디버그 기즈모** (`DebugRenderer`): F1로 토글되는 wireframe 오버레이. 모든 `CollisionComponent`(시안)와 `TriggerComponent`(마젠타)를 XZ-평면 사각형으로, 깊이 테스트 비활성으로 그린다. 다이내믹 라인 VB는 매 프레임 `WRITE_DISCARD`로 재업로드.

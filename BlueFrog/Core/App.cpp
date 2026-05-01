@@ -41,6 +41,7 @@ int App::Go()
 
 void App::DoFrame(float dt)
 {
+	animationClock += dt;
 	PollDebugToggles();
 	UpdateModel(dt);
 	ComposeFrame();
@@ -247,7 +248,7 @@ void App::ComposeFrame()
 	wnd.SetTitle(GameplaySimulation::BuildWindowTitle(hudState));
 
 	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
-	renderer.Render(scene, camera);
+	renderer.Render(scene, camera, animationClock);
 	if (debugGizmosEnabled)
 	{
 		// Draw between 3D and 2D so collision/trigger boxes sit in world

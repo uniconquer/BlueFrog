@@ -34,9 +34,13 @@ private:
 	GameplaySimulation gameplaySimulation;
 	BFTimer timer;
 	std::string currentScenePath;
-	bool debugGizmosEnabled  = false;
-	bool reloadRequested     = false;
-	bool inspectorEnabled    = false;
-	int  inspectorSelected   = 0;
-	int  inspectorFieldIndex = 0;
+	bool   debugGizmosEnabled  = false;
+	bool   reloadRequested     = false;
+	bool   inspectorEnabled    = false;
+	int    inspectorSelected   = 0;
+	int    inspectorFieldIndex = 0;
+	// Wall-clock seconds since boot, accumulated from per-tick dt. Drives
+	// every animation timeline in the renderer; Stage 3 v1 has all skinned
+	// meshes share this clock, which is fine for a single RiggedSimple.
+	float  animationClock      = 0.0f;
 };

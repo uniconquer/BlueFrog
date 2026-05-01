@@ -2,6 +2,7 @@
 #include "../Engine/Render/ImageLoader.h"
 #include "../Engine/Render/MeshImporter.h"
 #include <DirectXMath.h>
+#include <cmath>
 #include <filesystem>
 #include <stdexcept>
 
@@ -16,11 +17,21 @@ Renderer::SkinnedMeshBuffers::SkinnedMeshBuffers(
 	Graphics& gfx,
 	const SkinnedPipeline::SkinnedVertex* vertices, UINT vertexCount,
 	const unsigned short* indices, UINT indexCount,
-	std::vector<DirectX::XMFLOAT4X4>&& ibms)
+	std::vector<DirectX::XMFLOAT4X4>&& ibms,
+	std::vector<int>&& parents,
+	std::vector<DirectX::XMFLOAT3>&& bindT,
+	std::vector<DirectX::XMFLOAT4>&& bindR,
+	std::vector<DirectX::XMFLOAT3>&& bindS,
+	ImportedAnimation&& anim)
 	:
 	vertexBuffer(gfx, vertices, vertexCount * static_cast<UINT>(sizeof(SkinnedPipeline::SkinnedVertex)), sizeof(SkinnedPipeline::SkinnedVertex)),
 	indexBuffer(gfx, indices, indexCount),
-	inverseBindMatrices(std::move(ibms))
+	inverseBindMatrices(std::move(ibms)),
+	jointParents(std::move(parents)),
+	bindTranslation(std::move(bindT)),
+	bindRotation(std::move(bindR)),
+	bindScale(std::move(bindS)),
+	animation(std::move(anim))
 {
 }
 
@@ -286,7 +297,7 @@ const Sampler& Renderer::ResolveSampler(SamplerPreset preset) const noexcept
 	}
 }
 
-void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
+void Renderer::Render(const Scene& scene, const TopDownCamera& camera, float animTime) noexcept
 {
 	using namespace DirectX;
 
@@ -318,7 +329,7 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
 		if (!object.CanRender()) continue;
 		const SkinnedMeshBuffers* skinned = ResolveSkinnedMesh(*object.renderComponent);
 		if (skinned == nullptr) continue;
-		DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera);
+		DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera, animTime);
 	}
 }
 
@@ -413,6 +424,18 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 		XMStoreFloat4x4(&ibmsRowMajor[j], m);
 	}
 
+	// Repack TRS bind locals into XMFLOAT3/4 arrays (Renderer's preferred
+	// layout) — the importer stored them as flat float streams.
+	std::vector<XMFLOAT3> bindT(imported.jointCount);
+	std::vector<XMFLOAT4> bindR(imported.jointCount);
+	std::vector<XMFLOAT3> bindS(imported.jointCount);
+	for (std::uint32_t j = 0; j < imported.jointCount; ++j)
+	{
+		bindT[j] = { imported.jointBindTranslation[j*3+0], imported.jointBindTranslation[j*3+1], imported.jointBindTranslation[j*3+2] };
+		bindR[j] = { imported.jointBindRotation[j*4+0], imported.jointBindRotation[j*4+1], imported.jointBindRotation[j*4+2], imported.jointBindRotation[j*4+3] };
+		bindS[j] = { imported.jointBindScale[j*3+0], imported.jointBindScale[j*3+1], imported.jointBindScale[j*3+2] };
+	}
+
 	auto [it, ok] = skinnedMeshCache.emplace(
 		std::piecewise_construct,
 		std::forward_as_tuple(path),
@@ -422,11 +445,47 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 			static_cast<UINT>(verts.size()),
 			imported.indices.data(),
 			static_cast<UINT>(imported.indices.size()),
-			std::move(ibmsRowMajor)));
+			std::move(ibmsRowMajor),
+			std::move(imported.jointParents),
+			std::move(bindT),
+			std::move(bindR),
+			std::move(bindS),
+			std::move(imported.animation)));
 	return &it->second;
 }
 
-void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept
+namespace
+{
+	// Find the keyframe segment [k, k+1] containing time t. Returns left
+	// keyframe index and segment alpha in [0, 1]. Times array must have at
+	// least one entry; caller ensures.
+	void FindSegment(const std::vector<float>& times, float t, std::size_t& outIdx, float& outAlpha)
+	{
+		if (t <= times.front()) { outIdx = 0; outAlpha = 0.0f; return; }
+		if (t >= times.back())
+		{
+			outIdx = times.size() - 1;
+			outAlpha = 0.0f; // pinned to last keyframe
+			return;
+		}
+		// Linear search — animation channels typically have <100 keys, and
+		// the alternative (binary search) is unwarranted complexity here.
+		for (std::size_t i = 0; i + 1 < times.size(); ++i)
+		{
+			if (t >= times[i] && t < times[i + 1])
+			{
+				const float span = times[i + 1] - times[i];
+				outIdx = i;
+				outAlpha = (span > 0.0f) ? (t - times[i]) / span : 0.0f;
+				return;
+			}
+		}
+		outIdx = times.size() - 1;
+		outAlpha = 0.0f;
+	}
+}
+
+void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera, float animTime) noexcept
 {
 	using namespace DirectX;
 
@@ -442,25 +501,102 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	const MaterialData materialData = { mat.tint, 0.0f };
 	materialBuffer.Update(gfx, materialData);
 
-	// Stage 2 bind pose: jointMatrix[i] = identity. The skinning math in
-	// the VS still runs (sum of weights * identity = identity), validating
-	// the entire pipeline. Stage 3 will replace this with per-frame
-	// jointWorldMatrix[i] * inverseBindMatrix[i] computed from animation
-	// channels — same upload path, different source matrices.
-	SkinningData skinData = {};
-	XMFLOAT4X4 identityRowMajor;
-	// XMMatrixIdentity transposed is identity, but we run it through the
-	// same transpose-before-upload pipeline the lit pass uses so Stage 3's
-	// non-identity matrices drop into this slot without convention drift.
-	XMStoreFloat4x4(&identityRowMajor, XMMatrixTranspose(XMMatrixIdentity()));
-	const std::uint32_t count = static_cast<std::uint32_t>(std::min<std::size_t>(mesh.inverseBindMatrices.size(), SkinnedPipeline::MaxJoints));
-	for (std::uint32_t j = 0; j < count; ++j)
+	// === Per-frame pose computation ===========================================
+	// 1. Start each joint at its bind-pose local TRS.
+	// 2. For every animation channel targeting this joint, sample at
+	//    `animTime mod clipDuration` and override the matching component.
+	// 3. Compose local matrix = scale * rotation * translation (row-vector
+	//    order: vec * (S*R*T) = scale-then-rotate-then-translate).
+	// 4. Walk the joint hierarchy (parents already topologically before
+	//    children in glTF skin->joints) computing world = local * parentWorld.
+	// 5. jointMatrix[i] = inverseBindMatrix[i] * jointWorld[i]   (row-vector
+	//    convention; in column-vector spec terms: jointMatrix = jointWorld * IBM).
+	// 6. Transpose before upload so HLSL's column-major default reads
+	//    consistently with the lit pipeline's transform/model upload.
+	const std::uint32_t jointCount = static_cast<std::uint32_t>(mesh.inverseBindMatrices.size());
+
+	// Sample time: loop the clip if it has nonzero duration, otherwise stay
+	// at t=0 (effectively bind pose).
+	const bool hasClip = !mesh.animation.channels.empty() && mesh.animation.duration > 0.0f;
+	const float t = hasClip ? std::fmod(animTime, mesh.animation.duration) : 0.0f;
+
+	// Per-joint TRS, initialized to bind. Channel sampling overrides
+	// individual components; joints not addressed by any channel keep
+	// their full bind TRS.
+	std::vector<XMVECTOR> Tvec(jointCount);
+	std::vector<XMVECTOR> Rvec(jointCount);
+	std::vector<XMVECTOR> Svec(jointCount);
+	for (std::uint32_t i = 0; i < jointCount; ++i)
 	{
-		skinData.jointMatrices[j] = identityRowMajor;
+		Tvec[i] = XMLoadFloat3(&mesh.bindTranslation[i]);
+		Rvec[i] = XMLoadFloat4(&mesh.bindRotation[i]);
+		Svec[i] = XMLoadFloat3(&mesh.bindScale[i]);
 	}
-	// Remaining slots stay zero-initialized (skinData is value-initialized
-	// above) — they should never be sampled because no vertex references
-	// joint indices >= count in a well-formed asset.
+
+	if (hasClip)
+	{
+		for (const auto& ch : mesh.animation.channels)
+		{
+			if (ch.targetJoint < 0 || static_cast<std::uint32_t>(ch.targetJoint) >= jointCount) continue;
+			if (ch.times.empty()) continue;
+
+			std::size_t k = 0;
+			float alpha = 0.0f;
+			FindSegment(ch.times, t, k, alpha);
+			const std::size_t k1 = (k + 1 < ch.times.size()) ? (k + 1) : k;
+
+			const bool useStep = (ch.interpolation == ImportedAnimationChannel::Interpolation::Step);
+
+			switch (ch.path)
+			{
+			case ImportedAnimationChannel::Path::Translation:
+			{
+				const XMVECTOR v0 = XMVectorSet(ch.values[k *3+0], ch.values[k *3+1], ch.values[k *3+2], 0.0f);
+				const XMVECTOR v1 = XMVectorSet(ch.values[k1*3+0], ch.values[k1*3+1], ch.values[k1*3+2], 0.0f);
+				Tvec[ch.targetJoint] = useStep ? v0 : XMVectorLerp(v0, v1, alpha);
+				break;
+			}
+			case ImportedAnimationChannel::Path::Scale:
+			{
+				const XMVECTOR v0 = XMVectorSet(ch.values[k *3+0], ch.values[k *3+1], ch.values[k *3+2], 0.0f);
+				const XMVECTOR v1 = XMVectorSet(ch.values[k1*3+0], ch.values[k1*3+1], ch.values[k1*3+2], 0.0f);
+				Svec[ch.targetJoint] = useStep ? v0 : XMVectorLerp(v0, v1, alpha);
+				break;
+			}
+			case ImportedAnimationChannel::Path::Rotation:
+			{
+				// Quaternion: slerp for smoothness, step on STEP interp.
+				const XMVECTOR q0 = XMVectorSet(ch.values[k *4+0], ch.values[k *4+1], ch.values[k *4+2], ch.values[k *4+3]);
+				const XMVECTOR q1 = XMVectorSet(ch.values[k1*4+0], ch.values[k1*4+1], ch.values[k1*4+2], ch.values[k1*4+3]);
+				Rvec[ch.targetJoint] = useStep ? q0 : XMQuaternionSlerp(q0, q1, alpha);
+				break;
+			}
+			}
+		}
+	}
+
+	// Compose local matrices, then walk hierarchy for world matrices.
+	std::vector<XMMATRIX> jointWorld(jointCount);
+	for (std::uint32_t i = 0; i < jointCount; ++i)
+	{
+		const XMMATRIX S = XMMatrixScalingFromVector(Svec[i]);
+		const XMMATRIX R = XMMatrixRotationQuaternion(Rvec[i]);
+		const XMMATRIX T = XMMatrixTranslationFromVector(Tvec[i]);
+		const XMMATRIX local = S * R * T;
+		const int parent = (i < mesh.jointParents.size()) ? mesh.jointParents[i] : -1;
+		jointWorld[i] = (parent < 0) ? local : (local * jointWorld[parent]);
+	}
+
+	SkinningData skinData = {};
+	const std::uint32_t count = std::min<std::uint32_t>(jointCount, SkinnedPipeline::MaxJoints);
+	for (std::uint32_t i = 0; i < count; ++i)
+	{
+		const XMMATRIX ibm = XMLoadFloat4x4(&mesh.inverseBindMatrices[i]);
+		// Row-vector convention: pos * jointMatrix = pos * IBM * jointWorld.
+		// In DirectXMath multiply order this is `IBM * jointWorld`.
+		const XMMATRIX jm = ibm * jointWorld[i];
+		XMStoreFloat4x4(&skinData.jointMatrices[i], XMMatrixTranspose(jm));
+	}
 	skinningBuffer.Update(gfx, skinData);
 
 	ResolveTexture(mat.texturePath).Bind(gfx);

@@ -1,6 +1,7 @@
 #include "MeshImporter.h"
 
 #include <cgltf/cgltf.h>
+#include <DirectXMath.h>
 
 #include <cstdint>
 #include <cstring>
@@ -217,6 +218,49 @@ namespace MeshImporter
 			}
 		}
 
+		// Decompose a node's local matrix into TRS. Used as the fallback when
+		// a joint node carries `matrix` instead of explicit T/R/S — the
+		// animation pipeline always operates in TRS so we normalize at
+		// import time.
+		auto extractNodeBindTRS = [](const cgltf_node* n, float outT[3], float outR[4], float outS[3])
+		{
+			using namespace DirectX;
+			if (n->has_matrix)
+			{
+				XMFLOAT4X4 colMajor;
+				std::memcpy(&colMajor, n->matrix, sizeof(XMFLOAT4X4));
+				const XMMATRIX m = XMMatrixTranspose(XMLoadFloat4x4(&colMajor)); // row-major in DXMath
+				XMVECTOR vS, vR, vT;
+				if (XMMatrixDecompose(&vS, &vR, &vT, m))
+				{
+					XMFLOAT3 fS, fT;
+					XMFLOAT4 fR;
+					XMStoreFloat3(&fS, vS);
+					XMStoreFloat4(&fR, vR);
+					XMStoreFloat3(&fT, vT);
+					outS[0] = fS.x; outS[1] = fS.y; outS[2] = fS.z;
+					outR[0] = fR.x; outR[1] = fR.y; outR[2] = fR.z; outR[3] = fR.w;
+					outT[0] = fT.x; outT[1] = fT.y; outT[2] = fT.z;
+					return;
+				}
+				// Decompose failure: identity TRS.
+				outT[0]=outT[1]=outT[2]=0.0f;
+				outR[0]=outR[1]=outR[2]=0.0f; outR[3]=1.0f;
+				outS[0]=outS[1]=outS[2]=1.0f;
+				return;
+			}
+			outT[0] = n->has_translation ? n->translation[0] : 0.0f;
+			outT[1] = n->has_translation ? n->translation[1] : 0.0f;
+			outT[2] = n->has_translation ? n->translation[2] : 0.0f;
+			outR[0] = n->has_rotation ? n->rotation[0] : 0.0f;
+			outR[1] = n->has_rotation ? n->rotation[1] : 0.0f;
+			outR[2] = n->has_rotation ? n->rotation[2] : 0.0f;
+			outR[3] = n->has_rotation ? n->rotation[3] : 1.0f;
+			outS[0] = n->has_scale ? n->scale[0] : 1.0f;
+			outS[1] = n->has_scale ? n->scale[1] : 1.0f;
+			outS[2] = n->has_scale ? n->scale[2] : 1.0f;
+		};
+
 		if (accJoints && accWeights && skin && skin->joints_count > 0)
 		{
 			// Joints: read as uint, stride 4. cgltf's read_uint handles the
@@ -276,10 +320,114 @@ namespace MeshImporter
 			}
 			else
 			{
-				// glTF allows omitting IBMs (defaults to identity per joint),
-				// but our renderer wants explicit matrices. Stage 2 rejects.
 				cgltf_free(data);
 				return SetError(errorOut, prefix + "skin.inverseBindMatrices is required (Stage 2 does not synthesize identity defaults)");
+			}
+
+			// Stage 3 additions: joint hierarchy + bind-pose local TRS per
+			// joint. Both feed the per-frame pose computation in Renderer.
+			const cgltf_size jointCount = skin->joints_count;
+			out.jointParents.assign(jointCount, -1);
+			out.jointBindTranslation.resize(jointCount * 3);
+			out.jointBindRotation.resize(jointCount * 4);
+			out.jointBindScale.resize(jointCount * 3);
+
+			for (cgltf_size i = 0; i < jointCount; ++i)
+			{
+				const cgltf_node* j = skin->joints[i];
+				// Parent index: linear scan over the joint array. Cheap for
+				// any realistic rig (RiggedSimple = 2, full character ~ 30).
+				if (j->parent != nullptr)
+				{
+					for (cgltf_size k = 0; k < jointCount; ++k)
+					{
+						if (skin->joints[k] == j->parent)
+						{
+							out.jointParents[i] = static_cast<int>(k);
+							break;
+						}
+					}
+				}
+				extractNodeBindTRS(j,
+					&out.jointBindTranslation[i * 3],
+					&out.jointBindRotation[i * 4],
+					&out.jointBindScale[i * 3]);
+			}
+
+			// First animation clip (Stage 3 v1: one clip per file).
+			if (data->animations_count > 0)
+			{
+				const cgltf_animation& anim = data->animations[0];
+				out.animation.name = anim.name ? anim.name : "";
+				out.animation.duration = 0.0f;
+
+				for (cgltf_size c = 0; c < anim.channels_count; ++c)
+				{
+					const cgltf_animation_channel& ch = anim.channels[c];
+					if (ch.target_node == nullptr || ch.sampler == nullptr) continue;
+
+					// Resolve target_node to a joint index. Channels targeting
+					// non-joint nodes (e.g., camera animation) are silently
+					// ignored — they are not part of the skin pose.
+					int targetJoint = -1;
+					for (cgltf_size k = 0; k < jointCount; ++k)
+					{
+						if (skin->joints[k] == ch.target_node)
+						{
+							targetJoint = static_cast<int>(k);
+							break;
+						}
+					}
+					if (targetJoint < 0) continue;
+
+					ImportedAnimationChannel iac;
+					iac.targetJoint = targetJoint;
+					switch (ch.target_path)
+					{
+					case cgltf_animation_path_type_translation: iac.path = ImportedAnimationChannel::Path::Translation; break;
+					case cgltf_animation_path_type_rotation:    iac.path = ImportedAnimationChannel::Path::Rotation;    break;
+					case cgltf_animation_path_type_scale:       iac.path = ImportedAnimationChannel::Path::Scale;       break;
+					default: continue; // weights / unknown — ignored at v1
+					}
+
+					switch (ch.sampler->interpolation)
+					{
+					case cgltf_interpolation_type_linear: iac.interpolation = ImportedAnimationChannel::Interpolation::Linear; break;
+					case cgltf_interpolation_type_step:   iac.interpolation = ImportedAnimationChannel::Interpolation::Step;   break;
+					case cgltf_interpolation_type_cubic_spline:
+						cgltf_free(data);
+						return SetError(errorOut, prefix + "CUBICSPLINE interpolation not supported in Stage 3 v1 (re-export with linear)");
+					default:
+						cgltf_free(data);
+						return SetError(errorOut, prefix + "unknown animation interpolation type");
+					}
+
+					// Times: SCALAR float accessor.
+					const cgltf_accessor* tAcc = ch.sampler->input;
+					const cgltf_accessor* vAcc = ch.sampler->output;
+					if (tAcc == nullptr || vAcc == nullptr) continue;
+
+					iac.times.resize(tAcc->count);
+					if (cgltf_accessor_unpack_floats(tAcc, iac.times.data(), tAcc->count) != tAcc->count)
+					{
+						cgltf_free(data);
+						return SetError(errorOut, prefix + "animation sampler.input unpack failed");
+					}
+
+					const cgltf_size valuesPerKey = (iac.path == ImportedAnimationChannel::Path::Rotation) ? 4 : 3;
+					iac.values.resize(vAcc->count * valuesPerKey);
+					if (cgltf_accessor_unpack_floats(vAcc, iac.values.data(), iac.values.size()) != iac.values.size())
+					{
+						cgltf_free(data);
+						return SetError(errorOut, prefix + "animation sampler.output unpack failed");
+					}
+
+					if (!iac.times.empty())
+					{
+						out.animation.duration = (iac.times.back() > out.animation.duration) ? iac.times.back() : out.animation.duration;
+					}
+					out.animation.channels.push_back(std::move(iac));
+				}
 			}
 		}
 

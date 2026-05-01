@@ -6,6 +6,7 @@
 #include "../Engine/Render/InputLayout.h"
 #include "../Engine/Render/LitPipeline.h"
 #include "../Engine/Render/PixelShader.h"
+#include "../Engine/Render/MeshImporter.h"
 #include "../Engine/Render/SkinnedPipeline.h"
 #include "../Engine/Render/Sampler.h"
 #include "../Engine/Render/Texture2D.h"
@@ -68,11 +69,24 @@ private:
 		SkinnedMeshBuffers(Graphics& gfx,
 			const SkinnedPipeline::SkinnedVertex* vertices, UINT vertexCount,
 			const unsigned short* indices, UINT indexCount,
-			std::vector<DirectX::XMFLOAT4X4>&& inverseBindMatrices);
+			std::vector<DirectX::XMFLOAT4X4>&& inverseBindMatrices,
+			std::vector<int>&& jointParents,
+			std::vector<DirectX::XMFLOAT3>&& bindTranslation,
+			std::vector<DirectX::XMFLOAT4>&& bindRotation,
+			std::vector<DirectX::XMFLOAT3>&& bindScale,
+			ImportedAnimation&& animation);
 
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
 		std::vector<DirectX::XMFLOAT4X4> inverseBindMatrices; // one per joint
+		// Joint hierarchy + bind-pose local TRS — input to per-frame pose
+		// computation. Stored here so each animated mesh draw call has all
+		// the data it needs without re-reading the source ImportedMesh.
+		std::vector<int>             jointParents;
+		std::vector<DirectX::XMFLOAT3> bindTranslation;
+		std::vector<DirectX::XMFLOAT4> bindRotation; // quaternion xyzw
+		std::vector<DirectX::XMFLOAT3> bindScale;
+		ImportedAnimation            animation; // first clip; empty channels => bind pose
 	};
 
 	struct SkinningData
@@ -84,7 +98,10 @@ public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
-	void Render(const Scene& scene, const TopDownCamera& camera) noexcept;
+	// `animTime` is the global animation clock in seconds. All skinned
+	// meshes sample their first clip at `fmod(animTime, clip.duration)` —
+	// per-instance timeline state arrives in Stage 4 (state machine).
+	void Render(const Scene& scene, const TopDownCamera& camera, float animTime) noexcept;
 
 private:
 	void BindLitState() noexcept;
@@ -92,7 +109,7 @@ private:
 	const MeshBuffers& ResolveMesh(const RenderComponent& renderComponent);
 	const SkinnedMeshBuffers* ResolveSkinnedMesh(const RenderComponent& renderComponent);
 	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
-	void DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
+	void DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera, float animTime) noexcept;
 	Texture2D& ResolveTexture(const std::string& path);
 	const Sampler& ResolveSampler(SamplerPreset preset) const noexcept;
 	static const std::array<LitVertex, 24>& GetCubeVertices() noexcept;
