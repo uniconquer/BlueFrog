@@ -54,17 +54,18 @@ namespace
         }
     }
 
-    // Build the "[TRCBGE]" component-flag string for the per-object summary.
+    // Build the "[TRCBGEA]" component-flag string for the per-object summary.
     std::wstring ComponentFlags(const SceneObject& obj)
     {
-        wchar_t buf[7];
+        wchar_t buf[8];
         buf[0] = L'T'; // Transform always present
-        buf[1] = obj.renderComponent.has_value()        ? L'R' : L'-';
-        buf[2] = obj.collisionComponent.has_value()     ? L'C' : L'-';
-        buf[3] = obj.combatComponent.has_value()        ? L'B' : L'-';
-        buf[4] = obj.triggerComponent.has_value()       ? L'G' : L'-';
-        buf[5] = obj.enemyBehaviorComponent.has_value() ? L'E' : L'-';
-        buf[6] = L'\0';
+        buf[1] = obj.renderComponent.has_value()         ? L'R' : L'-';
+        buf[2] = obj.collisionComponent.has_value()      ? L'C' : L'-';
+        buf[3] = obj.combatComponent.has_value()         ? L'B' : L'-';
+        buf[4] = obj.triggerComponent.has_value()        ? L'G' : L'-';
+        buf[5] = obj.enemyBehaviorComponent.has_value()  ? L'E' : L'-';
+        buf[6] = obj.animationStateComponent.has_value() ? L'A' : L'-';
+        buf[7] = L'\0';
         return std::wstring(buf);
     }
 }
@@ -490,6 +491,13 @@ void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int fi
     {
         const std::wstring btype = Widen(sel.enemyBehaviorComponent->type);
         DrawLine(InspectorFields::Kind::COUNT, L"behavior type=%ls", btype.c_str());
+    }
+    if (sel.animationStateComponent.has_value())
+    {
+        const auto& a = sel.animationStateComponent.value();
+        const std::wstring clip = Widen(a.clipName.empty() ? std::string("(first)") : a.clipName);
+        DrawLine(InspectorFields::Kind::COUNT, L"anim clip=%ls t=%.2f", clip.c_str(), a.clipTime);
+        DrawLine(InspectorFields::Kind::COUNT, L"     speed=%.2f loop=%s", a.playSpeed, a.looping ? L"Y" : L"N");
     }
     if (sel.triggerComponent.has_value())
     {

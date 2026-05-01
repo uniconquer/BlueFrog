@@ -66,9 +66,11 @@ struct ImportedMesh
 	std::vector<float>          jointBindRotation;    // stride 4 (quaternion xyzw)
 	std::vector<float>          jointBindScale;       // stride 3
 
-	// First animation clip in the file (Stage 3). Empty `channels` means
-	// no animation — Renderer falls back to bind-pose joint matrices.
-	ImportedAnimation           animation;
+	// All animation clips in the file (Stage 4 — multi-clip foundation).
+	// Stage 3 carried only the first clip; Stage 4 keeps every clip so
+	// gameplay code can pick by name. An empty vector = no animation; the
+	// renderer falls back to bind-pose joint matrices in that case.
+	std::vector<ImportedAnimation> animations;
 
 	bool IsSkinned() const noexcept
 	{
@@ -77,7 +79,26 @@ struct ImportedMesh
 
 	bool HasAnimation() const noexcept
 	{
-		return !animation.channels.empty() && animation.duration > 0.0f;
+		for (const auto& a : animations)
+		{
+			if (!a.channels.empty() && a.duration > 0.0f) return true;
+		}
+		return false;
+	}
+
+	// Returns the clip whose `name` matches, or animations[0] when name is
+	// empty / no match. Returns nullptr only when there are zero clips.
+	const ImportedAnimation* FindClip(const std::string& name) const noexcept
+	{
+		if (animations.empty()) return nullptr;
+		if (!name.empty())
+		{
+			for (const auto& a : animations)
+			{
+				if (a.name == name) return &a;
+			}
+		}
+		return &animations[0];
 	}
 };
 

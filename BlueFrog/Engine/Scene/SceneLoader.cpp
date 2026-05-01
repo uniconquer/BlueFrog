@@ -1,4 +1,5 @@
 #include "SceneLoader.h"
+#include "AnimationStateComponent.h"
 #include "CollisionComponent.h"
 #include "CombatComponent.h"
 #include "Material.h"
@@ -401,6 +402,18 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 				return false;
 			}
 			obj.enemyBehaviorComponent = std::move(bc);
+		}
+		if (objJson.contains("animation"))
+		{
+			// Animation block is permissive — every field optional, default
+			// values match the AnimationStateComponent struct defaults.
+			const auto& a = objJson["animation"];
+			AnimationStateComponent asc;
+			if (a.contains("clipName"))  asc.clipName  = a["clipName"].get<std::string>();
+			if (a.contains("clipTime"))  asc.clipTime  = a["clipTime"].get<float>();
+			if (a.contains("playSpeed")) asc.playSpeed = a["playSpeed"].get<float>();
+			if (a.contains("looping"))   asc.looping   = a["looping"].get<bool>();
+			obj.animationStateComponent = std::move(asc);
 		}
 	}
 

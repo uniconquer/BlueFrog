@@ -8,6 +8,7 @@
 #include "../Engine/Render/PixelShader.h"
 #include "../Engine/Render/MeshImporter.h"
 #include "../Engine/Render/SkinnedPipeline.h"
+#include "../Engine/Scene/AnimationStateComponent.h"
 #include "../Engine/Render/Sampler.h"
 #include "../Engine/Render/Texture2D.h"
 #include "../Engine/Render/Topology.h"
@@ -74,7 +75,7 @@ private:
 			std::vector<DirectX::XMFLOAT3>&& bindTranslation,
 			std::vector<DirectX::XMFLOAT4>&& bindRotation,
 			std::vector<DirectX::XMFLOAT3>&& bindScale,
-			ImportedAnimation&& animation);
+			std::vector<ImportedAnimation>&& animations);
 
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
@@ -86,7 +87,7 @@ private:
 		std::vector<DirectX::XMFLOAT3> bindTranslation;
 		std::vector<DirectX::XMFLOAT4> bindRotation; // quaternion xyzw
 		std::vector<DirectX::XMFLOAT3> bindScale;
-		ImportedAnimation            animation; // first clip; empty channels => bind pose
+		std::vector<ImportedAnimation> animations; // all clips; empty vector => bind pose
 	};
 
 	struct SkinningData
@@ -98,10 +99,10 @@ public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
-	// `animTime` is the global animation clock in seconds. All skinned
-	// meshes sample their first clip at `fmod(animTime, clip.duration)` —
-	// per-instance timeline state arrives in Stage 4 (state machine).
-	void Render(const Scene& scene, const TopDownCamera& camera, float animTime) noexcept;
+	// Per-instance animation state on the SceneObject's
+	// `animationStateComponent` drives skinned mesh sampling. SceneObjects
+	// without that component render in bind pose.
+	void Render(const Scene& scene, const TopDownCamera& camera) noexcept;
 
 private:
 	void BindLitState() noexcept;
@@ -109,7 +110,7 @@ private:
 	const MeshBuffers& ResolveMesh(const RenderComponent& renderComponent);
 	const SkinnedMeshBuffers* ResolveSkinnedMesh(const RenderComponent& renderComponent);
 	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
-	void DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera, float animTime) noexcept;
+	void DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera, const AnimationStateComponent* animState) noexcept;
 	Texture2D& ResolveTexture(const std::string& path);
 	const Sampler& ResolveSampler(SamplerPreset preset) const noexcept;
 	static const std::array<LitVertex, 24>& GetCubeVertices() noexcept;

@@ -213,6 +213,8 @@
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h" />
     <ClInclude Include="Game\NPC\EnemyArcherBehavior.h" />
     <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h" />
+    <ClInclude Include="Engine\Scene\AnimationStateComponent.h" />
+    <ClInclude Include="Engine\Animation\AnimationSystem.h" />
     <ClInclude Include="Game\Objectives\ObjectiveState.h" />
     <ClInclude Include="Game\Objectives\ObjectiveSystem.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />

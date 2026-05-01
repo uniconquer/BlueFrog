@@ -22,7 +22,7 @@ Renderer::SkinnedMeshBuffers::SkinnedMeshBuffers(
 	std::vector<DirectX::XMFLOAT3>&& bindT,
 	std::vector<DirectX::XMFLOAT4>&& bindR,
 	std::vector<DirectX::XMFLOAT3>&& bindS,
-	ImportedAnimation&& anim)
+	std::vector<ImportedAnimation>&& anims)
 	:
 	vertexBuffer(gfx, vertices, vertexCount * static_cast<UINT>(sizeof(SkinnedPipeline::SkinnedVertex)), sizeof(SkinnedPipeline::SkinnedVertex)),
 	indexBuffer(gfx, indices, indexCount),
@@ -31,7 +31,7 @@ Renderer::SkinnedMeshBuffers::SkinnedMeshBuffers(
 	bindTranslation(std::move(bindT)),
 	bindRotation(std::move(bindR)),
 	bindScale(std::move(bindS)),
-	animation(std::move(anim))
+	animations(std::move(anims))
 {
 }
 
@@ -297,7 +297,7 @@ const Sampler& Renderer::ResolveSampler(SamplerPreset preset) const noexcept
 	}
 }
 
-void Renderer::Render(const Scene& scene, const TopDownCamera& camera, float animTime) noexcept
+void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
 {
 	using namespace DirectX;
 
@@ -329,7 +329,10 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera, float ani
 		if (!object.CanRender()) continue;
 		const SkinnedMeshBuffers* skinned = ResolveSkinnedMesh(*object.renderComponent);
 		if (skinned == nullptr) continue;
-		DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera, animTime);
+		const AnimationStateComponent* animState = object.animationStateComponent.has_value()
+			? &object.animationStateComponent.value()
+			: nullptr;
+		DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera, animState);
 	}
 }
 
@@ -450,7 +453,7 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 			std::move(bindT),
 			std::move(bindR),
 			std::move(bindS),
-			std::move(imported.animation)));
+			std::move(imported.animations)));
 	return &it->second;
 }
 
@@ -485,7 +488,7 @@ namespace
 	}
 }
 
-void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera, float animTime) noexcept
+void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera, const AnimationStateComponent* animState) noexcept
 {
 	using namespace DirectX;
 
@@ -504,7 +507,8 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	// === Per-frame pose computation ===========================================
 	// 1. Start each joint at its bind-pose local TRS.
 	// 2. For every animation channel targeting this joint, sample at
-	//    `animTime mod clipDuration` and override the matching component.
+	//    `animState->clipTime mod clipDuration` and override the matching
+	//    component.
 	// 3. Compose local matrix = scale * rotation * translation (row-vector
 	//    order: vec * (S*R*T) = scale-then-rotate-then-translate).
 	// 4. Walk the joint hierarchy (parents already topologically before
@@ -515,10 +519,30 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	//    consistently with the lit pipeline's transform/model upload.
 	const std::uint32_t jointCount = static_cast<std::uint32_t>(mesh.inverseBindMatrices.size());
 
-	// Sample time: loop the clip if it has nonzero duration, otherwise stay
-	// at t=0 (effectively bind pose).
-	const bool hasClip = !mesh.animation.channels.empty() && mesh.animation.duration > 0.0f;
-	const float t = hasClip ? std::fmod(animTime, mesh.animation.duration) : 0.0f;
+	// Pick the clip:
+	//   - no AnimationStateComponent on the SceneObject => bind pose
+	//   - component but mesh has no clips => bind pose
+	//   - component with clipName => named lookup, falling back to clip[0]
+	//   - component with empty clipName => clip[0]
+	const ImportedAnimation* clip = nullptr;
+	float clipTime = 0.0f;
+	if (animState != nullptr && !mesh.animations.empty())
+	{
+		// Inline FindClip equivalent — header lives in MeshImporter.h but
+		// the renderer holds its own copy of the clip list now.
+		clip = nullptr;
+		if (!animState->clipName.empty())
+		{
+			for (const auto& a : mesh.animations)
+			{
+				if (a.name == animState->clipName) { clip = &a; break; }
+			}
+		}
+		if (clip == nullptr) clip = &mesh.animations[0];
+		clipTime = animState->clipTime;
+	}
+	const bool hasClip = (clip != nullptr) && !clip->channels.empty() && clip->duration > 0.0f;
+	const float t = hasClip ? std::fmod(clipTime, clip->duration) : 0.0f;
 
 	// Per-joint TRS, initialized to bind. Channel sampling overrides
 	// individual components; joints not addressed by any channel keep
@@ -535,7 +559,7 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 
 	if (hasClip)
 	{
-		for (const auto& ch : mesh.animation.channels)
+		for (const auto& ch : clip->channels)
 		{
 			if (ch.targetJoint < 0 || static_cast<std::uint32_t>(ch.targetJoint) >= jointCount) continue;
 			if (ch.times.empty()) continue;

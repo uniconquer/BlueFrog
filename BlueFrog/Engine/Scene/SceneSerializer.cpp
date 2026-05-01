@@ -1,5 +1,6 @@
 #include "SceneSerializer.h"
 
+#include "AnimationStateComponent.h"
 #include "CollisionComponent.h"
 #include "CombatComponent.h"
 #include "EnemyBehaviorComponent.h"
@@ -123,6 +124,16 @@ namespace
 		return j;
 	}
 
+	json EncodeAnimation(const AnimationStateComponent& a)
+	{
+		json j = json::object();
+		j["clipName"]  = a.clipName;
+		j["clipTime"]  = a.clipTime;
+		j["playSpeed"] = a.playSpeed;
+		j["looping"]   = a.looping;
+		return j;
+	}
+
 	json EncodeTrigger(const TriggerComponent& tc)
 	{
 		json j = json::object();
@@ -159,6 +170,7 @@ namespace
 		if (obj.combatComponent.has_value())   j["combat"]    = EncodeCombat(obj.combatComponent.value());
 		if (obj.triggerComponent.has_value())  j["trigger"]   = EncodeTrigger(obj.triggerComponent.value());
 		if (obj.enemyBehaviorComponent.has_value()) j["behavior"] = EncodeBehavior(obj.enemyBehaviorComponent.value());
+		if (obj.animationStateComponent.has_value()) j["animation"] = EncodeAnimation(obj.animationStateComponent.value());
 		return j;
 	}
 

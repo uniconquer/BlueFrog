@@ -354,12 +354,14 @@ namespace MeshImporter
 					&out.jointBindScale[i * 3]);
 			}
 
-			// First animation clip (Stage 3 v1: one clip per file).
-			if (data->animations_count > 0)
+			// All animation clips in the file (Stage 4 — multi-clip).
+			out.animations.resize(data->animations_count);
+			for (cgltf_size aIdx = 0; aIdx < data->animations_count; ++aIdx)
 			{
-				const cgltf_animation& anim = data->animations[0];
-				out.animation.name = anim.name ? anim.name : "";
-				out.animation.duration = 0.0f;
+				const cgltf_animation& anim = data->animations[aIdx];
+				ImportedAnimation& outAnim = out.animations[aIdx];
+				outAnim.name = anim.name ? anim.name : "";
+				outAnim.duration = 0.0f;
 
 				for (cgltf_size c = 0; c < anim.channels_count; ++c)
 				{
@@ -424,9 +426,9 @@ namespace MeshImporter
 
 					if (!iac.times.empty())
 					{
-						out.animation.duration = (iac.times.back() > out.animation.duration) ? iac.times.back() : out.animation.duration;
+						outAnim.duration = (iac.times.back() > outAnim.duration) ? iac.times.back() : outAnim.duration;
 					}
-					out.animation.channels.push_back(std::move(iac));
+					outAnim.channels.push_back(std::move(iac));
 				}
 			}
 		}

@@ -43,6 +43,9 @@
     <Filter Include="Engine\\Events">
       <UniqueIdentifier>{2f1e8b4c-6d3a-4d21-9a1b-7c8e4e2a6d11}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\\Animation">
+      <UniqueIdentifier>{c7d8e9f0-a1b2-4c3d-8e4f-5a6b7c8d9e0f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Game\\Objectives">
       <UniqueIdentifier>{3c1f9a7d-5e26-4f87-b2a9-8d6c1f0e3a52}</UniqueIdentifier>
     </Filter>
@@ -259,6 +262,12 @@
     </ClInclude>
     <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h">
       <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\AnimationStateComponent.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Animation\AnimationSystem.h">
+      <Filter>Engine\Animation</Filter>
     </ClInclude>
     <ClInclude Include="Engine\UI\HealthBar.h">
       <Filter>Engine\UI</Filter>

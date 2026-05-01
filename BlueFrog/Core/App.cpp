@@ -1,5 +1,6 @@
 #include "App.h"
 
+#include "../Engine/Animation/AnimationSystem.h"
 #include "../Engine/Scene/SceneSerializer.h"
 #include "../Engine/UI/InspectorFields.h"
 
@@ -41,9 +42,12 @@ int App::Go()
 
 void App::DoFrame(float dt)
 {
-	animationClock += dt;
 	PollDebugToggles();
 	UpdateModel(dt);
+	// Animation tick runs after gameplay (so scene reloads don't leave a
+	// stale clipTime on the new instance) and before render so the
+	// frame's pose computation reads fresh values.
+	AnimationSystem::Tick(scene, dt);
 	ComposeFrame();
 }
 
@@ -248,7 +252,7 @@ void App::ComposeFrame()
 	wnd.SetTitle(GameplaySimulation::BuildWindowTitle(hudState));
 
 	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
-	renderer.Render(scene, camera, animationClock);
+	renderer.Render(scene, camera);
 	if (debugGizmosEnabled)
 	{
 		// Draw between 3D and 2D so collision/trigger boxes sit in world
