@@ -10,7 +10,7 @@
   },
   "scene": {
     "name": "ArenaTrial",
-    "camera": { "target": [-4.0, 1.25, 0.0] },
+    "camera": { "target": [-4.0, 1.0, 0.0] },
     "objects": [
       {
         "name": "Ground",
@@ -68,7 +68,7 @@
       {
         "name": "Player",
         "prefab": "Assets/Prefabs/Player.prefab.json",
-        "transform": { "position": [-4.0, 1.25, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [0.7, 1.25, 0.7] }
+        "transform": { "position": [-4.0, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.4, 1.4, 1.4] }
       },
       {
         "name": "EnemyScout",

@@ -423,5 +423,8 @@
     <None Include="Assets\Models\RiggedSimple\RiggedSimple.gltf">
       <Filter>Assets\Models</Filter>
     </None>
+    <None Include="Assets\Models\CesiumMan\CesiumMan.gltf">
+      <Filter>Assets\Models</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -31,7 +31,13 @@ public:
 	{
 		if (const SceneObject* player = ctx.scene.FindObject(GameplaySceneIds::Player))
 		{
-			ctx.camera.SetTarget(player->transform.position);
+			// Player position is feet-level after Stage 4c. Aim the camera
+			// at chest height so the framing centers on the character body
+			// rather than the floor under their feet.
+			constexpr float kChestOffsetY = 1.0f;
+			DirectX::XMFLOAT3 t = player->transform.position;
+			t.y += kChestOffsetY;
+			ctx.camera.SetTarget(t);
 		}
 	}
 };

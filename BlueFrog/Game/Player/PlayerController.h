@@ -17,7 +17,10 @@ private:
 	void UpdateTint(SceneObject& player) const noexcept;
 private:
 	static constexpr float moveSpeed = 6.5f;
-	static constexpr float playerHeight = 1.25f;
+	// Y position the player snaps to each tick. 0 = feet on the ground
+	// plane (Phase F Stage 4c switched the player from a center-pivoted
+	// cube to a feet-pivoted skinned character mesh).
+	static constexpr float playerHeight = 0.0f;
 	static constexpr float attackRange = 2.4f;
 	static constexpr float attackCooldown = 0.45f;
 	static constexpr int attackDamage = 1;

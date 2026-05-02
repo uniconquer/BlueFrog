@@ -11,7 +11,10 @@
   - **Stage 2** (skinned mesh + GPU 스키닝, bind pose only): `MeshImporter`가 JOINTS_0 / WEIGHTS_0 / `skin.inverseBindMatrices`까지 추출. 신규 `SkinnedPipeline` (5-attr input layout: POSITION + NORMAL + TEXCOORD + JOINTS u16x4 + WEIGHTS f32x4) + 64-joint matrix palette cbuffer. `Renderer`가 lit / skinned 두 패스로 분리, skinned 자산은 자동 분기. 첫 사례: Khronos `RiggedSimple` 샘플(2개 박스 + 1 조인트)이 arena_trial에 배치, identity joint matrix로 bind pose 렌더.
   - **Stage 3** (애니메이션 클립 재생): `MeshImporter`가 추가로 joint hierarchy(jointParents) + bind-pose local TRS + 첫 animation clip(channels: Translation/Rotation/Scale, Linear/Step interpolation)을 추출. `App`이 `animationClock`을 dt로 누적해 `Renderer::Render(scene, camera, animTime)`로 전달. `DrawSkinnedMesh`가 매 프레임 `fmod(animTime, clip.duration)` 시점의 채널을 샘플해 per-joint TRS를 계산, `S*R*T`로 local matrix 합성, 부모→자식 hierarchy walk로 joint world matrix 계산, `IBM * jointWorld` 후 transpose해서 SkinningBuffer에 업로드. 셰이더 코드는 Stage 2에서 변경 없음 — joint matrix 소스만 교체. RiggedSimple이 arena_trial에서 자체 애니메이션 클립을 루프하며 움직임.
 
-  후속 Stage(4 애니메이션 상태 머신, 다중 클립 블렌딩, IK)는 미착수.
+  - **Stage 4a** (multi-clip + per-instance animation state): `ImportedMesh`가 모든 클립을 vector로 보유. 새 `AnimationStateComponent { clipName, clipTime, playSpeed, looping }` + `AnimationSystem::Tick`. Renderer가 글로벌 `animTime` 대신 컴포넌트의 per-instance `clipTime`을 읽는다. scene JSON의 `"animation"` 블록이 첫 진입점.
+  - **Stage 4c-1** (player → character mesh): Player 큐브를 Khronos `CesiumMan` 샘플(휴머노이드, walk 클립)으로 교체. `Player.prefab.json`의 render는 cube → CesiumMan glTF 메시. `PlayerController.playerHeight`를 1.25 → 0(feet on ground)로 보정, scenes의 Player.position.y / scale을 캐릭터 pivot에 맞게 조정, `GameplayCameraSystem.FollowPlayer`가 chest 높이(+1.0)를 향하도록 offset 추가. 적은 큐브 유지(Stage 4c-2에서 처리).
+
+  후속 Stage(4b 애니메이션 상태 머신 — gameplay 상태 ↔ 클립 매핑, 4c-2 적도 캐릭터 메시로 교체, 4d IK / 블렌딩)는 미착수.
 
 - Phase E (Editor-Oriented Features): 진행 중 — 세 개의 dev-iteration sub-track이 shipped:
   - **디버그 기즈모** (`DebugRenderer`): F1로 토글되는 wireframe 오버레이. 모든 `CollisionComponent`(시안)와 `TriggerComponent`(마젠타)를 XZ-평면 사각형으로, 깊이 테스트 비활성으로 그린다. 다이내믹 라인 VB는 매 프레임 `WRITE_DISCARD`로 재업로드.

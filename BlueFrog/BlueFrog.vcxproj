@@ -276,6 +276,7 @@
     <None Include="Assets\Prefabs\EnemyArcher.prefab.json" />
     <None Include="Assets\Models\tetrahedron.gltf" />
     <None Include="Assets\Models\RiggedSimple\RiggedSimple.gltf" />
+    <None Include="Assets\Models\CesiumMan\CesiumMan.gltf" />
     <None Include="Assets\Prefabs\ArenaWall.prefab.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

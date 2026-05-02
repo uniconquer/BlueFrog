@@ -9,7 +9,7 @@
   },
   "scene": {
     "name": "SparringYard",
-    "camera": { "target": [-2.5, 1.25, 0.0] },
+    "camera": { "target": [-2.5, 1.0, 0.0] },
     "objects": [
       {
         "name": "Ground",
@@ -46,7 +46,7 @@
       {
         "name": "Player",
         "prefab": "Assets/Prefabs/Player.prefab.json",
-        "transform": { "position": [-2.5, 1.25, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [0.7, 1.25, 0.7] }
+        "transform": { "position": [-2.5, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.4, 1.4, 1.4] }
       },
       {
         "name": "TriggerZone_Center",
