@@ -75,6 +75,7 @@ private:
 			std::vector<DirectX::XMFLOAT3>&& bindTranslation,
 			std::vector<DirectX::XMFLOAT4>&& bindRotation,
 			std::vector<DirectX::XMFLOAT3>&& bindScale,
+			std::vector<DirectX::XMFLOAT4X4>&& jointParentBaseWorld,
 			std::vector<ImportedAnimation>&& animations);
 
 		VertexBuffer vertexBuffer;
@@ -87,6 +88,10 @@ private:
 		std::vector<DirectX::XMFLOAT3> bindTranslation;
 		std::vector<DirectX::XMFLOAT4> bindRotation; // quaternion xyzw
 		std::vector<DirectX::XMFLOAT3> bindScale;
+		// Per-joint base world transform of the *non-joint* parent. Identity
+		// for joints whose parent is in the joint set; non-identity for
+		// joints rooted in non-joint ancestors (Armature, Z_UP, etc.).
+		std::vector<DirectX::XMFLOAT4X4> jointParentBaseWorld;
 		std::vector<ImportedAnimation> animations; // all clips; empty vector => bind pose
 	};
 

@@ -331,12 +331,22 @@ namespace MeshImporter
 			out.jointBindTranslation.resize(jointCount * 3);
 			out.jointBindRotation.resize(jointCount * 4);
 			out.jointBindScale.resize(jointCount * 3);
+			out.jointParentBaseWorld.assign(jointCount * 16, 0.0f);
+			// Initialize each parent-base to identity (col-major); we'll
+			// overwrite for root joints with their non-joint parent's
+			// world transform below.
+			for (cgltf_size i = 0; i < jointCount; ++i)
+			{
+				float* m = &out.jointParentBaseWorld[i * 16];
+				m[0]  = 1.0f; m[5]  = 1.0f; m[10] = 1.0f; m[15] = 1.0f;
+			}
 
 			for (cgltf_size i = 0; i < jointCount; ++i)
 			{
 				const cgltf_node* j = skin->joints[i];
 				// Parent index: linear scan over the joint array. Cheap for
 				// any realistic rig (RiggedSimple = 2, full character ~ 30).
+				bool parentIsJoint = false;
 				if (j->parent != nullptr)
 				{
 					for (cgltf_size k = 0; k < jointCount; ++k)
@@ -344,9 +354,17 @@ namespace MeshImporter
 						if (skin->joints[k] == j->parent)
 						{
 							out.jointParents[i] = static_cast<int>(k);
+							parentIsJoint = true;
 							break;
 						}
 					}
+				}
+				// Root-of-skin joint: bake the chain of non-joint ancestors
+				// (Armature / Z_UP / scene root) into per-joint matrix so
+				// the runtime hierarchy walk doesn't have to revisit them.
+				if (!parentIsJoint && j->parent != nullptr)
+				{
+					cgltf_node_transform_world(j->parent, &out.jointParentBaseWorld[i * 16]);
 				}
 				extractNodeBindTRS(j,
 					&out.jointBindTranslation[i * 3],

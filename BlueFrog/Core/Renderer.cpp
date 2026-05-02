@@ -22,6 +22,7 @@ Renderer::SkinnedMeshBuffers::SkinnedMeshBuffers(
 	std::vector<DirectX::XMFLOAT3>&& bindT,
 	std::vector<DirectX::XMFLOAT4>&& bindR,
 	std::vector<DirectX::XMFLOAT3>&& bindS,
+	std::vector<DirectX::XMFLOAT4X4>&& jpbw,
 	std::vector<ImportedAnimation>&& anims)
 	:
 	vertexBuffer(gfx, vertices, vertexCount * static_cast<UINT>(sizeof(SkinnedPipeline::SkinnedVertex)), sizeof(SkinnedPipeline::SkinnedVertex)),
@@ -31,6 +32,7 @@ Renderer::SkinnedMeshBuffers::SkinnedMeshBuffers(
 	bindTranslation(std::move(bindT)),
 	bindRotation(std::move(bindR)),
 	bindScale(std::move(bindS)),
+	jointParentBaseWorld(std::move(jpbw)),
 	animations(std::move(anims))
 {
 }
@@ -439,6 +441,20 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 		bindS[j] = { imported.jointBindScale[j*3+0], imported.jointBindScale[j*3+1], imported.jointBindScale[j*3+2] };
 	}
 
+	// Same column-major -> row-major-with-transpose dance as IBMs above so
+	// jointParentBaseWorld matches the convention used downstream in the
+	// hierarchy walk. Identity-initialized slots in the importer remain
+	// identity after the conversion.
+	std::vector<XMFLOAT4X4> jpbwRowMajor(imported.jointCount);
+	for (std::uint32_t j = 0; j < imported.jointCount; ++j)
+	{
+		const float* src = imported.jointParentBaseWorld.data() + j * 16;
+		XMFLOAT4X4 colMajor;
+		std::memcpy(&colMajor, src, sizeof(XMFLOAT4X4));
+		const XMMATRIX m = XMMatrixTranspose(XMLoadFloat4x4(&colMajor));
+		XMStoreFloat4x4(&jpbwRowMajor[j], m);
+	}
+
 	auto [it, ok] = skinnedMeshCache.emplace(
 		std::piecewise_construct,
 		std::forward_as_tuple(path),
@@ -453,6 +469,7 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 			std::move(bindT),
 			std::move(bindR),
 			std::move(bindS),
+			std::move(jpbwRowMajor),
 			std::move(imported.animations)));
 	return &it->second;
 }
@@ -600,6 +617,10 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	}
 
 	// Compose local matrices, then walk hierarchy for world matrices.
+	// Root joints (parent < 0) consume their pre-baked parentBaseWorld
+	// (the transform of the non-joint ancestor chain — Armature / Z_UP /
+	// scene root). Non-root joints chain through the parent's already-
+	// computed jointWorld.
 	std::vector<XMMATRIX> jointWorld(jointCount);
 	for (std::uint32_t i = 0; i < jointCount; ++i)
 	{
@@ -608,10 +629,31 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 		const XMMATRIX T = XMMatrixTranslationFromVector(Tvec[i]);
 		const XMMATRIX local = S * R * T;
 		const int parent = (i < mesh.jointParents.size()) ? mesh.jointParents[i] : -1;
-		jointWorld[i] = (parent < 0) ? local : (local * jointWorld[parent]);
+		XMMATRIX parentMat;
+		if (parent >= 0)
+		{
+			parentMat = jointWorld[parent];
+		}
+		else
+		{
+			parentMat = (i < mesh.jointParentBaseWorld.size())
+				? XMLoadFloat4x4(&mesh.jointParentBaseWorld[i])
+				: XMMatrixIdentity();
+		}
+		jointWorld[i] = local * parentMat;
 	}
 
+	// Safety: pre-fill all MaxJoints slots with transposed identity. If the
+	// asset's JOINTS_0 happens to reference any index in [count, MaxJoints)
+	// (malformed export), the offending vertices stay at their bind position
+	// instead of collapsing to origin and creating long stretched triangles.
 	SkinningData skinData = {};
+	XMFLOAT4X4 identityRowMajor;
+	XMStoreFloat4x4(&identityRowMajor, XMMatrixTranspose(XMMatrixIdentity()));
+	for (std::uint32_t i = 0; i < SkinnedPipeline::MaxJoints; ++i)
+	{
+		skinData.jointMatrices[i] = identityRowMajor;
+	}
 	const std::uint32_t count = std::min<std::uint32_t>(jointCount, SkinnedPipeline::MaxJoints);
 	for (std::uint32_t i = 0; i < count; ++i)
 	{

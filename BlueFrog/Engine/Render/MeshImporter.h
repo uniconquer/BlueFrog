@@ -66,6 +66,16 @@ struct ImportedMesh
 	std::vector<float>          jointBindRotation;    // stride 4 (quaternion xyzw)
 	std::vector<float>          jointBindScale;       // stride 3
 
+	// World transform of each joint's *non-joint* parent. For joints whose
+	// parent is itself a joint (jointParents[i] >= 0), this is identity —
+	// the renderer chains via jointWorld[parent] instead. For root joints
+	// (parent outside the joint set), this captures the fixed transform of
+	// the asset's Armature / Z_UP / scene-root chain that the joint
+	// hierarchy walk would otherwise skip. Without this, characters whose
+	// asset has non-identity ancestors (e.g. CesiumMan's Z_UP rotation)
+	// render with vertices collapsed to origin.
+	std::vector<float>          jointParentBaseWorld; // stride 16 column-major
+
 	// All animation clips in the file (Stage 4 — multi-clip foundation).
 	// Stage 3 carried only the first clip; Stage 4 keeps every clip so
 	// gameplay code can pick by name. An empty vector = no animation; the
