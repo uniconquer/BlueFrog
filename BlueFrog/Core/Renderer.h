@@ -106,8 +106,10 @@ public:
 	Renderer& operator=(const Renderer&) = delete;
 	// Per-instance animation state on the SceneObject's
 	// `animationStateComponent` drives skinned mesh sampling. SceneObjects
-	// without that component render in bind pose.
-	void Render(const Scene& scene, const TopDownCamera& camera) noexcept;
+	// without that component render in bind pose. NOT noexcept so the
+	// caller can catch + report any underlying mesh / texture / cgltf
+	// failure instead of aborting the process via std::terminate.
+	void Render(const Scene& scene, const TopDownCamera& camera);
 
 private:
 	void BindLitState() noexcept;

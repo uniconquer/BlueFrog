@@ -299,7 +299,7 @@ const Sampler& Renderer::ResolveSampler(SamplerPreset preset) const noexcept
 	}
 }
 
-void Renderer::Render(const Scene& scene, const TopDownCamera& camera) noexcept
+void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 {
 	using namespace DirectX;
 

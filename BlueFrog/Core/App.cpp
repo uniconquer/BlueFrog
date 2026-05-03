@@ -252,7 +252,29 @@ void App::ComposeFrame()
 	wnd.SetTitle(GameplaySimulation::BuildWindowTitle(hudState));
 
 	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
-	renderer.Render(scene, camera);
+	// Catch any exception escaping the renderer (mesh import failures, etc.)
+	// so we can show a diagnostic dialog instead of aborting via
+	// std::terminate. The user gets actionable info; we keep the option to
+	// keep playing if the per-frame failure is transient.
+	try
+	{
+		renderer.Render(scene, camera);
+	}
+	catch (const std::exception& e)
+	{
+		const std::string msg = std::string("Renderer threw: ") + e.what();
+		std::fprintf(stderr, "%s\n", msg.c_str());
+		::OutputDebugStringA((msg + "\n").c_str());
+		::MessageBoxA(nullptr, msg.c_str(), "Renderer error", MB_OK | MB_ICONEXCLAMATION);
+		std::exit(1);
+	}
+	catch (...)
+	{
+		const char* msg = "Renderer threw an unknown exception";
+		::OutputDebugStringA(msg);
+		::MessageBoxA(nullptr, msg, "Renderer error", MB_OK | MB_ICONEXCLAMATION);
+		std::exit(1);
+	}
 	if (debugGizmosEnabled)
 	{
 		// Draw between 3D and 2D so collision/trigger boxes sit in world
