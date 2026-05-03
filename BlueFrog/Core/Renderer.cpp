@@ -410,23 +410,19 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 		v.w3 = imported.jointWeights[i * 4 + 3];
 	}
 
-	// IBMs from cgltf are column-major in memory. DirectXMath's XMFLOAT4X4
-	// is row-major, so we load the floats as a column-major XMMATRIX
-	// (XMMatrixSet would require manual transpose). XMLoadFloat4x4 +
-	// transpose is the cleanest pivot point.
+	// IBMs from cgltf are 16 floats in COLUMN-major order (glTF spec).
+	// DirectXMath's XMFLOAT4X4 is row-major in memory, so a raw memcpy of
+	// column-major bytes into a row-major struct ALREADY produces the
+	// transpose (M^T) — exactly the form we want for our row-vector mul
+	// convention (`mul(v, skin)` in HLSL means v*M, with translation in the
+	// last *row*). No additional XMMatrixTranspose needed; doing one would
+	// flip back to column-vector form and put translations in the wrong
+	// place (visible as limb stretching on multi-joint rigs).
 	std::vector<XMFLOAT4X4> ibmsRowMajor(imported.jointCount);
 	for (std::uint32_t j = 0; j < imported.jointCount; ++j)
 	{
-		// Reinterpret the 16 floats as a column-major matrix, then
-		// transpose into our row-major storage so the shader sees the
-		// matrix in the same column-major-as-memory layout HLSL expects
-		// (HLSL `matrix` is column-major when you upload row-major +
-		// transpose, matching the LitPipeline convention).
 		const float* src = imported.inverseBindMatrices.data() + j * 16;
-		XMFLOAT4X4 colMajor;
-		std::memcpy(&colMajor, src, sizeof(XMFLOAT4X4));
-		const XMMATRIX m = XMMatrixTranspose(XMLoadFloat4x4(&colMajor));
-		XMStoreFloat4x4(&ibmsRowMajor[j], m);
+		std::memcpy(&ibmsRowMajor[j], src, sizeof(XMFLOAT4X4));
 	}
 
 	// Repack TRS bind locals into XMFLOAT3/4 arrays (Renderer's preferred
@@ -441,18 +437,16 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 		bindS[j] = { imported.jointBindScale[j*3+0], imported.jointBindScale[j*3+1], imported.jointBindScale[j*3+2] };
 	}
 
-	// Same column-major -> row-major-with-transpose dance as IBMs above so
-	// jointParentBaseWorld matches the convention used downstream in the
-	// hierarchy walk. Identity-initialized slots in the importer remain
-	// identity after the conversion.
+	// Same memcpy-only conversion as IBMs above. cgltf_node_transform_world
+	// writes column-major bytes; copying into row-major XMFLOAT4X4 yields
+	// M^T which is exactly what our row-vector multiply convention wants.
+	// Identity-initialized slots from the importer pass through unchanged
+	// (identity is its own transpose).
 	std::vector<XMFLOAT4X4> jpbwRowMajor(imported.jointCount);
 	for (std::uint32_t j = 0; j < imported.jointCount; ++j)
 	{
 		const float* src = imported.jointParentBaseWorld.data() + j * 16;
-		XMFLOAT4X4 colMajor;
-		std::memcpy(&colMajor, src, sizeof(XMFLOAT4X4));
-		const XMMATRIX m = XMMatrixTranspose(XMLoadFloat4x4(&colMajor));
-		XMStoreFloat4x4(&jpbwRowMajor[j], m);
+		std::memcpy(&jpbwRowMajor[j], src, sizeof(XMFLOAT4X4));
 	}
 
 	auto [it, ok] = skinnedMeshCache.emplace(
