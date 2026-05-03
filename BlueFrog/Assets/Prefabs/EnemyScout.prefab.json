@@ -1,5 +1,6 @@
 {
-  "render":    { "mesh": "cube", "material": { "tint": [0.92, 0.36, 0.36] } },
+  "render":    { "meshPath": "Assets/Models/Fox/Fox.gltf", "material": { "tint": [1.0, 1.0, 1.0] } },
   "collision": { "halfExtents": [0.5, 0.5], "blocking": true },
-  "combat":    { "faction": "enemy", "maxHp": 3, "currentHp": 3 }
+  "combat":    { "faction": "enemy", "maxHp": 3, "currentHp": 3 },
+  "animation": { "clipName": "Survey", "playSpeed": 1.0, "looping": true }
 }

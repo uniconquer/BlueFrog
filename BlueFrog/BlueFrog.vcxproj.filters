@@ -426,5 +426,11 @@
     <None Include="Assets\Models\CesiumMan\CesiumMan.gltf">
       <Filter>Assets\Models</Filter>
     </None>
+    <None Include="Assets\Models\Fox\Fox.gltf">
+      <Filter>Assets\Models</Filter>
+    </None>
+    <None Include="Assets\Models\Fox\Fox.bin">
+      <Filter>Assets\Models</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -61,12 +61,12 @@
       {
         "name": "EnemyScout",
         "prefab": "Assets/Prefabs/EnemyScout.prefab.json",
-        "transform": { "position": [2.2, 1.0, 2.2], "rotation": [0.0, 0.0, 0.0], "scale": [0.75, 1.0, 0.75] }
+        "transform": { "position": [2.2, 0.0, 2.2], "rotation": [0.0, 0.0, 0.0], "scale": [0.04, 0.04, 0.04] }
       },
       {
         "name": "EnemyScoutDummy",
         "prefab": "Assets/Prefabs/EnemyScout.prefab.json",
-        "transform": { "position": [2.2, 1.0, -2.2], "rotation": [0.0, 0.0, 0.0], "scale": [0.75, 1.0, 0.75] }
+        "transform": { "position": [2.2, 0.0, -2.2], "rotation": [0.0, 0.0, 0.0], "scale": [0.04, 0.04, 0.04] }
       }
     ]
   }
