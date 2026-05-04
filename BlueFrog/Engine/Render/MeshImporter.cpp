@@ -164,27 +164,42 @@ namespace MeshImporter
 			return false;
 		}
 
-		// Indices. cgltf_accessor_unpack_indices converts to whatever output
-		// width we ask for. Stage 1 keeps the ImportedMesh::indices vector
-		// at uint16, so anything > 65535 vertices rejects here — matching
-		// the contract the renderer's MeshBuffers/IndexBuffer enforces.
-		if (prim.indices == nullptr)
-		{
-			cgltf_free(data);
-			return SetError(errorOut, prefix + "primitive missing index buffer");
-		}
+		// Indices. Two cases:
+		//  - prim.indices != nullptr: explicit index buffer (most authored
+		//    assets). cgltf_accessor_unpack_indices converts to uint16.
+		//  - prim.indices == nullptr: non-indexed primitive (glTF spec
+		//    allows this — vertices laid out as a flat triangle list
+		//    where each triangle's verts are listed in order). Synthesize
+		//    sequential indices [0, vertexCount).
+		// Stage 1 keeps the ImportedMesh::indices vector at uint16, so any
+		// mesh with > 65535 vertices rejects either way.
 		const cgltf_size vertexCount = out.positions.size() / 3;
 		if (vertexCount > 65535)
 		{
 			cgltf_free(data);
 			return SetError(errorOut, prefix + "mesh has " + std::to_string(vertexCount) + " vertices (max 65535 in v1, 16-bit index buffer)");
 		}
-		out.indices.resize(prim.indices->count);
-		const cgltf_size unpacked = cgltf_accessor_unpack_indices(prim.indices, out.indices.data(), sizeof(std::uint16_t), prim.indices->count);
-		if (unpacked != prim.indices->count)
+		if (prim.indices != nullptr)
 		{
-			cgltf_free(data);
-			return SetError(errorOut, prefix + "index unpack failed (" + std::to_string(unpacked) + "/" + std::to_string(prim.indices->count) + ")");
+			out.indices.resize(prim.indices->count);
+			const cgltf_size unpacked = cgltf_accessor_unpack_indices(prim.indices, out.indices.data(), sizeof(std::uint16_t), prim.indices->count);
+			if (unpacked != prim.indices->count)
+			{
+				cgltf_free(data);
+				return SetError(errorOut, prefix + "index unpack failed (" + std::to_string(unpacked) + "/" + std::to_string(prim.indices->count) + ")");
+			}
+		}
+		else
+		{
+			// Non-indexed: synthesize identity indices. For TRIANGLES mode
+			// vertexCount must be a multiple of 3 (each triangle's three
+			// verts back-to-back), but we don't enforce that here — let the
+			// downstream draw call reject if the asset is malformed.
+			out.indices.resize(vertexCount);
+			for (cgltf_size i = 0; i < vertexCount; ++i)
+			{
+				out.indices[i] = static_cast<std::uint16_t>(i);
+			}
 		}
 
 		// Sanity: vertex count consistency.
