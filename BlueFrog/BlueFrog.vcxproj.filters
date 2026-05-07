@@ -269,6 +269,9 @@
     <ClInclude Include="Engine\Animation\AnimationSystem.h">
       <Filter>Engine\Animation</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Animation\AnimationControllerSystem.h">
+      <Filter>Engine\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\UI\HealthBar.h">
       <Filter>Engine\UI</Filter>
     </ClInclude>

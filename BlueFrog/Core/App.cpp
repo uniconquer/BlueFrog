@@ -1,5 +1,6 @@
 #include "App.h"
 
+#include "../Engine/Animation/AnimationControllerSystem.h"
 #include "../Engine/Animation/AnimationSystem.h"
 #include "../Engine/Scene/SceneSerializer.h"
 #include "../Engine/UI/InspectorFields.h"
@@ -43,10 +44,13 @@ int App::Go()
 void App::DoFrame(float dt)
 {
 	PollDebugToggles();
-	UpdateModel(dt);
-	// Animation tick runs after gameplay (so scene reloads don't leave a
-	// stale clipTime on the new instance) and before render so the
-	// frame's pose computation reads fresh values.
+	const GameplayInput input = CollectGameplayInput(dt);
+	UpdateModel(input, dt);
+	// Animation controller picks clipName based on the gameplay state we
+	// just settled (player movement intent, enemy distance, alive flag).
+	// Runs BEFORE AnimationSystem::Tick so the time-advance step uses the
+	// freshly-selected clip's duration.
+	AnimationControllerSystem::Tick(scene, input, dt);
 	AnimationSystem::Tick(scene, dt);
 	ComposeFrame();
 }
@@ -160,9 +164,9 @@ void App::PollDebugToggles() noexcept
 	}
 }
 
-void App::UpdateModel(float dt) noexcept
+void App::UpdateModel(const GameplayInput& input, float dt) noexcept
 {
-	hudState = gameplaySimulation.Update(CollectGameplayInput(dt), scene, camera, dt);
+	hudState = gameplaySimulation.Update(input, scene, camera, dt);
 
 	// Honor LoadSceneRequested events drained during Update. Reload happens
 	// here — after every system has finished iterating the scene — so no

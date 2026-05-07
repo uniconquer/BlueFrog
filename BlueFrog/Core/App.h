@@ -18,7 +18,7 @@ public:
 	int Go();
 private:
 	void DoFrame(float dt);
-	void UpdateModel(float dt) noexcept;
+	void UpdateModel(const GameplayInput& input, float dt) noexcept;
 	GameplayInput CollectGameplayInput(float dt) noexcept;
 	void PollDebugToggles() noexcept;
 	void ComposeFrame();
