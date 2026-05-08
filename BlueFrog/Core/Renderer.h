@@ -20,6 +20,7 @@
 #include "../Engine/Scene/Transform.h"
 #include <DirectXMath.h>
 #include <array>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -59,6 +60,10 @@ private:
 
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
+		// Optional asset-embedded baseColorTexture. Owned per-mesh so its
+		// lifetime tracks the cached imported mesh. nullptr -> Renderer
+		// falls back to defaultWhiteTexture during draw.
+		std::unique_ptr<Texture2D> diffuseTexture;
 	};
 
 	// SkinnedMeshBuffers carries the SkinnedVertex stride (56B) plus the
@@ -93,6 +98,7 @@ private:
 		// joints rooted in non-joint ancestors (Armature, Z_UP, etc.).
 		std::vector<DirectX::XMFLOAT4X4> jointParentBaseWorld;
 		std::vector<ImportedAnimation> animations; // all clips; empty vector => bind pose
+		std::unique_ptr<Texture2D>     diffuseTexture; // see MeshBuffers comment
 	};
 
 	struct SkinningData

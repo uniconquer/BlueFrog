@@ -31,6 +31,17 @@ struct ImportedAnimation
 	std::vector<ImportedAnimationChannel>  channels;
 };
 
+// Encoded image bytes (PNG / JPEG / etc., as authored). The renderer's
+// existing WIC-backed ImageLoader decodes these into RGBA pixels. v1
+// captures only the first material's baseColorTexture — multi-material
+// or roughness/normal/etc. maps are deferred until a real material
+// pipeline lands.
+struct ImportedTexture
+{
+	std::vector<std::uint8_t> bytes;     // raw PNG/JPEG/etc. bytes
+	std::string               sourceTag; // for cache keys + debug logs
+};
+
 // Imported mesh in the engine's interleave-friendly form. The renderer copies
 // these streams into a LitVertex (or SkinnedVertex when `IsSkinned()`) array;
 // consumers outside the renderer that need different layouts can transform
@@ -75,6 +86,11 @@ struct ImportedMesh
 	// asset has non-identity ancestors (e.g. CesiumMan's Z_UP rotation)
 	// render with vertices collapsed to origin.
 	std::vector<float>          jointParentBaseWorld; // stride 16 column-major
+
+	// First baseColorTexture image referenced by the primitive's material,
+	// if any. `bytes.empty()` = no diffuse texture (Renderer falls back to
+	// its default white texture).
+	ImportedTexture             diffuseTexture;
 
 	// All animation clips in the file (Stage 4 — multi-clip foundation).
 	// Stage 3 carried only the first clip; Stage 4 keeps every clip so

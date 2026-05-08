@@ -234,6 +234,20 @@ const Renderer::MeshBuffers& Renderer::ResolveMesh(const RenderComponent& render
 				static_cast<UINT>(verts.size()),
 				imported.indices.data(),
 				static_cast<UINT>(imported.indices.size())));
+		// Decode the imported asset-side diffuse texture if any. Failure here
+		// is non-fatal: missing/corrupt embedded textures degrade to flat
+		// shading rather than blocking scene boot.
+		if (!imported.diffuseTexture.bytes.empty())
+		{
+			try
+			{
+				Surface surf = ImageLoader::LoadSurfaceFromMemory(
+					imported.diffuseTexture.bytes.data(),
+					imported.diffuseTexture.bytes.size());
+				emplacedIt->second.diffuseTexture = std::make_unique<Texture2D>(gfx, surf);
+			}
+			catch (const std::exception&) {}
+		}
 		return emplacedIt->second;
 	}
 
@@ -261,7 +275,18 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 	const MaterialData materialData = { mat.tint, 0.0f };
 	materialBuffer.Update(gfx, materialData);
 
-	ResolveTexture(mat.texturePath).Bind(gfx);
+	// Asset-embedded texture (glTF baseColorTexture) wins over the
+	// scene-side material.texturePath. The scene-side path stays useful
+	// for hand-authored cubes/planes (Ground checker pattern, etc.)
+	// where there's no source asset to extract from.
+	if (mesh.diffuseTexture)
+	{
+		mesh.diffuseTexture->Bind(gfx);
+	}
+	else
+	{
+		ResolveTexture(mat.texturePath).Bind(gfx);
+	}
 	ResolveSampler(mat.sampler).Bind(gfx);
 
 	mesh.vertexBuffer.Bind(gfx);
@@ -465,6 +490,17 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 			std::move(bindS),
 			std::move(jpbwRowMajor),
 			std::move(imported.animations)));
+	if (!imported.diffuseTexture.bytes.empty())
+	{
+		try
+		{
+			Surface surf = ImageLoader::LoadSurfaceFromMemory(
+				imported.diffuseTexture.bytes.data(),
+				imported.diffuseTexture.bytes.size());
+			it->second.diffuseTexture = std::make_unique<Texture2D>(gfx, surf);
+		}
+		catch (const std::exception&) {}
+	}
 	return &it->second;
 }
 
@@ -659,7 +695,14 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	}
 	skinningBuffer.Update(gfx, skinData);
 
-	ResolveTexture(mat.texturePath).Bind(gfx);
+	if (mesh.diffuseTexture)
+	{
+		mesh.diffuseTexture->Bind(gfx);
+	}
+	else
+	{
+		ResolveTexture(mat.texturePath).Bind(gfx);
+	}
 	ResolveSampler(mat.sampler).Bind(gfx);
 
 	mesh.vertexBuffer.Bind(gfx);

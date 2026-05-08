@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -54,6 +55,88 @@ namespace
 		case cgltf_type_mat4:   return 16;
 		default:                return 0;
 		}
+	}
+
+	// Decodes a base64 string into raw bytes. Used for `data:image/...;base64,`
+	// image URIs that cgltf parses but does not auto-decode for us. Standard
+	// MIME alphabet, ignores whitespace + padding.
+	bool DecodeBase64(const char* in, std::size_t inLen, std::vector<std::uint8_t>& out)
+	{
+		std::int8_t lut[256];
+		for (int i = 0; i < 256; ++i) lut[i] = -1;
+		for (int i = 0; i < 26; ++i) lut['A' + i] = static_cast<std::int8_t>(i);
+		for (int i = 0; i < 26; ++i) lut['a' + i] = static_cast<std::int8_t>(26 + i);
+		for (int i = 0; i < 10; ++i) lut['0' + i] = static_cast<std::int8_t>(52 + i);
+		lut[static_cast<unsigned>('+')] = 62;
+		lut[static_cast<unsigned>('/')] = 63;
+
+		out.clear();
+		out.reserve((inLen * 3) / 4);
+		int buf = 0;
+		int bits = 0;
+		for (std::size_t i = 0; i < inLen; ++i)
+		{
+			const char c = in[i];
+			if (c == '=' || c == '\n' || c == '\r' || c == ' ' || c == '\t') continue;
+			const int v = lut[static_cast<unsigned char>(c)];
+			if (v < 0) return false;
+			buf = (buf << 6) | v;
+			bits += 6;
+			if (bits >= 8)
+			{
+				bits -= 8;
+				out.push_back(static_cast<std::uint8_t>((buf >> bits) & 0xFF));
+			}
+		}
+		return true;
+	}
+
+	// Resolves a cgltf_image to raw encoded bytes (PNG/JPEG/etc.). Three
+	// glTF image storage forms, in priority order:
+	//   1. buffer_view: image bytes live inside the .gltf/.bin buffer.
+	//   2. data: URI with base64 payload (embedded form).
+	//   3. external file URI: load relative to the .gltf path.
+	// Returns true on success; on false `out` is undefined and the caller
+	// silently treats the mesh as un-textured (no fatal error — missing
+	// textures degrade gracefully to flat-shaded white).
+	bool ResolveImageBytes(const cgltf_image& img, const std::filesystem::path& gltfPath, std::vector<std::uint8_t>& out)
+	{
+		// 1. Image stored inside a buffer view.
+		if (img.buffer_view != nullptr && img.buffer_view->buffer != nullptr)
+		{
+			const cgltf_buffer_view* bv = img.buffer_view;
+			const std::uint8_t* base = static_cast<const std::uint8_t*>(bv->buffer->data);
+			if (base == nullptr) return false;
+			const std::size_t offset = bv->offset;
+			const std::size_t length = bv->size;
+			out.assign(base + offset, base + offset + length);
+			return true;
+		}
+
+		// 2 / 3: image has a URI.
+		if (img.uri == nullptr) return false;
+		const std::string uri = img.uri;
+		const std::string dataPrefix = "data:";
+		if (uri.compare(0, dataPrefix.size(), dataPrefix) == 0)
+		{
+			const std::size_t b64 = uri.find(";base64,");
+			if (b64 == std::string::npos) return false;
+			const char* payload = uri.c_str() + b64 + std::strlen(";base64,");
+			const std::size_t payloadLen = uri.size() - (b64 + std::strlen(";base64,"));
+			return DecodeBase64(payload, payloadLen, out);
+		}
+
+		// External file: resolve relative to the .gltf parent directory.
+		const std::filesystem::path filePath = gltfPath.parent_path() / uri;
+		std::ifstream f(filePath, std::ios::binary);
+		if (!f.is_open()) return false;
+		f.seekg(0, std::ios::end);
+		const std::streamoff len = f.tellg();
+		if (len <= 0) return false;
+		f.seekg(0, std::ios::beg);
+		out.resize(static_cast<std::size_t>(len));
+		f.read(reinterpret_cast<char*>(out.data()), len);
+		return f.good() || f.eof();
 	}
 
 	// Pulls a float-typed vertex attribute out of cgltf into a flat
@@ -199,6 +282,27 @@ namespace MeshImporter
 			for (cgltf_size i = 0; i < vertexCount; ++i)
 			{
 				out.indices[i] = static_cast<std::uint16_t>(i);
+			}
+		}
+
+		// Diffuse texture extraction. We pull the primitive's material's
+		// pbrMetallicRoughness.baseColorTexture if any; missing slots
+		// silently skip — no error. The ImportedTexture::bytes vector
+		// stays empty in that case and the renderer falls back to its
+		// default white texture during draw.
+		if (prim.material != nullptr && prim.material->has_pbr_metallic_roughness)
+		{
+			const cgltf_texture_view& bcView = prim.material->pbr_metallic_roughness.base_color_texture;
+			if (bcView.texture != nullptr && bcView.texture->image != nullptr)
+			{
+				std::vector<std::uint8_t> bytes;
+				if (ResolveImageBytes(*bcView.texture->image, gltfPath, bytes))
+				{
+					out.diffuseTexture.bytes = std::move(bytes);
+					out.diffuseTexture.sourceTag = pathStr +
+						(bcView.texture->image->name ? std::string("#") + bcView.texture->image->name
+						                              : std::string("#image0"));
+				}
 			}
 		}
 
