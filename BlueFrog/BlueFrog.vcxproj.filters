@@ -438,5 +438,8 @@
     <None Include="Assets\Models\Fox\Texture.png">
       <Filter>Assets\Models</Filter>
     </None>
+    <None Include="Assets\Models\BrainStem\BrainStem.gltf">
+      <Filter>Assets\Models</Filter>
+    </None>
   </ItemGroup>
 </Project>
