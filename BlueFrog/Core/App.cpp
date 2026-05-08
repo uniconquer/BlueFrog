@@ -287,7 +287,7 @@ void App::ComposeFrame()
 	}
 	uiRenderer.Render(hudState);
 	wnd.Gfx().BeginTextDraw();
-	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight());
+	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight(), inspectorEnabled);
 	if (inspectorEnabled)
 	{
 		textRenderer.RenderInspector(scene, inspectorSelected, inspectorFieldIndex, wnd.GetWidth(), wnd.GetHeight());

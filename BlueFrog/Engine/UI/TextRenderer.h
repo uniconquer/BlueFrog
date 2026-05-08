@@ -20,8 +20,9 @@ public:
 
     // Draws the overlay. Safe to call when the D2D target is null (recreate
     // pending); in that case nothing happens and the caller's EndTextDraw
-    // returns S_OK.
-    void Render(const HudState& hud, int viewportW, int viewportH) noexcept;
+    // returns S_OK. `inspectorOpen` shrinks the objective text's layout
+    // rect so it fits to the left of the inspector panel when present.
+    void Render(const HudState& hud, int viewportW, int viewportH, bool inspectorOpen = false) noexcept;
 
     // Right-side scene inspector panel. Renders a translucent dark column,
     // a per-object summary list with component flags, and a detail dump for

@@ -207,7 +207,7 @@ TextRenderer::TextRenderer(Graphics& gfxIn)
     }
 }
 
-void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH) noexcept
+void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH, bool inspectorOpen) noexcept
 {
     ID2D1RenderTarget* const target = gfx.GetD2DTarget();
     if (target == nullptr || !objectiveFormat || !whiteBrush)
@@ -215,12 +215,20 @@ void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH) noe
         return;
     }
 
+    // Effective right edge of the screen area NOT covered by the inspector
+    // panel. When the panel is open it docks to the right and steals
+    // InspectorPanelWidthDip pixels; the objective text needs to live to
+    // the left of that or the panel paints over it.
+    const float availableRightDip = inspectorOpen
+        ? std::max(0.0f, static_cast<float>(viewportW) - TextLayout::InspectorPanelWidthDip)
+        : static_cast<float>(viewportW);
+
     if (!hud.objectiveText.empty())
     {
         const D2D1_RECT_F layoutRect = D2D1::RectF(
             0.0f,
             TextLayout::ObjectiveTopInsetDip,
-            static_cast<float>(viewportW),
+            availableRightDip,
             TextLayout::ObjectiveTopInsetDip + TextLayout::PointsToDips(TextLayout::ObjectivePointSize) * 1.5f);
 
         target->DrawText(
