@@ -167,6 +167,7 @@
     <ClCompile Include="Engine\UI\UIRenderer.cpp" />
     <ClCompile Include="Engine\UI\TextRenderer.cpp" />
     <ClCompile Include="Engine\Render\DebugRenderer.cpp" />
+    <ClCompile Include="Engine\Render\WorldGridRenderer.cpp" />
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp" />
@@ -268,6 +269,7 @@
     <ClInclude Include="Engine\UI\TextLayout.h" />
     <ClInclude Include="Engine\UI\InspectorFields.h" />
     <ClInclude Include="Engine\Render\DebugRenderer.h" />
+    <ClInclude Include="Engine\Render\WorldGridRenderer.h" />
     <ClInclude Include="Engine\Render\DebugPipeline.h" />
   </ItemGroup>
   <ItemGroup>

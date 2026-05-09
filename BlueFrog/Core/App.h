@@ -8,6 +8,7 @@
 #include "../Engine/UI/UIRenderer.h"
 #include "../Engine/UI/TextRenderer.h"
 #include "../Engine/Render/DebugRenderer.h"
+#include "../Engine/Render/WorldGridRenderer.h"
 #include "../Engine/Audio/AudioEngine.h"
 #include "../Game/Simulation/GameplaySimulation.h"
 #include <string>
@@ -29,6 +30,7 @@ private:
 	UIRenderer uiRenderer;
 	TextRenderer textRenderer;
 	DebugRenderer debugRenderer;
+	WorldGridRenderer worldGridRenderer;
 	TopDownCamera camera;
 	Scene scene;
 	HudState hudState;
@@ -37,6 +39,7 @@ private:
 	BFTimer timer;
 	std::string currentScenePath;
 	bool   debugGizmosEnabled  = false;
+	bool   worldGridEnabled    = false;
 	bool   reloadRequested     = false;
 	bool   inspectorEnabled    = false;
 	int    inspectorSelected   = 0;

@@ -21,6 +21,7 @@ App::App(std::string scenePath)
 	uiRenderer(wnd.Gfx()),
 	textRenderer(wnd.Gfx()),
 	debugRenderer(wnd.Gfx()),
+	worldGridRenderer(wnd.Gfx()),
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
 	currentScenePath = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
@@ -81,6 +82,9 @@ void App::PollDebugToggles() noexcept
 			break;
 		case VK_F2:
 			inspectorEnabled = !inspectorEnabled;
+			break;
+		case VK_F3:
+			worldGridEnabled = !worldGridEnabled;
 			break;
 		case VK_F5:
 			// Hot-reload: latch the request and let UpdateModel apply it
@@ -286,6 +290,13 @@ void App::ComposeFrame()
 		::OutputDebugStringA(msg);
 		::MessageBoxA(nullptr, msg, "Renderer error", MB_OK | MB_ICONEXCLAMATION);
 		std::exit(1);
+	}
+	if (worldGridEnabled)
+	{
+		// Ground reference grid (Unity-style). Drawn after the 3D pass and
+		// before debug gizmos so trigger/collision lines sit visually on
+		// top of the grid lines they share screen space with.
+		worldGridRenderer.Render(camera);
 	}
 	if (debugGizmosEnabled)
 	{
