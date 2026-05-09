@@ -5,6 +5,8 @@
 #include "EnemyArcherBehavior.h"
 #include "EnemyScoutBehavior.h"
 
+class AudioEngine;
+
 // Drives every enemy-faction combatant in the scene each tick, dispatching to
 // the behavior class that matches the object's EnemyBehaviorComponent::type.
 // Per-instance state for each behavior lives on the SceneObject's components
@@ -13,7 +15,7 @@
 class SimpleEnemyController
 {
 public:
-	void Update(Scene& scene, float dt, EventBus& bus) noexcept;
+	void Update(Scene& scene, float dt, EventBus& bus, AudioEngine* audio) noexcept;
 private:
 	EnemyScoutBehavior  scoutBehavior;
 	EnemyArcherBehavior archerBehavior;

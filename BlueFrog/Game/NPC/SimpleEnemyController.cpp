@@ -3,7 +3,7 @@
 #include "../../Engine/Scene/CombatComponent.h"
 #include "../Simulation/GameplaySceneIds.h"
 
-void SimpleEnemyController::Update(Scene& scene, float dt, EventBus& bus) noexcept
+void SimpleEnemyController::Update(Scene& scene, float dt, EventBus& bus, AudioEngine* audio) noexcept
 {
 	SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 	if (player == nullptr)
@@ -37,11 +37,11 @@ void SimpleEnemyController::Update(Scene& scene, float dt, EventBus& bus) noexce
 
 		if (type == "archer")
 		{
-			archerBehavior.Update(scene, *player, obj, dt, bus);
+			archerBehavior.Update(scene, *player, obj, dt, bus, audio);
 		}
 		else
 		{
-			scoutBehavior.Update(scene, *player, obj, dt, bus);
+			scoutBehavior.Update(scene, *player, obj, dt, bus, audio);
 		}
 	}
 }

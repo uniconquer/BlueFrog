@@ -26,6 +26,14 @@ App::App(std::string scenePath)
 	currentScenePath = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
 	gameplaySimulation.BuildArena(scene, camera, currentScenePath);
 	hudState = gameplaySimulation.BuildHudState(scene);
+
+	// Audio: load placeholder SFX once at boot. Failures are logged via
+	// OutputDebugString and silently fall through — Play() becomes a no-op
+	// for the missing slot, gameplay continues.
+	audio.LoadSound("attack",     std::filesystem::path("Assets/Audio/attack.wav"));
+	audio.LoadSound("enemy_hit",  std::filesystem::path("Assets/Audio/enemy_hit.wav"));
+	audio.LoadSound("enemy_kill", std::filesystem::path("Assets/Audio/enemy_kill.wav"));
+	gameplaySimulation.SetAudio(&audio);
 }
 
 int App::Go()

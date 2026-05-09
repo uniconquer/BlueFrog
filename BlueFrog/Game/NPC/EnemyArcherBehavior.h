@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cmath>
 
+class AudioEngine;
+
 // Stationary ranged "archer". Faces the player, fires a hitscan damage tick
 // every fireInterval seconds when the player is within fireRange and alive.
 // No projectile entity, no line-of-sight check (v1) — the design payoff is
@@ -18,7 +20,7 @@
 class EnemyArcherBehavior final
 {
 public:
-	void Update(Scene& /*scene*/, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus) const noexcept
+	void Update(Scene& /*scene*/, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio) const noexcept
 	{
 		if (!enemy.combatComponent.has_value() || !player.combatComponent.has_value())
 		{
@@ -52,7 +54,7 @@ public:
 			// range), pass a fireRange large enough that TryMeleeAttack's
 			// internal range gate doesn't reject. faction-mismatch and
 			// alive-checks still run — we want those.
-			CombatSystem::TryMeleeAttack(enemy, player, attackDamage, fireRange + 0.5f, &bus);
+			CombatSystem::TryMeleeAttack(enemy, player, attackDamage, fireRange + 0.5f, &bus, audio);
 			cc.attackCooldownRemaining = fireInterval;
 		}
 

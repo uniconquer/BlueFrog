@@ -14,6 +14,8 @@
 #include <optional>
 #include <string>
 
+class AudioEngine;
+
 class GameplaySimulation final
 {
 public:
@@ -43,6 +45,10 @@ public:
 	// app booted with. Subsequent calls return false until the next death.
 	[[nodiscard]] bool ConsumePendingDeathReload() noexcept;
 
+	// Optional audio sink to thread into the per-tick SystemContext. App
+	// installs this once at boot; pass nullptr to disable audio cleanly.
+	void SetAudio(AudioEngine* audio) noexcept { audio_ = audio; }
+
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
@@ -63,4 +69,5 @@ private:
 	float                        deathTimer        = 0.0f;
 	bool                         deathSequenceActive = false;
 	bool                         pendingDeathReload  = false;
+	AudioEngine*                 audio_              = nullptr;
 };

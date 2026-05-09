@@ -8,6 +8,7 @@
 #include "../Engine/UI/UIRenderer.h"
 #include "../Engine/UI/TextRenderer.h"
 #include "../Engine/Render/DebugRenderer.h"
+#include "../Engine/Audio/AudioEngine.h"
 #include "../Game/Simulation/GameplaySimulation.h"
 #include <string>
 
@@ -32,6 +33,7 @@ private:
 	Scene scene;
 	HudState hudState;
 	GameplaySimulation gameplaySimulation;
+	AudioEngine audio;
 	BFTimer timer;
 	std::string currentScenePath;
 	bool   debugGizmosEnabled  = false;

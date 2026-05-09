@@ -2,6 +2,7 @@
 #include "../../Engine/Scene/SceneObject.h"
 
 class EventBus;
+class AudioEngine;
 
 class CombatSystem
 {
@@ -10,8 +11,10 @@ public:
 	// dead in this call) publishes an EnemyKilled event carrying the target's
 	// scene name. Callers that don't participate in the event layer may pass
 	// nullptr to preserve Phase 5 semantics.
-	static bool TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range, EventBus* bus = nullptr) noexcept;
+	// `audio` is optional — when non-null, plays an "enemy_hit" SFX when
+	// damage is applied, and "enemy_kill" SFX on the alive->dead transition.
+	static bool TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range, EventBus* bus = nullptr, AudioEngine* audio = nullptr) noexcept;
 private:
-	static void ApplyDamage(SceneObject& target, int damage, EventBus* bus) noexcept;
+	static void ApplyDamage(SceneObject& target, int damage, EventBus* bus, AudioEngine* audio) noexcept;
 	static float DistanceXZ(const DirectX::XMFLOAT3& a, const DirectX::XMFLOAT3& b) noexcept;
 };

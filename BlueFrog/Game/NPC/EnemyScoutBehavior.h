@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <cmath>
 
+class AudioEngine;
+
 // Stateless scout-style melee behavior. The per-instance cooldown timer
 // lives on the CombatComponent so SimpleEnemyController can drive any number
 // of scouts with a single behavior object. Movement: chase the player when
@@ -16,7 +18,7 @@
 class EnemyScoutBehavior final
 {
 public:
-	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus) const noexcept
+	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio) const noexcept
 	{
 		if (!enemy.combatComponent.has_value() || !player.combatComponent.has_value())
 		{
@@ -62,7 +64,7 @@ public:
 			return;
 		}
 
-		if (cc.attackCooldownRemaining <= 0.0f && CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f, &bus))
+		if (cc.attackCooldownRemaining <= 0.0f && CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f, &bus, audio))
 		{
 			cc.attackCooldownRemaining = attackCooldown;
 		}

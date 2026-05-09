@@ -5,6 +5,8 @@
 #include "../../Engine/Scene/Scene.h"
 #include "GameplayInput.h"
 
+class AudioEngine;
+
 // Per-tick parameter bundle passed to every gameplay system's Update call.
 //
 // Why a struct instead of per-system parameter lists:
@@ -30,4 +32,9 @@ struct SystemContext
     TopDownCamera&       camera;
     EventBus&            eventBus;
     float                dt;
+    // Optional audio sink. nullptr when audio init failed or hasn't been
+    // wired through to this tick yet — gameplay code calls
+    // `if (ctx.audio) ctx.audio->Play(...)` so missing audio degrades
+    // silently rather than crashing.
+    AudioEngine*         audio = nullptr;
 };

@@ -8,7 +8,7 @@ class EnemyGameplaySystem final
 public:
 	void Update(const SystemContext& ctx) noexcept
 	{
-		enemyController.Update(ctx.scene, ctx.dt, ctx.eventBus);
+		enemyController.Update(ctx.scene, ctx.dt, ctx.eventBus, ctx.audio);
 	}
 
 private:

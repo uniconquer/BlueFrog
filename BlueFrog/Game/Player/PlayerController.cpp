@@ -1,4 +1,5 @@
 #include "PlayerController.h"
+#include "../../Engine/Audio/AudioEngine.h"
 #include "../../Engine/Physics/CollisionSystem.h"
 #include "../../Engine/Scene/CombatComponent.h"
 #include "PlayerAimSystem.h"
@@ -6,7 +7,7 @@
 #include "../Combat/CombatSystem.h"
 #include <algorithm>
 
-bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus) noexcept
+bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio) noexcept
 {
 	attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
 
@@ -37,7 +38,11 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 
 	if (input.attackQueued && attackCooldownRemaining <= 0.0f)
 	{
-		TryAttack(scene, *player, bus);
+		// Play the swing SFX on every cooldown-passed click, even if no
+		// target is in range — the sound represents the player swinging,
+		// not a successful hit.
+		if (audio) audio->Play("attack");
+		TryAttack(scene, *player, bus, audio);
 		attackCooldownRemaining = attackCooldown;
 	}
 
@@ -60,7 +65,7 @@ SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 	return scene.FindObject(GameplaySceneIds::Player);
 }
 
-bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bus) noexcept
+bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bus, AudioEngine* audio) noexcept
 {
 	// Hit the nearest alive enemy combatant within range. Iterating each
 	// attack is fine — scenes have a handful of objects, and centralizing
@@ -89,7 +94,7 @@ bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bu
 	{
 		return false;
 	}
-	return CombatSystem::TryMeleeAttack(player, *best, attackDamage, attackRange, &bus);
+	return CombatSystem::TryMeleeAttack(player, *best, attackDamage, attackRange, &bus, audio);
 }
 
 void PlayerController::UpdateTint(SceneObject& player) const noexcept

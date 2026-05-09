@@ -175,6 +175,7 @@
     <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp" />
     <ClCompile Include="Engine\Render\ImageLoader.cpp" />
     <ClCompile Include="Engine\Render\MeshImporter.cpp" />
+    <ClCompile Include="Engine\Audio\AudioEngine.cpp" />
     <ClCompile Include="Engine\Render\cgltf_impl.cpp" />
     <ClCompile Include="Engine\Render\IndexBuffer.cpp" />
     <ClCompile Include="Engine\Render\InputLayout.cpp" />
@@ -235,6 +236,7 @@
     <ClInclude Include="Engine\Events\GameEvent.h" />
     <ClInclude Include="Engine\Render\ImageLoader.h" />
     <ClInclude Include="Engine\Render\MeshImporter.h" />
+    <ClInclude Include="Engine\Audio\AudioEngine.h" />
     <ClInclude Include="Engine\Render\SkinnedPipeline.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />
     <ClInclude Include="Engine\Render\IndexBuffer.h" />
@@ -282,6 +284,9 @@
     <None Include="Assets\Models\Fox\Fox.bin" />
     <None Include="Assets\Models\Fox\Texture.png" />
     <None Include="Assets\Models\BrainStem\BrainStem.gltf" />
+    <None Include="Assets\Audio\attack.wav" />
+    <None Include="Assets\Audio\enemy_hit.wav" />
+    <None Include="Assets\Audio\enemy_kill.wav" />
     <None Include="Assets\Prefabs\ArenaWall.prefab.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

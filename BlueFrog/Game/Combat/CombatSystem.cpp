@@ -1,9 +1,10 @@
 #include "CombatSystem.h"
+#include "../../Engine/Audio/AudioEngine.h"
 #include "../../Engine/Events/EventBus.h"
 #include <algorithm>
 #include <cmath>
 
-bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range, EventBus* bus) noexcept
+bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range, EventBus* bus, AudioEngine* audio) noexcept
 {
 	if (!attacker.combatComponent.has_value() || !target.combatComponent.has_value())
 	{
@@ -25,11 +26,11 @@ bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, in
 		return false;
 	}
 
-	ApplyDamage(target, damage, bus);
+	ApplyDamage(target, damage, bus, audio);
 	return true;
 }
 
-void CombatSystem::ApplyDamage(SceneObject& target, int damage, EventBus* bus) noexcept
+void CombatSystem::ApplyDamage(SceneObject& target, int damage, EventBus* bus, AudioEngine* audio) noexcept
 {
 	if (!target.combatComponent.has_value())
 	{
@@ -44,9 +45,19 @@ void CombatSystem::ApplyDamage(SceneObject& target, int damage, EventBus* bus) n
 
 	target.combatComponent->health = std::max(0, target.combatComponent->health - damage);
 
-	if (bus && wasAlive && !target.combatComponent->IsAlive())
+	const bool justKilled = wasAlive && !target.combatComponent->IsAlive();
+	if (bus && justKilled)
 	{
 		bus->Publish({ GameEventType::EnemyKilled, target.name, {} });
+	}
+	if (audio)
+	{
+		// "enemy_hit" plays on every successful damage application; if the
+		// blow was the killing one we also fire "enemy_kill" right after so
+		// the death note layers over the hit. Both placeholders are short
+		// enough that overlap reads as a single beat rather than chord.
+		audio->Play("enemy_hit");
+		if (justKilled) audio->Play("enemy_kill");
 	}
 
 	if (!target.renderComponent.has_value() || !target.renderComponent->material.has_value())

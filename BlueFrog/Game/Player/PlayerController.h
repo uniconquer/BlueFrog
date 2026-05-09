@@ -5,15 +5,16 @@
 #include "../Simulation/GameplayInput.h"
 
 class EventBus;
+class AudioEngine;
 
 class PlayerController
 {
 public:
-	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus) noexcept;
+	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio) noexcept;
 	float GetAttackCooldownProgress01() const noexcept;
 private:
 	SceneObject* FindPlayer(Scene& scene) noexcept;
-	bool TryAttack(Scene& scene, SceneObject& player, EventBus& bus) noexcept;
+	bool TryAttack(Scene& scene, SceneObject& player, EventBus& bus, AudioEngine* audio) noexcept;
 	void UpdateTint(SceneObject& player) const noexcept;
 private:
 	static constexpr float moveSpeed = 6.5f;
