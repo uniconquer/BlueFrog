@@ -15,7 +15,12 @@ namespace TextLayout
     inline constexpr float DefeatedPointSize     = 48.0f;
     inline constexpr float InspectorPointSize    = 11.0f;
     inline constexpr float InspectorTitlePointSize = 13.0f;
-    inline constexpr float ObjectiveTopInsetDip  = 16.0f;
+    // Objective text sits BELOW the HP bars (which occupy ~y=18..54 in
+    // a 600-tall viewport at the current UiLayout NDC numbers). Moving
+    // it lower keeps the white objective string from painting over the
+    // green HP fill where the two regions overlapped at the previous
+    // y=16 inset.
+    inline constexpr float ObjectiveTopInsetDip  = 60.0f;
 
     // Inspector panel docks to the right edge of the viewport.
     inline constexpr float InspectorPanelWidthDip   = 320.0f;
