@@ -16,12 +16,19 @@ namespace
 
 	const char* GetUIShaderSource() noexcept
 	{
+		// TransformBuffer is read by the VS only; ColorBuffer by the PS only.
+		// They were both declared at register(b0) historically -- FXC picks
+		// one resolution which made the PS read whatever was bound at PS-b0,
+		// often producing washed-out white tint in place of green/red HP
+		// fills. Splitting to (b0, b1) makes the binding unambiguous; the
+		// matching slot change in BindSharedState binds colorBuffer at PS
+		// slot 1.
 		return
 			"cbuffer TransformBuffer : register(b0)\n"
 			"{\n"
 			"    matrix transform;\n"
 			"};\n"
-			"cbuffer ColorBuffer : register(b0)\n"
+			"cbuffer ColorBuffer : register(b1)\n"
 			"{\n"
 			"    float3 tint;\n"
 			"    float padding;\n"
@@ -98,7 +105,7 @@ void UIRenderer::BindSharedState() noexcept
 	topology.Bind(gfx);
 	vertexShader.Bind(gfx);
 	transformBuffer.Bind(gfx);
-	colorBuffer.Bind(gfx);
+	colorBuffer.Bind(gfx, 1u); // PS slot 1 — see shader comment
 	pixelShader.Bind(gfx);
 }
 
