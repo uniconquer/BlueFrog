@@ -68,4 +68,10 @@ private:
 	// context calls so we avoid duplicating the underlying resource.
 	VertexConstantBuffer<UIConstants> constantsBuffer;
 	Topology topology;
+	// Depth disabled for UI: every quad is at NDC z=0 so under the default
+	// `LESS` depth func, the second draw at the same z fails the test
+	// against the first draw's z value -- producing the no-fill bars the
+	// user reported. Disabling depth for the entire UI pass is correct
+	// since UI elements are explicitly draw-order-layered.
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pNoDepthState;
 };

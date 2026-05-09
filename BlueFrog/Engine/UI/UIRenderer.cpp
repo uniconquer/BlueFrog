@@ -67,6 +67,15 @@ UIRenderer::UIRenderer(Graphics& gfx)
 	constantsBuffer(gfx),
 	topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 {
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable    = FALSE;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dsDesc.DepthFunc      = D3D11_COMPARISON_ALWAYS;
+	dsDesc.StencilEnable  = FALSE;
+	if (const HRESULT hr = gfx.GetDevice()->CreateDepthStencilState(&dsDesc, pNoDepthState.GetAddressOf()); FAILED(hr))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
 }
 
 const std::array<UIRenderer::Vertex, 4>& UIRenderer::GetQuadVertices() noexcept
@@ -160,6 +169,11 @@ void UIRenderer::Render(const HudState& hudState) noexcept
 {
 	BindSharedState();
 
+	// Disable depth test/write for the whole UI pass so multiple quads at
+	// NDC z=0 don't reject each other (panel + fill on the HP bars). Reset
+	// to default after so the next frame's 3D pass starts clean.
+	gfx.GetContext()->OMSetDepthStencilState(pNoDepthState.Get(), 0u);
+
 	DrawBar(UiLayout::MakePlayerHealthBar(hudState.playerHealth.Ratio()));
 	DrawBar(UiLayout::MakeAttackCooldownBar(hudState.attackCooldown01));
 
@@ -169,4 +183,6 @@ void UIRenderer::Render(const HudState& hudState) noexcept
 	}
 
 	DrawCrosshair();
+
+	gfx.GetContext()->OMSetDepthStencilState(nullptr, 0u);
 }
