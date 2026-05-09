@@ -468,5 +468,8 @@
     <None Include="Assets\Audio\enemy_kill.wav">
       <Filter>Assets\Audio</Filter>
     </None>
+    <None Include="Assets\Audio\bgm_arena.wav">
+      <Filter>Assets\Audio</Filter>
+    </None>
   </ItemGroup>
 </Project>

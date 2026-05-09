@@ -35,6 +35,8 @@ App::App(std::string scenePath)
 	audio.LoadSound("attack",     std::filesystem::path("Assets/Audio/attack.wav"));
 	audio.LoadSound("enemy_hit",  std::filesystem::path("Assets/Audio/enemy_hit.wav"));
 	audio.LoadSound("enemy_kill", std::filesystem::path("Assets/Audio/enemy_kill.wav"));
+	audio.LoadBgm("arena", std::filesystem::path("Assets/Audio/bgm_arena.wav"));
+	audio.PlayBgm("arena");
 	gameplaySimulation.SetAudio(&audio);
 }
 

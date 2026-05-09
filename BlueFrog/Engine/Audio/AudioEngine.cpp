@@ -11,11 +11,21 @@
 
 #pragma comment(lib, "xaudio2.lib")
 
+namespace { constexpr int kSfxPoolSize = 4; }
+
 struct AudioEngine::Sound
+{
+	WAVEFORMATEX                       format = {};
+	std::vector<BYTE>                  data;
+	std::vector<IXAudio2SourceVoice*>  voicePool;     // kSfxPoolSize voices
+	int                                nextVoice = 0; // round-robin cursor
+};
+
+struct AudioEngine::Bgm
 {
 	WAVEFORMATEX           format = {};
 	std::vector<BYTE>      data;
-	IXAudio2SourceVoice*   voice = nullptr; // owned; destroyed in AudioEngine dtor
+	IXAudio2SourceVoice*   voice = nullptr;
 };
 
 namespace
@@ -136,6 +146,7 @@ AudioEngine::AudioEngine()
 AudioEngine::~AudioEngine()
 {
 	DestroySoundVoices();
+	DestroyBgmVoices();
 	if (masterVoice_)
 	{
 		masterVoice_->DestroyVoice();
@@ -152,14 +163,30 @@ void AudioEngine::DestroySoundVoices()
 {
 	for (auto& kv : sounds_)
 	{
-		if (kv.second && kv.second->voice)
+		if (kv.second)
 		{
-			kv.second->voice->DestroyVoice();
-			kv.second->voice = nullptr;
+			for (IXAudio2SourceVoice* v : kv.second->voicePool)
+			{
+				if (v) v->DestroyVoice();
+			}
+			delete kv.second;
 		}
-		delete kv.second;
 	}
 	sounds_.clear();
+}
+
+void AudioEngine::DestroyBgmVoices()
+{
+	for (auto& kv : bgms_)
+	{
+		if (kv.second)
+		{
+			if (kv.second->voice) kv.second->voice->DestroyVoice();
+			delete kv.second;
+		}
+	}
+	bgms_.clear();
+	currentBgm_.clear();
 }
 
 void AudioEngine::LoadSound(const std::string& name, const std::filesystem::path& path)
@@ -179,22 +206,34 @@ void AudioEngine::LoadSound(const std::string& name, const std::filesystem::path
 		return;
 	}
 
-	IXAudio2SourceVoice* voice = nullptr;
-	if (FAILED(xaudio_->CreateSourceVoice(&voice, &format)))
-	{
-		Log("[AudioEngine] CreateSourceVoice failed");
-		return;
-	}
-
 	auto* slot = new Sound();
 	slot->format = format;
 	slot->data   = std::move(data);
-	slot->voice  = voice;
+	slot->voicePool.reserve(kSfxPoolSize);
+	for (int i = 0; i < kSfxPoolSize; ++i)
+	{
+		IXAudio2SourceVoice* voice = nullptr;
+		if (FAILED(xaudio_->CreateSourceVoice(&voice, &slot->format)))
+		{
+			Log("[AudioEngine] CreateSourceVoice failed (pool slot)");
+			break;
+		}
+		slot->voicePool.push_back(voice);
+	}
+	if (slot->voicePool.empty())
+	{
+		Log("[AudioEngine] LoadSound: no voices created");
+		delete slot;
+		return;
+	}
 
 	auto it = sounds_.find(name);
 	if (it != sounds_.end() && it->second)
 	{
-		if (it->second->voice) it->second->voice->DestroyVoice();
+		for (IXAudio2SourceVoice* v : it->second->voicePool)
+		{
+			if (v) v->DestroyVoice();
+		}
 		delete it->second;
 	}
 	sounds_[name] = slot;
@@ -203,22 +242,106 @@ void AudioEngine::LoadSound(const std::string& name, const std::filesystem::path
 void AudioEngine::Play(const std::string& name)
 {
 	auto it = sounds_.find(name);
-	if (it == sounds_.end() || it->second == nullptr || it->second->voice == nullptr) return;
+	if (it == sounds_.end() || it->second == nullptr || it->second->voicePool.empty()) return;
 
 	Sound& s = *it->second;
-	// Restart-on-replay semantics: stop, flush queued buffers, submit fresh.
-	s.voice->Stop(0u);
-	s.voice->FlushSourceBuffers();
+	IXAudio2SourceVoice* voice = s.voicePool[s.nextVoice];
+	s.nextVoice = (s.nextVoice + 1) % static_cast<int>(s.voicePool.size());
+
+	// Round-robin: pick the next voice in the pool. If it happens to be
+	// still playing (rapid retrigger past pool size), Stop+Submit
+	// effectively restarts that one voice while the others keep going.
+	voice->Stop(0u);
+	voice->FlushSourceBuffers();
 
 	XAUDIO2_BUFFER buf = {};
 	buf.AudioBytes = static_cast<UINT32>(s.data.size());
 	buf.pAudioData = s.data.data();
 	buf.Flags = XAUDIO2_END_OF_STREAM;
 
-	if (FAILED(s.voice->SubmitSourceBuffer(&buf)))
+	if (FAILED(voice->SubmitSourceBuffer(&buf)))
 	{
 		Log("[AudioEngine] SubmitSourceBuffer failed");
 		return;
 	}
-	s.voice->Start(0u);
+	voice->Start(0u);
+}
+
+void AudioEngine::LoadBgm(const std::string& name, const std::filesystem::path& path)
+{
+	if (!xaudio_)
+	{
+		Log("[AudioEngine] LoadBgm called before init; skipping");
+		return;
+	}
+
+	WAVEFORMATEX format = {};
+	std::vector<BYTE> data;
+	if (!ParseWav(path, format, data))
+	{
+		std::string err = "[AudioEngine] LoadBgm failed: " + path.string();
+		Log(err.c_str());
+		return;
+	}
+
+	IXAudio2SourceVoice* voice = nullptr;
+	if (FAILED(xaudio_->CreateSourceVoice(&voice, &format)))
+	{
+		Log("[AudioEngine] LoadBgm: CreateSourceVoice failed");
+		return;
+	}
+
+	auto* slot = new Bgm();
+	slot->format = format;
+	slot->data   = std::move(data);
+	slot->voice  = voice;
+
+	auto it = bgms_.find(name);
+	if (it != bgms_.end() && it->second)
+	{
+		if (it->second->voice) it->second->voice->DestroyVoice();
+		delete it->second;
+	}
+	bgms_[name] = slot;
+}
+
+void AudioEngine::PlayBgm(const std::string& name)
+{
+	if (currentBgm_ == name) return;
+
+	auto it = bgms_.find(name);
+	if (it == bgms_.end() || it->second == nullptr || it->second->voice == nullptr) return;
+
+	StopBgm();
+
+	Bgm& b = *it->second;
+	b.voice->FlushSourceBuffers();
+
+	XAUDIO2_BUFFER buf = {};
+	buf.AudioBytes = static_cast<UINT32>(b.data.size());
+	buf.pAudioData = b.data.data();
+	buf.LoopBegin  = 0u;
+	buf.LoopLength = 0u;
+	buf.LoopCount  = XAUDIO2_LOOP_INFINITE;
+	buf.Flags      = XAUDIO2_END_OF_STREAM;
+
+	if (FAILED(b.voice->SubmitSourceBuffer(&buf)))
+	{
+		Log("[AudioEngine] PlayBgm SubmitSourceBuffer failed");
+		return;
+	}
+	b.voice->Start(0u);
+	currentBgm_ = name;
+}
+
+void AudioEngine::StopBgm()
+{
+	if (currentBgm_.empty()) return;
+	auto it = bgms_.find(currentBgm_);
+	if (it != bgms_.end() && it->second && it->second->voice)
+	{
+		it->second->voice->Stop(0u);
+		it->second->voice->FlushSourceBuffers();
+	}
+	currentBgm_.clear();
 }
