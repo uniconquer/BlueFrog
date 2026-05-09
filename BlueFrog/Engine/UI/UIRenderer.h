@@ -26,15 +26,15 @@ private:
 		float b;
 	};
 
-	struct TransformData
+	// Single combined cbuffer for both VS (transform) and PS (tint). The
+	// previous two-cbuffer setup hit a `register` collision FXC quietly
+	// resolved in a way that left tint reading garbage; merging avoids
+	// the register-namespace question entirely.
+	struct UIConstants
 	{
-		DirectX::XMFLOAT4X4 transform;
-	};
-
-	struct ColorData
-	{
-		DirectX::XMFLOAT3 tint;
-		float padding = 0.0f;
+		DirectX::XMFLOAT4X4 transform; // 64B
+		DirectX::XMFLOAT3   tint;      // 12B
+		float               padding = 0.0f; // 4B (16B alignment)
 	};
 
 	struct MeshBuffers
@@ -62,7 +62,10 @@ private:
 	VertexShader vertexShader;
 	PixelShader pixelShader;
 	InputLayout inputLayout;
-	VertexConstantBuffer<TransformData> transformBuffer;
-	PixelConstantBuffer<ColorData> colorBuffer;
+	// One D3D11 buffer manually bound to BOTH VS (slot 0) and PS (slot 0)
+	// in BindSharedState. VS reads `transform`; PS reads `tint`. We use
+	// VertexConstantBuffer as the wrapper but bind to PS too via raw
+	// context calls so we avoid duplicating the underlying resource.
+	VertexConstantBuffer<UIConstants> constantsBuffer;
 	Topology topology;
 };

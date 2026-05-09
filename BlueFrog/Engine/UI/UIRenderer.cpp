@@ -16,20 +16,13 @@ namespace
 
 	const char* GetUIShaderSource() noexcept
 	{
-		// TransformBuffer is read by the VS only; ColorBuffer by the PS only.
-		// They were both declared at register(b0) historically -- FXC picks
-		// one resolution which made the PS read whatever was bound at PS-b0,
-		// often producing washed-out white tint in place of green/red HP
-		// fills. Splitting to (b0, b1) makes the binding unambiguous; the
-		// matching slot change in BindSharedState binds colorBuffer at PS
-		// slot 1.
+		// Single combined cbuffer. Previously the project carried two
+		// cbuffers (Transform + Color) which produced washed-out fills;
+		// merging avoids stage / register edge cases in FXC.
 		return
-			"cbuffer TransformBuffer : register(b0)\n"
+			"cbuffer UIConstants : register(b0)\n"
 			"{\n"
 			"    matrix transform;\n"
-			"};\n"
-			"cbuffer ColorBuffer : register(b1)\n"
-			"{\n"
 			"    float3 tint;\n"
 			"    float padding;\n"
 			"};\n"
@@ -71,8 +64,7 @@ UIRenderer::UIRenderer(Graphics& gfx)
 	vertexShader(gfx, GetUIShaderSource(), "VSMain"),
 	pixelShader(gfx, GetUIShaderSource(), "PSMain"),
 	inputLayout(gfx, GetUIInputLayoutDesc().data(), static_cast<UINT>(GetUIInputLayoutDesc().size()), vertexShader),
-	transformBuffer(gfx),
-	colorBuffer(gfx),
+	constantsBuffer(gfx),
 	topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 {
 }
@@ -104,8 +96,11 @@ void UIRenderer::BindSharedState() noexcept
 	inputLayout.Bind(gfx);
 	topology.Bind(gfx);
 	vertexShader.Bind(gfx);
-	transformBuffer.Bind(gfx);
-	colorBuffer.Bind(gfx, 1u); // PS slot 1 — see shader comment
+	// Bind the single combined cbuffer to BOTH stages at slot 0. VS reads
+	// transform, PS reads tint — both from the same UIConstants struct.
+	constantsBuffer.Bind(gfx); // VS slot 0 via VertexConstantBuffer base
+	ID3D11Buffer* const buf = constantsBuffer.Get();
+	gfx.GetContext()->PSSetConstantBuffers(0u, 1u, &buf);
 	pixelShader.Bind(gfx);
 }
 
@@ -118,14 +113,12 @@ void UIRenderer::DrawQuad(float centerX, float centerY, float width, float heigh
 		return;
 	}
 
-	TransformData transformData = {};
+	UIConstants data = {};
 	XMStoreFloat4x4(
-		&transformData.transform,
+		&data.transform,
 		XMMatrixTranspose(XMMatrixScaling(width, height, 1.0f) * XMMatrixTranslation(centerX, centerY, 0.0f)));
-
-	const ColorData colorData = { tint, 0.0f };
-	transformBuffer.Update(gfx, transformData);
-	colorBuffer.Update(gfx, colorData);
+	data.tint = tint;
+	constantsBuffer.Update(gfx, data);
 	quadMesh.vertexBuffer.Bind(gfx);
 	quadMesh.indexBuffer.Bind(gfx);
 	gfx.DrawIndexed(quadMesh.indexBuffer.GetCount());
