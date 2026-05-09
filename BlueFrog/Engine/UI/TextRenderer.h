@@ -22,7 +22,9 @@ public:
     // pending); in that case nothing happens and the caller's EndTextDraw
     // returns S_OK. `inspectorOpen` shrinks the objective text's layout
     // rect so it fits to the left of the inspector panel when present.
-    void Render(const HudState& hud, int viewportW, int viewportH, bool inspectorOpen = false) noexcept;
+    // `damageFlashAlpha` (0..1) controls a transient fullscreen red
+    // overlay that fades out after the player takes damage; 0 = no flash.
+    void Render(const HudState& hud, int viewportW, int viewportH, bool inspectorOpen = false, float damageFlashAlpha = 0.0f) noexcept;
 
     // Right-side scene inspector panel. Renders a translucent dark column,
     // a per-object summary list with component flags, and a detail dump for

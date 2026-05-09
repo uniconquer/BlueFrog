@@ -6,6 +6,7 @@ struct GameplayInput
 {
 	DirectX::XMFLOAT2 movementIntent = { 0.0f, 0.0f };
 	bool attackQueued = false;
+	bool dashHeld = false;
 	float orbitDelta = 0.0f;
 	float zoomDelta = 0.0f;
 	DirectX::XMFLOAT2 mousePosition = { 0.0f, 0.0f };

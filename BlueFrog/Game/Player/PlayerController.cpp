@@ -6,10 +6,13 @@
 #include "../Simulation/GameplaySceneIds.h"
 #include "../Combat/CombatSystem.h"
 #include <algorithm>
+#include <cmath>
 
 bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio) noexcept
 {
 	attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
+	dashTimeRemaining        = std::max(0.0f, dashTimeRemaining - dt);
+	dashCooldownRemaining    = std::max(0.0f, dashCooldownRemaining - dt);
 
 	SceneObject* player = FindPlayer(scene);
 	if (player == nullptr || !player->combatComponent.has_value())
@@ -24,9 +27,35 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	}
 
 	const DirectX::XMFLOAT3 move = PlayerMovementSystem::ComputeMoveVector(input, camera);
+
+	// Start a new dash on the first frame Space is held while cooldown is
+	// up and we're not already dashing. Direction = current movement
+	// vector if any, otherwise the player's current facing yaw projected
+	// onto the XZ plane. That way a player who hasn't pressed WASD yet
+	// still dashes forward instead of standing still.
+	if (input.dashHeld && dashCooldownRemaining <= 0.0f && dashTimeRemaining <= 0.0f)
+	{
+		float dirX = move.x;
+		float dirZ = move.z;
+		const float magSq = dirX * dirX + dirZ * dirZ;
+		if (magSq < 0.001f)
+		{
+			const float yaw = player->transform.rotation.y;
+			dirX = std::sin(yaw);
+			dirZ = std::cos(yaw);
+		}
+		dashDirX = dirX;
+		dashDirZ = dirZ;
+		dashTimeRemaining     = dashDuration;
+		dashCooldownRemaining = dashDuration + dashCooldown;
+	}
+
+	const float effectiveSpeed = (dashTimeRemaining > 0.0f) ? (moveSpeed * dashSpeedMul) : moveSpeed;
+	const float useX = (dashTimeRemaining > 0.0f) ? dashDirX : move.x;
+	const float useZ = (dashTimeRemaining > 0.0f) ? dashDirZ : move.z;
 	DirectX::XMFLOAT3 desiredPosition = player->transform.position;
-	desiredPosition.x += move.x * moveSpeed * dt;
-	desiredPosition.z += move.z * moveSpeed * dt;
+	desiredPosition.x += useX * effectiveSpeed * dt;
+	desiredPosition.z += useZ * effectiveSpeed * dt;
 	desiredPosition.y = playerHeight;
 	CollisionSystem::MoveAndSlide(*player, scene, desiredPosition);
 

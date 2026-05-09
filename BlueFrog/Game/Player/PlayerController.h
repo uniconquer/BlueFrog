@@ -26,4 +26,16 @@ private:
 	static constexpr float attackCooldown = 0.45f;
 	static constexpr int attackDamage = 1;
 	float attackCooldownRemaining = 0.0f;
+
+	// Dash: short burst at higher speed in the current movement direction
+	// (or facing if no movement input). Fixed window of dashDuration with
+	// a recovery window of dashCooldown after — held-key sampling means
+	// the player can chain dashes back-to-back at the cooldown rate.
+	static constexpr float dashSpeedMul   = 3.0f; // multiplied by moveSpeed
+	static constexpr float dashDuration   = 0.18f;
+	static constexpr float dashCooldown   = 0.55f;
+	float dashTimeRemaining     = 0.0f;
+	float dashCooldownRemaining = 0.0f;
+	float dashDirX              = 0.0f;
+	float dashDirZ              = 0.0f;
 };

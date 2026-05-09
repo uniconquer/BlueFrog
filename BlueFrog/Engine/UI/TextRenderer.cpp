@@ -207,12 +207,26 @@ TextRenderer::TextRenderer(Graphics& gfxIn)
     }
 }
 
-void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH, bool inspectorOpen) noexcept
+void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH, bool inspectorOpen, float damageFlashAlpha) noexcept
 {
     ID2D1RenderTarget* const target = gfx.GetD2DTarget();
     if (target == nullptr || !objectiveFormat || !whiteBrush)
     {
         return;
+    }
+
+    // Damage flash: fullscreen red rectangle whose alpha tracks the
+    // transient flash timer App maintains. Reuses redBrush via
+    // SetOpacity so we don't allocate a brush per frame; restored to
+    // 1.0 after so the "Defeated" text path still draws at full alpha.
+    if (damageFlashAlpha > 0.0f && redBrush)
+    {
+        const float a = std::min(damageFlashAlpha * 0.55f, 0.55f);
+        redBrush->SetOpacity(a);
+        target->FillRectangle(
+            D2D1::RectF(0.0f, 0.0f, static_cast<float>(viewportW), static_cast<float>(viewportH)),
+            redBrush.Get());
+        redBrush->SetOpacity(1.0f);
     }
 
     // Effective right edge of the screen area NOT covered by the inspector

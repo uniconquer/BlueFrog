@@ -44,4 +44,10 @@ private:
 	bool   inspectorEnabled    = false;
 	int    inspectorSelected   = 0;
 	int    inspectorFieldIndex = 0;
+	// Damage feedback: when player HP drops between ticks we light up a
+	// transient fullscreen red overlay. lastPlayerHealth tracks the value
+	// from the previous tick (-1 = uninitialized); damageFlashAlpha
+	// linearly fades to 0 over kDamageFlashDuration after each hit.
+	int    lastPlayerHealth   = -1;
+	float  damageFlashAlpha   = 0.0f;
 };

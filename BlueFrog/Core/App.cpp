@@ -5,6 +5,7 @@
 #include "../Engine/Scene/SceneSerializer.h"
 #include "../Engine/UI/InspectorFields.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <filesystem>
 #include <string>
@@ -55,6 +56,20 @@ void App::DoFrame(float dt)
 	PollDebugToggles();
 	const GameplayInput input = CollectGameplayInput(dt);
 	UpdateModel(input, dt);
+
+	// Damage flash bookkeeping. Detect player HP drop between ticks; if
+	// so kick the flash to peak. Decay it every tick toward zero. Reset
+	// the baseline whenever the player respawns above the previous low
+	// (typically after a scene reload).
+	const int curHp = static_cast<int>(hudState.playerHealth.current);
+	if (lastPlayerHealth >= 0 && curHp < lastPlayerHealth)
+	{
+		damageFlashAlpha = 1.0f;
+	}
+	lastPlayerHealth = curHp;
+	constexpr float kDamageFlashDuration = 0.35f;
+	damageFlashAlpha = std::max(0.0f, damageFlashAlpha - dt / kDamageFlashDuration);
+
 	// Animation controller picks clipName based on the gameplay state we
 	// just settled (player movement intent, enemy distance, alive flag).
 	// Runs BEFORE AnimationSystem::Tick so the time-advance step uses the
@@ -234,6 +249,9 @@ GameplayInput App::CollectGameplayInput(float dt) noexcept
 	{
 		input.orbitDelta += orbitSpeed;
 	}
+	// Dash gate. PlayerController internal cooldown handles the "no spam"
+	// requirement, so plain held-key sampling is enough here.
+	input.dashHeld = wnd.kbd.KeyIsPressed(VK_SPACE);
 
 	if (wnd.mouse.IsInWindow())
 	{
@@ -306,7 +324,7 @@ void App::ComposeFrame()
 	}
 	uiRenderer.Render(hudState);
 	wnd.Gfx().BeginTextDraw();
-	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight(), inspectorEnabled);
+	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight(), inspectorEnabled, damageFlashAlpha);
 	if (inspectorEnabled)
 	{
 		textRenderer.RenderInspector(scene, inspectorSelected, inspectorFieldIndex, wnd.GetWidth(), wnd.GetHeight());
