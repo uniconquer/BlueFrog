@@ -4,6 +4,7 @@
 #include "../Engine/Animation/AnimationSystem.h"
 #include "../Engine/Scene/SceneSerializer.h"
 #include "../Engine/UI/InspectorFields.h"
+#include "../Game/Simulation/GameplaySceneIds.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -26,7 +27,36 @@ App::App(std::string scenePath)
 	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
 {
 	currentScenePath = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
+
+	// Auto-load profile if present. Profile-supplied scene path overrides
+	// the CLI / default; HP override is applied AFTER BuildArena so the
+	// scene-spawned HP is replaced by the saved value.
+	PlayerProfile profile;
+	const std::filesystem::path profilePath("Save/profile.json");
+	const bool profileLoaded = PlayerProfileIO::Load(profilePath, profile);
+	if (profileLoaded && !profile.scenePath.empty())
+	{
+		currentScenePath = profile.scenePath;
+	}
+
 	gameplaySimulation.BuildArena(scene, camera, currentScenePath);
+
+	if (profileLoaded && profile.playerHealth > 0)
+	{
+		if (SceneObject* player = scene.FindObject(GameplaySceneIds::Player))
+		{
+			if (player->combatComponent.has_value())
+			{
+				if (profile.playerMaxHealth > 0)
+				{
+					player->combatComponent->maxHealth = profile.playerMaxHealth;
+				}
+				player->combatComponent->health = profile.playerHealth;
+			}
+		}
+		currentPlayTimeSec = profile.playTimeSec;
+	}
+
 	hudState = gameplaySimulation.BuildHudState(scene);
 
 	// Audio: load placeholder SFX once at boot. Failures are logged via
@@ -55,6 +85,7 @@ int App::Go()
 
 void App::DoFrame(float dt)
 {
+	currentPlayTimeSec += dt;
 	PollDebugToggles();
 	const GameplayInput input = CollectGameplayInput(dt);
 	UpdateModel(input, dt);
@@ -111,6 +142,32 @@ void App::PollDebugToggles() noexcept
 			// last-write-wins semantics as the LoadSceneRequested path.
 			reloadRequested = true;
 			break;
+		case VK_F8:
+		{
+			// Profile save: snapshot current scene + player HP + accumulated
+			// play time into Save/profile.json. Subsequent app launches
+			// auto-load this and start from the saved scene with the saved
+			// HP applied on top of the spawn defaults.
+			PlayerProfile profile;
+			profile.scenePath = currentScenePath;
+			profile.playTimeSec = currentPlayTimeSec;
+			if (const SceneObject* player = scene.FindObject(GameplaySceneIds::Player))
+			{
+				if (player->combatComponent.has_value())
+				{
+					profile.playerHealth    = player->combatComponent->health;
+					profile.playerMaxHealth = player->combatComponent->maxHealth;
+				}
+			}
+			const std::filesystem::path profilePath("Save/profile.json");
+			const bool ok = PlayerProfileIO::Save(profilePath, profile);
+			const std::string msg = ok
+				? std::string("[Profile] saved to ") + profilePath.string() + "\n"
+				: std::string("[Profile] save FAILED\n");
+			std::fputs(msg.c_str(), stdout);
+			::OutputDebugStringA(msg.c_str());
+			break;
+		}
 		case VK_F12:
 		{
 			// Save: serialize the live scene + camera + objective spec back

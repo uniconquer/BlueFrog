@@ -58,6 +58,9 @@
     <Filter Include="Game\\Hud">
       <UniqueIdentifier>{a3d8c1eb-c298-4e30-8d4c-5ffbd88d4b2f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\\Profile">
+      <UniqueIdentifier>{f0a1b2c3-d4e5-4f6a-9b7c-8d9e0f1a2b3c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Game\\Simulation">
       <UniqueIdentifier>{48326dfb-1132-48a7-902e-12d93f9cac9b}</UniqueIdentifier>
     </Filter>
@@ -101,6 +104,9 @@
     </ClCompile>
     <ClCompile Include="Engine\Audio\AudioEngine.cpp">
       <Filter>Engine\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Profile\PlayerProfile.cpp">
+      <Filter>Game\Profile</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Render\cgltf_impl.cpp">
       <Filter>Engine\Render</Filter>
@@ -214,6 +220,9 @@
     </ClInclude>
     <ClInclude Include="Engine\Audio\AudioEngine.h">
       <Filter>Engine\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Profile\PlayerProfile.h">
+      <Filter>Game\Profile</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Render\SkinnedPipeline.h">
       <Filter>Engine\Render</Filter>

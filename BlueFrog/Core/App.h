@@ -11,6 +11,7 @@
 #include "../Engine/Render/WorldGridRenderer.h"
 #include "../Engine/Audio/AudioEngine.h"
 #include "../Game/Simulation/GameplaySimulation.h"
+#include "../Game/Profile/PlayerProfile.h"
 #include <string>
 
 class App
@@ -50,4 +51,9 @@ private:
 	// linearly fades to 0 over kDamageFlashDuration after each hit.
 	int    lastPlayerHealth   = -1;
 	float  damageFlashAlpha   = 0.0f;
+	// Persistent profile state (Phase H Stage 1). currentPlayTimeSec
+	// accumulates monotonically across the session; F8 snapshots it
+	// alongside scene + HP into the save file. The Save folder lives
+	// outside the build outputs so a clean rebuild doesn't wipe progress.
+	float  currentPlayTimeSec = 0.0f;
 };

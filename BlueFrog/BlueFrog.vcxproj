@@ -177,6 +177,7 @@
     <ClCompile Include="Engine\Render\ImageLoader.cpp" />
     <ClCompile Include="Engine\Render\MeshImporter.cpp" />
     <ClCompile Include="Engine\Audio\AudioEngine.cpp" />
+    <ClCompile Include="Game\Profile\PlayerProfile.cpp" />
     <ClCompile Include="Engine\Render\cgltf_impl.cpp" />
     <ClCompile Include="Engine\Render\IndexBuffer.cpp" />
     <ClCompile Include="Engine\Render\InputLayout.cpp" />
@@ -238,6 +239,7 @@
     <ClInclude Include="Engine\Render\ImageLoader.h" />
     <ClInclude Include="Engine\Render\MeshImporter.h" />
     <ClInclude Include="Engine\Audio\AudioEngine.h" />
+    <ClInclude Include="Game\Profile\PlayerProfile.h" />
     <ClInclude Include="Engine\Render\SkinnedPipeline.h" />
     <ClInclude Include="Engine\Render\ConstantBuffer.h" />
     <ClInclude Include="Engine\Render\IndexBuffer.h" />
