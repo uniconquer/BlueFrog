@@ -1,0 +1,7 @@
+{
+  "render":    { "meshPath": "Assets/Models/Fox/Fox.gltf", "material": { "tint": [1.0, 0.45, 0.35] } },
+  "collision": { "halfExtents": [1.6, 1.6], "blocking": true },
+  "combat":    { "faction": "enemy", "maxHp": 8, "currentHp": 8 },
+  "behavior":  { "type": "scout" },
+  "animation": { "clipName": "Run", "playSpeed": 1.1, "looping": true }
+}

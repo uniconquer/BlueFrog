@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 2,
+  "objective": {
+    "text": "Defeat the alpha",
+    "completionText": "VICTORY!",
+    "conditions": [
+      { "type": "enemy_killed", "name": "AlphaFox" }
+    ]
+  },
+  "scene": {
+    "name": "BossArena",
+    "camera": { "target": [-5.0, 1.0, 0.0] },
+    "objects": [
+      {
+        "name": "Ground",
+        "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [22.0, 1.0, 22.0] },
+        "render": {
+          "mesh": "plane",
+          "material": { "texture": "Assets/Textures/ground_checker.png", "tint": [0.78, 0.72, 0.85], "sampler": "wrap_linear" }
+        }
+      },
+      {
+        "name": "NorthWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
+        "transform": { "position": [0.0, 1.0, 8.0], "rotation": [0.0, 0.0, 0.0], "scale": [8.0, 1.0, 0.7] },
+        "collision": { "halfExtents": [8.0, 0.7], "blocking": true }
+      },
+      {
+        "name": "SouthWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
+        "transform": { "position": [0.0, 1.0, -8.0], "rotation": [0.0, 0.0, 0.0], "scale": [8.0, 1.0, 0.7] },
+        "collision": { "halfExtents": [8.0, 0.7], "blocking": true }
+      },
+      {
+        "name": "EastWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
+        "transform": { "position": [8.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.7, 1.0, 8.0] },
+        "collision": { "halfExtents": [0.7, 8.0], "blocking": true }
+      },
+      {
+        "name": "WestWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
+        "transform": { "position": [-8.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.7, 1.0, 8.0] },
+        "collision": { "halfExtents": [0.7, 8.0], "blocking": true }
+      },
+      {
+        "name": "Player",
+        "prefab": "Assets/Prefabs/Player.prefab.json",
+        "transform": { "position": [-5.0, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.4, 1.4, 1.4] }
+      },
+      {
+        "name": "AlphaFox",
+        "prefab": "Assets/Prefabs/Boss.prefab.json",
+        "transform": { "position": [4.5, 0.0, 0.0], "rotation": [0.0, 3.1416, 0.0], "scale": [0.1, 0.1, 0.1] }
+      }
+    ]
+  }
+}
