@@ -389,6 +389,9 @@
     <ClInclude Include="Engine\Scene\SceneObject.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\UI\DamagePopup.h">
+      <Filter>Engine\UI</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\UI\HudState.h">
       <Filter>Engine\UI</Filter>
     </ClInclude>

@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio) noexcept
+bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept
 {
 	attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
 	dashTimeRemaining        = std::max(0.0f, dashTimeRemaining - dt);
@@ -50,6 +50,11 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		dashCooldownRemaining = dashDuration + dashCooldown;
 	}
 
+	// Dash i-frames: while the dash burst is active the player ignores all
+	// incoming damage. Cleared every tick (rather than only at dash end) so a
+	// scene reload mid-dash can't strand the player invulnerable forever.
+	player->combatComponent->invulnerable = (dashTimeRemaining > 0.0f);
+
 	const float effectiveSpeed = (dashTimeRemaining > 0.0f) ? (moveSpeed * dashSpeedMul) : moveSpeed;
 	const float useX = (dashTimeRemaining > 0.0f) ? dashDirX : move.x;
 	const float useZ = (dashTimeRemaining > 0.0f) ? dashDirZ : move.z;
@@ -71,7 +76,7 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		// target is in range — the sound represents the player swinging,
 		// not a successful hit.
 		if (audio) audio->Play("attack");
-		TryAttack(scene, *player, bus, audio);
+		TryAttack(scene, *player, bus, audio, popups);
 		attackCooldownRemaining = attackCooldown;
 	}
 
@@ -94,7 +99,7 @@ SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 	return scene.FindObject(GameplaySceneIds::Player);
 }
 
-bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bus, AudioEngine* audio) noexcept
+bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept
 {
 	// Hit the nearest alive enemy combatant within range. Iterating each
 	// attack is fine — scenes have a handful of objects, and centralizing
@@ -123,7 +128,7 @@ bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bu
 	{
 		return false;
 	}
-	return CombatSystem::TryMeleeAttack(player, *best, attackDamage, attackRange, &bus, audio);
+	return CombatSystem::TryMeleeAttack(player, *best, attackDamage, attackRange, &bus, audio, popups);
 }
 
 void PlayerController::UpdateTint(SceneObject& player) const noexcept

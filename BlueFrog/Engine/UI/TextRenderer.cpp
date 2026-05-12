@@ -149,6 +149,34 @@ TextRenderer::TextRenderer(Graphics& gfxIn)
         throw BFGFX_EXCEPT(hr);
     }
 
+    // Damage-number popup: bold, slightly-yellow tint so the popup pops
+    // against both the violet boss-arena floor and the lighter sparring
+    // yard / arena_trial palettes. Center-aligned around the projected
+    // screen point so the popup grows symmetrically above the enemy.
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::DamagePopupPointSize),
+        TextLayout::kFontLocale,
+        popupFormat.GetAddressOf());
+    if (FAILED(hr))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    popupFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    popupFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    popupFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+    if (FAILED(hr = target->CreateSolidColorBrush(
+        D2D1::ColorF(1.0f, 0.86f, 0.34f, 1.0f),
+        popupBrush.GetAddressOf())))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+
     // Inspector resources. Consolas because the panel renders aligned
     // ASCII rows where proportional fonts would mis-align everything.
     hr = dwrite->CreateTextFormat(
@@ -325,6 +353,82 @@ void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH, boo
                 DWRITE_MEASURING_MODE_NATURAL);
         }
     }
+}
+
+void TextRenderer::RenderDamagePopups(
+    const std::vector<DamagePopup>& popups,
+    const TopDownCamera& camera,
+    int viewportW,
+    int viewportH) noexcept
+{
+    ID2D1RenderTarget* const target = gfx.GetD2DTarget();
+    if (target == nullptr || !popupFormat || !popupBrush || popups.empty())
+    {
+        return;
+    }
+
+    // Compose VP once; per-popup we only multiply a position vector through.
+    const DirectX::XMMATRIX view = camera.GetViewMatrix();
+    const DirectX::XMMATRIX proj = camera.GetProjectionMatrix();
+    const DirectX::XMMATRIX viewProj = DirectX::XMMatrixMultiply(view, proj);
+
+    const float w = static_cast<float>(viewportW);
+    const float h = static_cast<float>(viewportH);
+
+    for (const DamagePopup& p : popups)
+    {
+        // Spawn → clip-space → NDC. clipW <= 0 means behind the camera —
+        // skip rather than risk a divide-by-tiny-positive flipping the
+        // point to the wrong side of the viewport.
+        const DirectX::XMVECTOR world = DirectX::XMVectorSet(p.worldPos.x, p.worldPos.y, p.worldPos.z, 1.0f);
+        const DirectX::XMVECTOR clip  = DirectX::XMVector4Transform(world, viewProj);
+        const float clipW = DirectX::XMVectorGetW(clip);
+        if (clipW <= 0.001f)
+        {
+            continue;
+        }
+        const float ndcX = DirectX::XMVectorGetX(clip) / clipW;
+        const float ndcY = DirectX::XMVectorGetY(clip) / clipW;
+        if (ndcX < -1.2f || ndcX > 1.2f || ndcY < -1.2f || ndcY > 1.2f)
+        {
+            // Slight margin so a popup that's slightly off-screen still
+            // disappears cleanly rather than hard-clipping at the edge.
+            continue;
+        }
+
+        // NDC → pixel, then float up linearly over the popup's lifetime.
+        const float lifeT = std::clamp(p.age / DamagePopupConstants::kMaxAge, 0.0f, 1.0f);
+        const float px = (ndcX * 0.5f + 0.5f) * w;
+        const float py = (1.0f - (ndcY * 0.5f + 0.5f)) * h - lifeT * DamagePopupConstants::kFloatUpDip;
+
+        // Alpha: hold full for the first half, fade to 0 over the back half.
+        // A pure linear fade reads as "vanishing too soon"; the held front
+        // gives the eye time to register the number first.
+        const float alpha = (lifeT < 0.5f) ? 1.0f : std::max(0.0f, 1.0f - (lifeT - 0.5f) * 2.0f);
+        popupBrush->SetOpacity(alpha);
+
+        wchar_t buf[16];
+        const int n = std::swprintf(buf, 16, L"%d", p.amount);
+        if (n <= 0)
+        {
+            continue;
+        }
+
+        // Center the layout rect around the projected point so DWrite's
+        // CENTER alignment puts the text right above the enemy.
+        constexpr float kHalfW = 60.0f;
+        constexpr float kHalfH = 24.0f;
+        const D2D1_RECT_F rect = D2D1::RectF(px - kHalfW, py - kHalfH, px + kHalfW, py + kHalfH);
+        target->DrawText(
+            buf,
+            static_cast<UINT32>(n),
+            popupFormat.Get(),
+            rect,
+            popupBrush.Get(),
+            D2D1_DRAW_TEXT_OPTIONS_NONE,
+            DWRITE_MEASURING_MODE_NATURAL);
+    }
+    popupBrush->SetOpacity(1.0f);
 }
 
 void TextRenderer::RenderInspector(const Scene& scene, int selectedIndex, int fieldIndex, int viewportW, int viewportH) noexcept

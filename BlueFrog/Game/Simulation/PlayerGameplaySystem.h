@@ -11,7 +11,7 @@ class PlayerGameplaySystem final
 public:
 	void Update(const SystemContext& ctx) noexcept
 	{
-		playerController.Update(ctx.input, ctx.scene, ctx.camera, ctx.dt, ctx.eventBus, ctx.audio);
+		playerController.Update(ctx.input, ctx.scene, ctx.camera, ctx.dt, ctx.eventBus, ctx.audio, ctx.damagePopups);
 	}
 
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept

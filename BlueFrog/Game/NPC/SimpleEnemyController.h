@@ -2,8 +2,10 @@
 
 #include "../../Engine/Events/EventBus.h"
 #include "../../Engine/Scene/Scene.h"
+#include "../../Engine/UI/DamagePopup.h"
 #include "EnemyArcherBehavior.h"
 #include "EnemyScoutBehavior.h"
+#include <vector>
 
 class AudioEngine;
 
@@ -15,7 +17,7 @@ class AudioEngine;
 class SimpleEnemyController
 {
 public:
-	void Update(Scene& scene, float dt, EventBus& bus, AudioEngine* audio) noexcept;
+	void Update(Scene& scene, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
 private:
 	EnemyScoutBehavior  scoutBehavior;
 	EnemyArcherBehavior archerBehavior;

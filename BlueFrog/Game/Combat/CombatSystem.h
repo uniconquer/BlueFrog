@@ -1,5 +1,7 @@
 #pragma once
 #include "../../Engine/Scene/SceneObject.h"
+#include "../../Engine/UI/DamagePopup.h"
+#include <vector>
 
 class EventBus;
 class AudioEngine;
@@ -13,8 +15,11 @@ public:
 	// nullptr to preserve Phase 5 semantics.
 	// `audio` is optional — when non-null, plays an "enemy_hit" SFX when
 	// damage is applied, and "enemy_kill" SFX on the alive->dead transition.
-	static bool TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range, EventBus* bus = nullptr, AudioEngine* audio = nullptr) noexcept;
+	// `popups` is optional — when non-null, every successful damage
+	// application appends one DamagePopup anchored at the target's transform
+	// position. nullptr disables popup spawning.
+	static bool TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range, EventBus* bus = nullptr, AudioEngine* audio = nullptr, std::vector<DamagePopup>* popups = nullptr) noexcept;
 private:
-	static void ApplyDamage(SceneObject& target, int damage, EventBus* bus, AudioEngine* audio) noexcept;
+	static void ApplyDamage(SceneObject& target, int damage, EventBus* bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
 	static float DistanceXZ(const DirectX::XMFLOAT3& a, const DirectX::XMFLOAT3& b) noexcept;
 };

@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "../Engine/Camera/TopDownCamera.h"
 #include "../Engine/Scene/Scene.h"
+#include "../Engine/UI/DamagePopup.h"
 #include "../Engine/UI/HudState.h"
 #include "../Engine/UI/UIRenderer.h"
 #include "../Engine/UI/TextRenderer.h"
@@ -13,6 +14,7 @@
 #include "../Game/Simulation/GameplaySimulation.h"
 #include "../Game/Profile/PlayerProfile.h"
 #include <string>
+#include <vector>
 
 class App
 {
@@ -56,4 +58,11 @@ private:
 	// alongside scene + HP into the save file. The Save folder lives
 	// outside the build outputs so a clean rebuild doesn't wipe progress.
 	float  currentPlayTimeSec = 0.0f;
+	// Live floating damage-number popups. Combat code appends new entries
+	// via the SystemContext sink; App ticks ages each frame and erases
+	// expired ones before TextRenderer projects the remainder. Owned here
+	// (rather than on GameplaySimulation) so a scene transition does not
+	// drop in-flight popups — though in practice ReloadScene also resets
+	// HP and downstream feel, so a clear-on-reload is fine too.
+	std::vector<DamagePopup> activePopups;
 };

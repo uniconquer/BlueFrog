@@ -3,9 +3,11 @@
 #include "../../Engine/Events/EventBus.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/Scene/SceneObject.h"
+#include "../../Engine/UI/DamagePopup.h"
 #include "../Combat/CombatSystem.h"
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 class AudioEngine;
 
@@ -20,7 +22,7 @@ class AudioEngine;
 class EnemyArcherBehavior final
 {
 public:
-	void Update(Scene& /*scene*/, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio) const noexcept
+	void Update(Scene& /*scene*/, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) const noexcept
 	{
 		if (!enemy.combatComponent.has_value() || !player.combatComponent.has_value())
 		{
@@ -54,7 +56,7 @@ public:
 			// range), pass a fireRange large enough that TryMeleeAttack's
 			// internal range gate doesn't reject. faction-mismatch and
 			// alive-checks still run — we want those.
-			CombatSystem::TryMeleeAttack(enemy, player, attackDamage, fireRange + 0.5f, &bus, audio);
+			CombatSystem::TryMeleeAttack(enemy, player, attackDamage, fireRange + 0.5f, &bus, audio, popups);
 			cc.attackCooldownRemaining = fireInterval;
 		}
 

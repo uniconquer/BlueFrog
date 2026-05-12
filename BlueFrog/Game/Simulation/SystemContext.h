@@ -3,7 +3,10 @@
 #include "../../Engine/Camera/TopDownCamera.h"
 #include "../../Engine/Events/EventBus.h"
 #include "../../Engine/Scene/Scene.h"
+#include "../../Engine/UI/DamagePopup.h"
 #include "GameplayInput.h"
+
+#include <vector>
 
 class AudioEngine;
 
@@ -37,4 +40,9 @@ struct SystemContext
     // `if (ctx.audio) ctx.audio->Play(...)` so missing audio degrades
     // silently rather than crashing.
     AudioEngine*         audio = nullptr;
+    // Optional sink for transient floating "damage number" popups, owned by
+    // App across scene reloads. Combat code appends one DamagePopup per
+    // successful damage application; nullptr means the feature is disabled
+    // (no popups rendered, no crash).
+    std::vector<DamagePopup>* damagePopups = nullptr;
 };

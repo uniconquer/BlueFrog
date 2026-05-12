@@ -1,8 +1,10 @@
 #pragma once
 #include "../../Engine/Camera/TopDownCamera.h"
 #include "../../Engine/Scene/Scene.h"
+#include "../../Engine/UI/DamagePopup.h"
 #include "PlayerMovementSystem.h"
 #include "../Simulation/GameplayInput.h"
+#include <vector>
 
 class EventBus;
 class AudioEngine;
@@ -10,11 +12,11 @@ class AudioEngine;
 class PlayerController
 {
 public:
-	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio) noexcept;
+	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
 	float GetAttackCooldownProgress01() const noexcept;
 private:
 	SceneObject* FindPlayer(Scene& scene) noexcept;
-	bool TryAttack(Scene& scene, SceneObject& player, EventBus& bus, AudioEngine* audio) noexcept;
+	bool TryAttack(Scene& scene, SceneObject& player, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
 	void UpdateTint(SceneObject& player) const noexcept;
 private:
 	static constexpr float moveSpeed = 6.5f;

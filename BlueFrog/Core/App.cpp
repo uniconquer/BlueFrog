@@ -68,6 +68,7 @@ App::App(std::string scenePath)
 	audio.LoadBgm("arena", std::filesystem::path("Assets/Audio/bgm_arena.wav"));
 	audio.PlayBgm("arena");
 	gameplaySimulation.SetAudio(&audio);
+	gameplaySimulation.SetDamagePopupSink(&activePopups);
 }
 
 int App::Go()
@@ -102,6 +103,19 @@ void App::DoFrame(float dt)
 	lastPlayerHealth = curHp;
 	constexpr float kDamageFlashDuration = 0.35f;
 	damageFlashAlpha = std::max(0.0f, damageFlashAlpha - dt / kDamageFlashDuration);
+
+	// Tick damage-popup ages and erase the ones past their lifetime. Done
+	// AFTER UpdateModel (which is where combat code appends new popups via
+	// the SystemContext sink) so a popup spawned this tick gets a full
+	// frame of render time before its age is advanced.
+	for (DamagePopup& p : activePopups)
+	{
+		p.age += dt;
+	}
+	activePopups.erase(
+		std::remove_if(activePopups.begin(), activePopups.end(),
+			[](const DamagePopup& p) noexcept { return p.age >= DamagePopupConstants::kMaxAge; }),
+		activePopups.end());
 
 	// Animation controller picks clipName based on the gameplay state we
 	// just settled (player movement intent, enemy distance, alive flag).
@@ -384,6 +398,10 @@ void App::ComposeFrame()
 	uiRenderer.Render(hudState);
 	wnd.Gfx().BeginTextDraw();
 	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight(), inspectorEnabled, damageFlashAlpha);
+	// Damage-number overlay: drawn between the persistent HUD text and the
+	// inspector panel so the panel (if open) still covers the right-side
+	// popups, keeping the editor view tidy.
+	textRenderer.RenderDamagePopups(activePopups, camera, wnd.GetWidth(), wnd.GetHeight());
 	if (inspectorEnabled)
 	{
 		textRenderer.RenderInspector(scene, inspectorSelected, inspectorFieldIndex, wnd.GetWidth(), wnd.GetHeight());

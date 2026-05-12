@@ -264,6 +264,7 @@
     <ClInclude Include="Core\Mouse.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\Window.h" />
+    <ClInclude Include="Engine\UI\DamagePopup.h" />
     <ClInclude Include="Engine\UI\HudState.h" />
     <ClInclude Include="Engine\UI\UILayout.h" />
     <ClInclude Include="Engine\UI\UIRenderer.h" />

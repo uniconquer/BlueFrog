@@ -3,7 +3,9 @@
 #include "../../Engine/Camera/TopDownCamera.h"
 #include "../../Engine/Events/EventBus.h"
 #include "../../Engine/Scene/Scene.h"
+#include "../../Engine/UI/DamagePopup.h"
 #include "../../Engine/UI/HudState.h"
+#include <vector>
 #include "../Objectives/ObjectiveSystem.h"
 #include "GameplayCameraSystem.h"
 #include "EnemyGameplaySystem.h"
@@ -49,6 +51,12 @@ public:
 	// installs this once at boot; pass nullptr to disable audio cleanly.
 	void SetAudio(AudioEngine* audio) noexcept { audio_ = audio; }
 
+	// Optional sink for damage-number popups (owned by App so the vector
+	// survives across scene reloads). Combat code pushes one entry per
+	// damage application; App ticks ages and removes expired popups before
+	// the next frame. nullptr disables the feature.
+	void SetDamagePopupSink(std::vector<DamagePopup>* popups) noexcept { damagePopupsSink_ = popups; }
+
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
@@ -70,4 +78,5 @@ private:
 	bool                         deathSequenceActive = false;
 	bool                         pendingDeathReload  = false;
 	AudioEngine*                 audio_              = nullptr;
+	std::vector<DamagePopup>*    damagePopupsSink_   = nullptr;
 };

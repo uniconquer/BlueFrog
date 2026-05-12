@@ -70,7 +70,7 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 	//      position; may publish LoadSceneRequested.
 	//   5. camera.FollowPlayer — snap camera target after the player has
 	//      moved so the view stays locked.
-	const SystemContext ctx{ input, scene, camera, eventBus, dt, audio_ };
+	const SystemContext ctx{ input, scene, camera, eventBus, dt, audio_, damagePopupsSink_ };
 	cameraSystem.ApplyInput(ctx);
 	playerSystem.Update(ctx);
 	enemySystem.Update(ctx);

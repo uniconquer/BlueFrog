@@ -13,6 +13,10 @@ namespace TextLayout
     inline constexpr float ObjectivePointSize    = 20.0f;
     inline constexpr float NumericPointSize      = 14.0f;
     inline constexpr float DefeatedPointSize     = 48.0f;
+    // Floating damage number above an enemy on a successful hit. Sized
+    // between the HP-numeric readout and the objective banner so the
+    // popup reads clearly without competing with permanent HUD text.
+    inline constexpr float DamagePopupPointSize  = 22.0f;
     inline constexpr float InspectorPointSize    = 11.0f;
     inline constexpr float InspectorTitlePointSize = 13.0f;
     // Objective text sits BELOW the HP bars (which occupy ~y=18..54 in

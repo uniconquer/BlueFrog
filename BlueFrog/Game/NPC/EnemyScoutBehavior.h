@@ -4,9 +4,11 @@
 #include "../../Engine/Physics/CollisionSystem.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/Scene/SceneObject.h"
+#include "../../Engine/UI/DamagePopup.h"
 #include "../Combat/CombatSystem.h"
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 class AudioEngine;
 
@@ -18,7 +20,7 @@ class AudioEngine;
 class EnemyScoutBehavior final
 {
 public:
-	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio) const noexcept
+	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) const noexcept
 	{
 		if (!enemy.combatComponent.has_value() || !player.combatComponent.has_value())
 		{
@@ -64,7 +66,7 @@ public:
 			return;
 		}
 
-		if (cc.attackCooldownRemaining <= 0.0f && CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f, &bus, audio))
+		if (cc.attackCooldownRemaining <= 0.0f && CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f, &bus, audio, popups))
 		{
 			cc.attackCooldownRemaining = attackCooldown;
 		}
