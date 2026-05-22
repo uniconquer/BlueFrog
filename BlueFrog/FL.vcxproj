@@ -20,10 +20,10 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{C20740A6-650E-41EE-9345-FF62B2CA9CC1}</ProjectGuid>
-    <RootNamespace>BlueFrog</RootNamespace>
+    <ProjectGuid>{1234ABCD-5678-4DEF-9012-FEDCBA987654}</ProjectGuid>
+    <RootNamespace>FL</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>BlueFrog</ProjectName>
+    <ProjectName>FL</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -158,78 +158,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Core\AppBase.cpp" />
     <ClCompile Include="Core\FLApp.cpp" />
-    <ClCompile Include="Core\BFException.cpp" />
-    <ClCompile Include="Core\BFTimer.cpp" />
-    <ClCompile Include="Core\Dxerr\dxerr.cpp" />
-    <ClCompile Include="Engine\Camera\TopDownCamera.cpp" />
-    <ClCompile Include="Engine\Physics\CollisionSystem.cpp" />
-    <ClCompile Include="Engine\UI\UIRenderer.cpp" />
-    <ClCompile Include="Engine\UI\TextRenderer.cpp" />
-    <ClCompile Include="Engine\Render\DebugRenderer.cpp" />
-    <ClCompile Include="Engine\Render\WorldGridRenderer.cpp" />
+    <ClCompile Include="Core\WinMain.cpp" />
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
     <ClCompile Include="Game\Combat\KnockbackSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
     <ClCompile Include="Game\Objectives\ObjectiveStateIO.cpp" />
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp" />
     <ClCompile Include="Game\Player\PlayerController.cpp" />
+    <ClCompile Include="Game\Profile\PlayerProfile.cpp" />
     <ClCompile Include="Game\Simulation\GameplaySimulation.cpp" />
     <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp" />
-    <ClCompile Include="Engine\Render\ImageLoader.cpp" />
-    <ClCompile Include="Engine\Render\MeshImporter.cpp" />
-    <ClCompile Include="Engine\Audio\AudioEngine.cpp" />
-    <ClCompile Include="Game\Profile\PlayerProfile.cpp" />
-    <ClCompile Include="Engine\Render\cgltf_impl.cpp" />
-    <ClCompile Include="Engine\Render\IndexBuffer.cpp" />
-    <ClCompile Include="Engine\Render\InputLayout.cpp" />
-    <ClCompile Include="Engine\Render\PixelShader.cpp" />
-    <ClCompile Include="Engine\Render\Topology.cpp" />
-    <ClCompile Include="Engine\Render\VertexBuffer.cpp" />
-    <ClCompile Include="Engine\Render\VertexShader.cpp" />
-    <ClCompile Include="Engine\Events\EventBus.cpp" />
-    <ClCompile Include="Engine\Scene\PrefabLoader.cpp" />
-    <ClCompile Include="Engine\Scene\Scene.cpp" />
-    <ClCompile Include="Engine\Scene\SceneLoader.cpp" />
-    <ClCompile Include="Engine\Scene\SceneSerializer.cpp" />
-    <ClCompile Include="Core\Graphics.cpp" />
-    <ClCompile Include="Core\Keyboard.cpp" />
-    <ClCompile Include="Core\Mouse.cpp" />
-    <ClCompile Include="Core\Renderer.cpp" />
-    <ClCompile Include="Core\Window.cpp" />
-    <ClCompile Include="Core\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\AppBase.h" />
     <ClInclude Include="Core\FLApp.h" />
-    <ClInclude Include="Core\BFException.h" />
-    <ClInclude Include="Core\BFTimer.h" />
-    <ClInclude Include="Core\BFWin.h" />
-    <ClInclude Include="Core\Dxerr\dxerr.h" />
-    <ClInclude Include="Engine\Camera\TopDownCamera.h" />
-    <ClInclude Include="Engine\Physics\AABB.h" />
-    <ClInclude Include="Engine\Physics\CollisionSystem.h" />
-    <ClInclude Include="Engine\Scene\CollisionComponent.h" />
-    <ClInclude Include="Engine\Scene\Material.h" />
-    <ClInclude Include="Engine\Scene\CombatComponent.h" />
-    <ClInclude Include="Engine\UI\HealthBar.h" />
     <ClInclude Include="Game\Combat\CombatSystem.h" />
     <ClInclude Include="Game\Combat\KnockbackSystem.h" />
     <ClInclude Include="Game\Hud\HudPresenter.h" />
-    <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
-    <ClInclude Include="Game\NPC\EnemyScoutBehavior.h" />
     <ClInclude Include="Game\NPC\EnemyArcherBehavior.h" />
-    <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h" />
-    <ClInclude Include="Engine\Scene\AnimationStateComponent.h" />
-    <ClInclude Include="Engine\Animation\AnimationSystem.h" />
-    <ClInclude Include="Game\Simulation\AnimationControllerSystem.h" />
+    <ClInclude Include="Game\NPC\EnemyScoutBehavior.h" />
+    <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\Objectives\ObjectiveState.h" />
     <ClInclude Include="Game\Objectives\ObjectiveStateIO.h" />
     <ClInclude Include="Game\Objectives\ObjectiveSystem.h" />
-    <ClInclude Include="Game\Player\PlayerController.h" />
     <ClInclude Include="Game\Player\PlayerAimSystem.h" />
+    <ClInclude Include="Game\Player\PlayerController.h" />
     <ClInclude Include="Game\Player\PlayerMovementSystem.h" />
+    <ClInclude Include="Game\Profile\PlayerProfile.h" />
+    <ClInclude Include="Game\Simulation\AnimationControllerSystem.h" />
     <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h" />
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h" />
     <ClInclude Include="Game\Simulation\GameplayCameraSystem.h" />
@@ -239,69 +195,33 @@
     <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h" />
     <ClInclude Include="Game\Simulation\SystemContext.h" />
     <ClInclude Include="Game\Simulation\TriggerGameplaySystem.h" />
-    <ClInclude Include="Engine\Scene\TriggerComponent.h" />
-    <ClInclude Include="Engine\Events\EventBus.h" />
-    <ClInclude Include="Engine\Events\GameEvent.h" />
-    <ClInclude Include="Engine\Render\ImageLoader.h" />
-    <ClInclude Include="Engine\Render\MeshImporter.h" />
-    <ClInclude Include="Engine\Audio\AudioEngine.h" />
-    <ClInclude Include="Game\Profile\PlayerProfile.h" />
-    <ClInclude Include="Engine\Render\SkinnedPipeline.h" />
-    <ClInclude Include="Engine\Render\ConstantBuffer.h" />
-    <ClInclude Include="Engine\Render\IndexBuffer.h" />
-    <ClInclude Include="Engine\Render\InputLayout.h" />
-    <ClInclude Include="Engine\Render\PixelShader.h" />
-    <ClInclude Include="Engine\Render\LitPipeline.h" />
-    <ClInclude Include="Engine\Render\Sampler.h" />
-    <ClInclude Include="Engine\Render\Surface.h" />
-    <ClInclude Include="Engine\Render\Texture2D.h" />
-    <ClInclude Include="Engine\Render\Topology.h" />
-    <ClInclude Include="Engine\Render\VertexBuffer.h" />
-    <ClInclude Include="Engine\Render\VertexShader.h" />
-    <ClInclude Include="Engine\Scene\RenderComponent.h" />
-    <ClInclude Include="Engine\Scene\PrefabLoader.h" />
-    <ClInclude Include="Engine\Scene\Scene.h" />
-    <ClInclude Include="Engine\Scene\SceneLoader.h" />
-    <ClInclude Include="Engine\Scene\SceneSerializer.h" />
-    <ClInclude Include="Engine\Scene\SceneObject.h" />
-    <ClInclude Include="Engine\Scene\Transform.h" />
-    <ClInclude Include="Core\Graphics.h" />
-    <ClInclude Include="Core\Keyboard.h" />
-    <ClInclude Include="Core\Mouse.h" />
-    <ClInclude Include="Core\Renderer.h" />
-    <ClInclude Include="Core\Window.h" />
-    <ClInclude Include="Engine\UI\DamagePopup.h" />
-    <ClInclude Include="Engine\UI\HudState.h" />
-    <ClInclude Include="Engine\UI\UILayout.h" />
-    <ClInclude Include="Engine\UI\UIRenderer.h" />
-    <ClInclude Include="Engine\UI\TextRenderer.h" />
-    <ClInclude Include="Engine\UI\TextLayout.h" />
-    <ClInclude Include="Engine\UI\InspectorFields.h" />
-    <ClInclude Include="Engine\Render\DebugRenderer.h" />
-    <ClInclude Include="Engine\Render\WorldGridRenderer.h" />
-    <ClInclude Include="Engine\Render\DebugPipeline.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Textures\ground_checker.png" />
-    <None Include="Assets\Scenes\arena_trial.json" />
-    <None Include="Assets\Scenes\sparring_yard.json" />
-    <None Include="Assets\Prefabs\Player.prefab.json" />
-    <None Include="Assets\Prefabs\EnemyScout.prefab.json" />
-    <None Include="Assets\Prefabs\EnemyArcher.prefab.json" />
-    <None Include="Assets\Prefabs\Boss.prefab.json" />
-    <None Include="Assets\Scenes\boss_arena.json" />
-    <None Include="Assets\Models\tetrahedron.gltf" />
-    <None Include="Assets\Models\RiggedSimple\RiggedSimple.gltf" />
-    <None Include="Assets\Models\CesiumMan\CesiumMan.gltf" />
-    <None Include="Assets\Models\Fox\Fox.gltf" />
-    <None Include="Assets\Models\Fox\Fox.bin" />
-    <None Include="Assets\Models\Fox\Texture.png" />
-    <None Include="Assets\Models\BrainStem\BrainStem.gltf" />
     <None Include="Assets\Audio\attack.wav" />
+    <None Include="Assets\Audio\bgm_arena.wav" />
     <None Include="Assets\Audio\enemy_hit.wav" />
     <None Include="Assets\Audio\enemy_kill.wav" />
-    <None Include="Assets\Audio\bgm_arena.wav" />
+    <None Include="Assets\Models\BrainStem\BrainStem.gltf" />
+    <None Include="Assets\Models\CesiumMan\CesiumMan.gltf" />
+    <None Include="Assets\Models\Fox\Fox.bin" />
+    <None Include="Assets\Models\Fox\Fox.gltf" />
+    <None Include="Assets\Models\Fox\Texture.png" />
+    <None Include="Assets\Models\RiggedSimple\RiggedSimple.gltf" />
+    <None Include="Assets\Models\tetrahedron.gltf" />
     <None Include="Assets\Prefabs\ArenaWall.prefab.json" />
+    <None Include="Assets\Prefabs\Boss.prefab.json" />
+    <None Include="Assets\Prefabs\EnemyArcher.prefab.json" />
+    <None Include="Assets\Prefabs\EnemyScout.prefab.json" />
+    <None Include="Assets\Prefabs\Player.prefab.json" />
+    <None Include="Assets\Scenes\arena_trial.json" />
+    <None Include="Assets\Scenes\boss_arena.json" />
+    <None Include="Assets\Scenes\sparring_yard.json" />
+    <None Include="Assets\Textures\ground_checker.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="BlueFrogEngine.vcxproj">
+      <Project>{A1B2C3D4-E5F6-4789-ABCD-1234567890AB}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

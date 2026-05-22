@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{33333333-0000-0000-0000-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Combat">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Hud">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\NPC">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Objectives">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Player">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Profile">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Simulation">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000007}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{55555555-0000-0000-0000-000000000000}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\FLApp.cpp"><Filter>Core</Filter></ClCompile>
+    <ClCompile Include="Core\WinMain.cpp"><Filter>Core</Filter></ClCompile>
+    <ClCompile Include="Game\Combat\CombatSystem.cpp"><Filter>Game\Combat</Filter></ClCompile>
+    <ClCompile Include="Game\Combat\KnockbackSystem.cpp"><Filter>Game\Combat</Filter></ClCompile>
+    <ClCompile Include="Game\NPC\SimpleEnemyController.cpp"><Filter>Game\NPC</Filter></ClCompile>
+    <ClCompile Include="Game\Objectives\ObjectiveStateIO.cpp"><Filter>Game\Objectives</Filter></ClCompile>
+    <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp"><Filter>Game\Objectives</Filter></ClCompile>
+    <ClCompile Include="Game\Player\PlayerController.cpp"><Filter>Game\Player</Filter></ClCompile>
+    <ClCompile Include="Game\Profile\PlayerProfile.cpp"><Filter>Game\Profile</Filter></ClCompile>
+    <ClCompile Include="Game\Simulation\GameplaySimulation.cpp"><Filter>Game\Simulation</Filter></ClCompile>
+    <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp"><Filter>Game\Simulation</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\FLApp.h"><Filter>Core</Filter></ClInclude>
+    <ClInclude Include="Game\Combat\CombatSystem.h"><Filter>Game\Combat</Filter></ClInclude>
+    <ClInclude Include="Game\Combat\KnockbackSystem.h"><Filter>Game\Combat</Filter></ClInclude>
+    <ClInclude Include="Game\Hud\HudPresenter.h"><Filter>Game\Hud</Filter></ClInclude>
+    <ClInclude Include="Game\NPC\EnemyArcherBehavior.h"><Filter>Game\NPC</Filter></ClInclude>
+    <ClInclude Include="Game\NPC\EnemyScoutBehavior.h"><Filter>Game\NPC</Filter></ClInclude>
+    <ClInclude Include="Game\NPC\SimpleEnemyController.h"><Filter>Game\NPC</Filter></ClInclude>
+    <ClInclude Include="Game\Objectives\ObjectiveState.h"><Filter>Game\Objectives</Filter></ClInclude>
+    <ClInclude Include="Game\Objectives\ObjectiveStateIO.h"><Filter>Game\Objectives</Filter></ClInclude>
+    <ClInclude Include="Game\Objectives\ObjectiveSystem.h"><Filter>Game\Objectives</Filter></ClInclude>
+    <ClInclude Include="Game\Player\PlayerAimSystem.h"><Filter>Game\Player</Filter></ClInclude>
+    <ClInclude Include="Game\Player\PlayerController.h"><Filter>Game\Player</Filter></ClInclude>
+    <ClInclude Include="Game\Player\PlayerMovementSystem.h"><Filter>Game\Player</Filter></ClInclude>
+    <ClInclude Include="Game\Profile\PlayerProfile.h"><Filter>Game\Profile</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\AnimationControllerSystem.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\GameplayCameraSystem.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\GameplayInput.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\GameplaySceneIds.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\GameplaySimulation.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\PlayerGameplaySystem.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\SystemContext.h"><Filter>Game\Simulation</Filter></ClInclude>
+    <ClInclude Include="Game\Simulation\TriggerGameplaySystem.h"><Filter>Game\Simulation</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Audio\attack.wav"><Filter>Assets</Filter></None>
+    <None Include="Assets\Audio\bgm_arena.wav"><Filter>Assets</Filter></None>
+    <None Include="Assets\Audio\enemy_hit.wav"><Filter>Assets</Filter></None>
+    <None Include="Assets\Audio\enemy_kill.wav"><Filter>Assets</Filter></None>
+    <None Include="Assets\Models\BrainStem\BrainStem.gltf"><Filter>Assets</Filter></None>
+    <None Include="Assets\Models\CesiumMan\CesiumMan.gltf"><Filter>Assets</Filter></None>
+    <None Include="Assets\Models\Fox\Fox.bin"><Filter>Assets</Filter></None>
+    <None Include="Assets\Models\Fox\Fox.gltf"><Filter>Assets</Filter></None>
+    <None Include="Assets\Models\Fox\Texture.png"><Filter>Assets</Filter></None>
+    <None Include="Assets\Models\RiggedSimple\RiggedSimple.gltf"><Filter>Assets</Filter></None>
+    <None Include="Assets\Models\tetrahedron.gltf"><Filter>Assets</Filter></None>
+    <None Include="Assets\Prefabs\ArenaWall.prefab.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Prefabs\Boss.prefab.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Prefabs\EnemyArcher.prefab.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Prefabs\EnemyScout.prefab.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Prefabs\Player.prefab.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Scenes\arena_trial.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Scenes\boss_arena.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Scenes\sparring_yard.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Textures\ground_checker.png"><Filter>Assets</Filter></None>
+  </ItemGroup>
+</Project>
