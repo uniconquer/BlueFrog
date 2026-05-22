@@ -1,4 +1,4 @@
-#include "App.h"
+#include "FLApp.h"
 
 #include "../Game/Simulation/AnimationControllerSystem.h"
 #include "../Engine/Animation/AnimationSystem.h"
@@ -19,18 +19,24 @@ namespace
 	constexpr const char* kDefaultScenePath = "Assets/Scenes/arena_trial.json";
 }
 
-App::App(std::string scenePath)
+FLApp::FLApp(std::string scenePath)
 	:
-	wnd(800, 600, L"Blue Frog"),
-	renderer(wnd.Gfx()),
-	uiRenderer(wnd.Gfx()),
-	textRenderer(wnd.Gfx()),
-	debugRenderer(wnd.Gfx()),
-	worldGridRenderer(wnd.Gfx()),
-	camera(static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()))
+	AppBase(800, 600, L"FL"),
+	renderer(GetGfx()),
+	uiRenderer(GetGfx()),
+	textRenderer(GetGfx()),
+	debugRenderer(GetGfx()),
+	worldGridRenderer(GetGfx()),
+	camera(static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight())),
+	currentScenePath(scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath))
 {
-	currentScenePath = scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath);
+	// ctor only does member init that needs the base class alive. The
+	// rest of the boot sequence (profile load, BuildArena, audio init)
+	// lives in OnStartup so it's clear what "game becomes ready" means.
+}
 
+void FLApp::OnStartup()
+{
 	// Auto-load profile if present. Profile-supplied scene path overrides
 	// the CLI / default; HP override is applied AFTER BuildArena so the
 	// scene-spawned HP is replaced by the saved value.
@@ -74,20 +80,7 @@ App::App(std::string scenePath)
 	gameplaySimulation.SetDamagePopupSink(&activePopups);
 }
 
-int App::Go()
-{
-	while (true)
-	{
-		if (const auto ecode = Window::ProcessMessages())
-		{
-			return *ecode;
-		}
-
-		DoFrame(timer.Mark());
-	}
-}
-
-void App::DoFrame(float dt)
+void FLApp::OnUpdate(float dt)
 {
 	currentPlayTimeSec += dt;
 	PollDebugToggles();
@@ -158,15 +151,14 @@ void App::DoFrame(float dt)
 	// freshly-selected clip's duration.
 	AnimationControllerSystem::Tick(scene, input, dt);
 	AnimationSystem::Tick(scene, dt);
-	ComposeFrame();
 }
 
-void App::PollDebugToggles() noexcept
+void FLApp::PollDebugToggles() noexcept
 {
 	// Drain the keyboard event queue and edge-trigger toggles. KeyIsPressed
 	// (held-state bitset) used by gameplay code is independent of this queue,
 	// so consuming events here does not break movement input.
-	while (const auto e = wnd.kbd.ReadKey())
+	while (const auto e = GetKeyboard().ReadKey())
 	{
 		if (!e->IsPress())
 		{
@@ -254,7 +246,7 @@ void App::PollDebugToggles() noexcept
 				{
 					// Shift held = previous, otherwise next. Wrap on both
 					// ends so the user never gets stuck at an edge.
-					const bool reverse = wnd.kbd.KeyIsPressed(VK_SHIFT);
+					const bool reverse = GetKeyboard().KeyIsPressed(VK_SHIFT);
 					inspectorSelected = (inspectorSelected + (reverse ? -1 : 1) + count) % count;
 					// New object may not carry the previously-selected field
 					// (e.g. picking a wall after editing the Player's HP).
@@ -288,7 +280,7 @@ void App::PollDebugToggles() noexcept
 					if (InspectorFields::IsAvailable(kind, objs[sel]))
 					{
 						const float sign = (e->GetCode() == VK_RIGHT) ? 1.0f : -1.0f;
-						const float scale = wnd.kbd.KeyIsPressed(VK_SHIFT) ? 10.0f : 1.0f;
+						const float scale = GetKeyboard().KeyIsPressed(VK_SHIFT) ? 10.0f : 1.0f;
 						const float delta = InspectorFields::DefaultStep(kind) * sign * scale;
 						const float current = InspectorFields::GetValue(kind, objs[sel]);
 						InspectorFields::SetValue(kind, objs[sel], current + delta);
@@ -302,7 +294,7 @@ void App::PollDebugToggles() noexcept
 	}
 }
 
-void App::UpdateModel(const GameplayInput& input, float dt) noexcept
+void FLApp::UpdateModel(const GameplayInput& input, float dt) noexcept
 {
 	hudState = gameplaySimulation.Update(input, scene, camera, dt);
 
@@ -310,7 +302,7 @@ void App::UpdateModel(const GameplayInput& input, float dt) noexcept
 	// here — after every system has finished iterating the scene — so no
 	// live references into scene objects are invalidated mid-tick. We
 	// immediately re-BuildHudState against the new scene to avoid a
-	// 1-frame-stale title bar (same pattern as App's constructor).
+	// 1-frame-stale title bar (same pattern as FLApp's OnStartup).
 	if (auto path = gameplaySimulation.ConsumePendingSceneLoad())
 	{
 		// Trigger-driven scene transition. Capture the new path so a
@@ -341,37 +333,37 @@ void App::UpdateModel(const GameplayInput& input, float dt) noexcept
 	}
 }
 
-GameplayInput App::CollectGameplayInput(float dt) noexcept
+GameplayInput FLApp::CollectGameplayInput(float dt) noexcept
 {
 	const float orbitSpeed = 1.2f * dt;
 	GameplayInput input = {};
-	input.viewportSize = { static_cast<float>(wnd.GetWidth()), static_cast<float>(wnd.GetHeight()) };
+	input.viewportSize = { static_cast<float>(GetWindow().GetWidth()), static_cast<float>(GetWindow().GetHeight()) };
 	input.movementIntent =
 	{
-		(wnd.kbd.KeyIsPressed('D') ? 1.0f : 0.0f) - (wnd.kbd.KeyIsPressed('A') ? 1.0f : 0.0f),
-		(wnd.kbd.KeyIsPressed('W') ? 1.0f : 0.0f) - (wnd.kbd.KeyIsPressed('S') ? 1.0f : 0.0f)
+		(GetKeyboard().KeyIsPressed('D') ? 1.0f : 0.0f) - (GetKeyboard().KeyIsPressed('A') ? 1.0f : 0.0f),
+		(GetKeyboard().KeyIsPressed('W') ? 1.0f : 0.0f) - (GetKeyboard().KeyIsPressed('S') ? 1.0f : 0.0f)
 	};
 
-	if (wnd.kbd.KeyIsPressed('Q'))
+	if (GetKeyboard().KeyIsPressed('Q'))
 	{
 		input.orbitDelta -= orbitSpeed;
 	}
-	if (wnd.kbd.KeyIsPressed('E'))
+	if (GetKeyboard().KeyIsPressed('E'))
 	{
 		input.orbitDelta += orbitSpeed;
 	}
 	// Dash gate. PlayerController internal cooldown handles the "no spam"
 	// requirement, so plain held-key sampling is enough here.
-	input.dashHeld = wnd.kbd.KeyIsPressed(VK_SPACE);
+	input.dashHeld = GetKeyboard().KeyIsPressed(VK_SPACE);
 
-	if (wnd.mouse.IsInWindow())
+	if (GetMouse().IsInWindow())
 	{
-		const auto mousePos = wnd.mouse.GetPos();
+		const auto mousePos = GetMouse().GetPos();
 		input.mousePosition = { static_cast<float>(mousePos.first), static_cast<float>(mousePos.second) };
 		input.hasMousePosition = true;
 	}
 
-	while (const auto event = wnd.mouse.Read())
+	while (const auto event = GetMouse().Read())
 	{
 		switch (event->GetType())
 		{
@@ -392,20 +384,20 @@ GameplayInput App::CollectGameplayInput(float dt) noexcept
 	return input;
 }
 
-void App::ComposeFrame()
+void FLApp::OnRender()
 {
-	wnd.SetTitle(GameplaySimulation::BuildWindowTitle(hudState));
+	GetWindow().SetTitle(GameplaySimulation::BuildWindowTitle(hudState));
 
 	// Push the live shake offset into the camera RIGHT before any view
 	// matrix is read this frame. ~32Hz oscillation (timer*200) feels
 	// "crunchy" — much lower reads as a slow swing, much higher as
-	// noise. Cleared at the end of ComposeFrame so any code path that
+	// noise. Cleared at the end of OnRender so any code path that
 	// peeks the view matrix outside the render block sees a stable
 	// camera.
 	const float shakeOsc = std::sin(shakeTimer * 200.0f) * shakeMagnitude;
 	camera.SetShakeOffsetXZ(shakeDirX * shakeOsc, shakeDirZ * shakeOsc);
 
-	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
+	GetGfx().BeginFrame(0.07f, 0.09f, 0.14f);
 	// Catch any exception escaping the renderer (mesh import failures, etc.)
 	// so we can show a diagnostic dialog instead of aborting via
 	// std::terminate. The user gets actionable info; we keep the option to
@@ -443,17 +435,17 @@ void App::ComposeFrame()
 		debugRenderer.Render(scene, camera);
 	}
 	uiRenderer.Render(hudState);
-	wnd.Gfx().BeginTextDraw();
-	textRenderer.Render(hudState, wnd.GetWidth(), wnd.GetHeight(), inspectorEnabled, damageFlashAlpha);
+	GetGfx().BeginTextDraw();
+	textRenderer.Render(hudState, GetWindow().GetWidth(), GetWindow().GetHeight(), inspectorEnabled, damageFlashAlpha);
 	// Damage-number overlay: drawn between the persistent HUD text and the
 	// inspector panel so the panel (if open) still covers the right-side
 	// popups, keeping the editor view tidy.
-	textRenderer.RenderDamagePopups(activePopups, camera, wnd.GetWidth(), wnd.GetHeight());
+	textRenderer.RenderDamagePopups(activePopups, camera, GetWindow().GetWidth(), GetWindow().GetHeight());
 	if (inspectorEnabled)
 	{
-		textRenderer.RenderInspector(scene, inspectorSelected, inspectorFieldIndex, wnd.GetWidth(), wnd.GetHeight());
+		textRenderer.RenderInspector(scene, inspectorSelected, inspectorFieldIndex, GetWindow().GetWidth(), GetWindow().GetHeight());
 	}
-	(void)wnd.Gfx().EndTextDraw();
-	wnd.Gfx().EndFrame();
+	(void)GetGfx().EndTextDraw();
+	GetGfx().EndFrame();
 	camera.SetShakeOffsetXZ(0.0f, 0.0f);
 }

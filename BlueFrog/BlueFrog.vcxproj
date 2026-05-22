@@ -158,7 +158,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Core\App.cpp" />
+    <ClCompile Include="Core\AppBase.cpp" />
+    <ClCompile Include="Core\FLApp.cpp" />
     <ClCompile Include="Core\BFException.cpp" />
     <ClCompile Include="Core\BFTimer.cpp" />
     <ClCompile Include="Core\Dxerr\dxerr.cpp" />
@@ -200,7 +201,8 @@
     <ClCompile Include="Core\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\App.h" />
+    <ClInclude Include="Core\AppBase.h" />
+    <ClInclude Include="Core\FLApp.h" />
     <ClInclude Include="Core\BFException.h" />
     <ClInclude Include="Core\BFTimer.h" />
     <ClInclude Include="Core\BFWin.h" />

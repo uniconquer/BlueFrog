@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../Scene/Scene.h"
-#include "../Scene/SceneObject.h"
-#include "../../Game/Simulation/GameplayInput.h"
-#include "../../Game/Simulation/GameplaySceneIds.h"
+#include "../../Engine/Scene/Scene.h"
+#include "../../Engine/Scene/SceneObject.h"
+#include "GameplayInput.h"
+#include "GameplaySceneIds.h"
 
 #include <cmath>
 #include <string>

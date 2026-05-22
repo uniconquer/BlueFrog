@@ -81,7 +81,10 @@
     <ClCompile Include="Core\Renderer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Core\App.cpp">
+    <ClCompile Include="Core\AppBase.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\FLApp.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Core\BFTimer.cpp">
@@ -203,7 +206,10 @@
     <ClInclude Include="Core\Renderer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Core\App.h">
+    <ClInclude Include="Core\AppBase.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FLApp.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Core\BFTimer.h">

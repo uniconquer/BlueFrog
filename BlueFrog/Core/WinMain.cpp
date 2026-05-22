@@ -1,4 +1,4 @@
-#include "App.h"
+#include "FLApp.h"
 #include "../Engine/Scene/PrefabLoader.h"
 #include "../Engine/Scene/SceneLoader.h"
 #include "../Game/Objectives/ObjectiveStateIO.h"
@@ -138,7 +138,7 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	try
 	{
-		return App{ ExtractScenePathFromCommandLine() }.Go();
+		return FLApp{ ExtractScenePathFromCommandLine() }.Run();
 	}
 	catch (const BFException& e)
 	{
