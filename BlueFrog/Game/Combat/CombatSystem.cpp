@@ -35,11 +35,11 @@ bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, in
 		return false;
 	}
 
-	ApplyDamage(target, damage, bus, audio, popups);
+	ApplyDamage(attacker, target, damage, bus, audio, popups);
 	return true;
 }
 
-void CombatSystem::ApplyDamage(SceneObject& target, int damage, EventBus* bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept
+void CombatSystem::ApplyDamage(const SceneObject& attacker, SceneObject& target, int damage, EventBus* bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept
 {
 	if (!target.combatComponent.has_value())
 	{
@@ -55,6 +55,30 @@ void CombatSystem::ApplyDamage(SceneObject& target, int damage, EventBus* bus, A
 	const int oldHealth = target.combatComponent->health;
 	target.combatComponent->health = std::max(0, target.combatComponent->health - damage);
 	const int appliedDamage = oldHealth - target.combatComponent->health;
+
+	// Seed a knockback impulse on the target. Direction = (target - attacker)
+	// on the XZ plane, normalized; magnitude is uniform across all combatants
+	// for v1 (future per-prefab tuning can live on the component). Skip when
+	// the two are on top of each other (or for self-damage, defensive) — a
+	// zero vector divided by zero would NaN the velocity.
+	if (appliedDamage > 0 && &attacker != &target)
+	{
+		constexpr float kKnockbackSpeed    = 4.0f;  // world units per second
+		constexpr float kKnockbackDuration = 0.15f; // seconds
+		const float dx = target.transform.position.x - attacker.transform.position.x;
+		const float dz = target.transform.position.z - attacker.transform.position.z;
+		const float dist = std::sqrt(dx * dx + dz * dz);
+		if (dist > 0.0001f)
+		{
+			const float invDist = 1.0f / dist;
+			target.combatComponent->knockbackVelocityXZ =
+			{
+				dx * invDist * kKnockbackSpeed,
+				dz * invDist * kKnockbackSpeed,
+			};
+			target.combatComponent->knockbackTimeRemaining = kKnockbackDuration;
+		}
+	}
 
 	// Floating damage number. Anchored at the target's current position;
 	// TextRenderer projects this with the live camera each frame and

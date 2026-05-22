@@ -20,6 +20,6 @@ public:
 	// position. nullptr disables popup spawning.
 	static bool TryMeleeAttack(SceneObject& attacker, SceneObject& target, int damage, float range, EventBus* bus = nullptr, AudioEngine* audio = nullptr, std::vector<DamagePopup>* popups = nullptr) noexcept;
 private:
-	static void ApplyDamage(SceneObject& target, int damage, EventBus* bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
+	static void ApplyDamage(const SceneObject& attacker, SceneObject& target, int damage, EventBus* bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
 	static float DistanceXZ(const DirectX::XMFLOAT3& a, const DirectX::XMFLOAT3& b) noexcept;
 };

@@ -26,6 +26,25 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		return true;
 	}
 
+	// Knockback stun overrides movement / dash start / attack. KnockbackSystem
+	// owns the actual slide; this just makes sure the player's own intent
+	// doesn't fight it or queue a swing mid-stagger. Aim still updates each
+	// tick so the camera-relative facing stays sensible coming out of stun.
+	if (player->combatComponent->knockbackTimeRemaining > 0.0f)
+	{
+		DirectX::XMFLOAT3 mouseGroundPoint = player->transform.position;
+		if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, playerHeight, mouseGroundPoint))
+		{
+			player->transform.rotation.y = PlayerAimSystem::ComputeYawRadians(player->transform.position, mouseGroundPoint);
+		}
+		// Clear invulnerable in case the player dashed into this hit — the
+		// stun window is a different mechanic (vulnerable) and the dash
+		// flag is no longer relevant once knockback is in effect.
+		player->combatComponent->invulnerable = (dashTimeRemaining > 0.0f);
+		UpdateTint(*player);
+		return true;
+	}
+
 	const DirectX::XMFLOAT3 move = PlayerMovementSystem::ComputeMoveVector(input, camera);
 
 	// Start a new dash on the first frame Space is held while cooldown is

@@ -150,6 +150,9 @@
     <ClCompile Include="Game\Combat\CombatSystem.cpp">
       <Filter>Game\Combat</Filter>
     </ClCompile>
+    <ClCompile Include="Game\Combat\KnockbackSystem.cpp">
+      <Filter>Game\Combat</Filter>
+    </ClCompile>
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp">
       <Filter>Game\NPC</Filter>
     </ClCompile>
@@ -303,6 +306,9 @@
       <Filter>Engine\UI</Filter>
     </ClInclude>
     <ClInclude Include="Game\Combat\CombatSystem.h">
+      <Filter>Game\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Combat\KnockbackSystem.h">
       <Filter>Game\Combat</Filter>
     </ClInclude>
     <ClInclude Include="Game\Hud\HudPresenter.h">

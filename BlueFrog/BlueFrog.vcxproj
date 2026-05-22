@@ -169,6 +169,7 @@
     <ClCompile Include="Engine\Render\DebugRenderer.cpp" />
     <ClCompile Include="Engine\Render\WorldGridRenderer.cpp" />
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
+    <ClCompile Include="Game\Combat\KnockbackSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp" />
     <ClCompile Include="Game\Player\PlayerController.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="Engine\Scene\CombatComponent.h" />
     <ClInclude Include="Engine\UI\HealthBar.h" />
     <ClInclude Include="Game\Combat\CombatSystem.h" />
+    <ClInclude Include="Game\Combat\KnockbackSystem.h" />
     <ClInclude Include="Game\Hud\HudPresenter.h" />
     <ClInclude Include="Game\NPC\SimpleEnemyController.h" />
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h" />

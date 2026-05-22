@@ -39,6 +39,15 @@ public:
 			return;
 		}
 
+		// Knockback stun: drop the windup if we were drawing the bow and
+		// stop firing this tick. KnockbackSystem handles the slide.
+		if (cc.knockbackTimeRemaining > 0.0f)
+		{
+			cc.attackWindupRemaining = 0.0f;
+			UpdateTint(enemy, 0.0f, /*aware=*/false, 0.0f);
+			return;
+		}
+
 		const float dx = player.transform.position.x - enemy.transform.position.x;
 		const float dz = player.transform.position.z - enemy.transform.position.z;
 		const float distance = std::sqrt(dx * dx + dz * dz);

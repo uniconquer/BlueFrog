@@ -1,5 +1,7 @@
 #pragma once
 
+#include <DirectXMath.h>
+
 enum class CombatFaction
 {
 	Neutral,
@@ -26,6 +28,16 @@ struct CombatComponent
 	// pushes the cooldown. Lives on the component for the same shared-state
 	// reason as attackCooldownRemaining. Player does not currently use it.
 	float attackWindupRemaining = 0.0f;
+
+	// Pending knockback impulse, applied by KnockbackSystem every tick while
+	// knockbackTimeRemaining > 0. velocity is in world units per second on
+	// the XZ plane; the system MoveAndSlides the owning object by velocity*dt
+	// each tick and ticks the timer down. CombatSystem::ApplyDamage seeds
+	// both fields based on the attacker→target direction; behaviors check
+	// knockbackTimeRemaining and skip their own motion/attack while > 0 so
+	// the brief stun reads clearly.
+	DirectX::XMFLOAT2 knockbackVelocityXZ = { 0.0f, 0.0f };
+	float             knockbackTimeRemaining = 0.0f;
 
 	// Transient damage-immunity flag. Currently driven by PlayerController
 	// during the dash window so the player can roll through an incoming

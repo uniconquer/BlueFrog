@@ -44,6 +44,19 @@ public:
 			return;
 		}
 
+		// Knockback stun: skip chase + windup. KnockbackSystem already
+		// owns the slide; if we kept ticking windup here a scout that's
+		// being knocked around could swing mid-flight, which reads as
+		// the scout magically recovering from the impact. Windup is
+		// cleared so when the stun ends the scout re-commits cleanly
+		// (re-enters range check, decides whether to swing again).
+		if (cc.knockbackTimeRemaining > 0.0f)
+		{
+			cc.attackWindupRemaining = 0.0f;
+			UpdateTint(enemy, /*chasing=*/false, 0.0f);
+			return;
+		}
+
 		const float dx = player.transform.position.x - enemy.transform.position.x;
 		const float dz = player.transform.position.z - enemy.transform.position.z;
 		const float distance = std::sqrt(dx * dx + dz * dz);

@@ -1,5 +1,8 @@
 #include "GameplaySimulation.h"
 #include "SystemContext.h"
+
+#include "../Combat/KnockbackSystem.h"
+
 #include <sstream>
 #include <string>
 #include <utility>
@@ -60,20 +63,31 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 {
 	// System ordering contract (see SystemContext.h for why this is
 	// intentionally not data-driven):
-	//   1. camera.ApplyInput  — fold orbit/zoom input before anyone reads
+	//   1. camera.ApplyInput   — fold orbit/zoom input before anyone reads
 	//      the camera.
-	//   2. player.Update      — player movement + attack + aim. Must run
+	//   2. player.Update       — player movement + attack + aim. Must run
 	//      before enemy AI which may read player position, and before
 	//      trigger checks which key off the player's post-move position.
-	//   3. enemy.Update       — enemy AI reacts to the just-moved player.
-	//   4. trigger.Update     — checks overlaps using the post-move player
-	//      position; may publish LoadSceneRequested.
-	//   5. camera.FollowPlayer — snap camera target after the player has
+	//   3. enemy.Update        — enemy AI reacts to the just-moved player.
+	//   4. KnockbackSystem     — applies pending impulses seeded by
+	//      CombatSystem during 2/3. Actors gated by their own knockback
+	//      check short-circuited their normal motion, so the impulse is
+	//      the only motion applied for stunned actors this tick.
+	//   5. trigger.Update      — checks overlaps using the post-move
+	//      (and post-knockback) actor positions; may publish
+	//      LoadSceneRequested.
+	//   6. camera.FollowPlayer — snap camera target after the player has
 	//      moved so the view stays locked.
 	const SystemContext ctx{ input, scene, camera, eventBus, dt, audio_, damagePopupsSink_ };
 	cameraSystem.ApplyInput(ctx);
 	playerSystem.Update(ctx);
 	enemySystem.Update(ctx);
+	// Knockback slide AFTER both controllers have committed their own
+	// movement intent — actors gated by their own knockback check
+	// short-circuited up above, so the only motion left to apply this
+	// tick is the impulse. Runs BEFORE triggerSystem so a knocked-back
+	// actor can still trip a boundary trigger from the impulse motion.
+	KnockbackSystem::Tick(scene, dt);
 	triggerSystem.Update(ctx);
 	cameraSystem.FollowPlayer(ctx);
 
