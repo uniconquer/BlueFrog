@@ -65,4 +65,16 @@ private:
 	// drop in-flight popups — though in practice ReloadScene also resets
 	// HP and downstream feel, so a clear-on-reload is fine too.
 	std::vector<DamagePopup> activePopups;
+	// Hit-impact screen shake. shakeMagnitude is in world units (XZ plane
+	// translational offset on the camera). DoFrame kicks it on detected
+	// hits — player took damage = heavy kick, popup count grew while HP
+	// held steady = the player landed one (lighter kick). shakeTimer
+	// advances each frame; the actual per-frame offset is sin(timer*freq)
+	// * magnitude * sign in a randomly-rotated direction set at kick time.
+	// lastPopupCount is the comparison baseline for the popup delta.
+	float  shakeMagnitude   = 0.0f;
+	float  shakeTimer       = 0.0f;
+	float  shakeDirX        = 1.0f;
+	float  shakeDirZ        = 0.0f;
+	size_t lastPopupCount   = 0;
 };

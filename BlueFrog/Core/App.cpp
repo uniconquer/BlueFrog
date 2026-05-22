@@ -7,7 +7,9 @@
 #include "../Game/Simulation/GameplaySceneIds.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <string>
 
@@ -96,13 +98,45 @@ void App::DoFrame(float dt)
 	// the baseline whenever the player respawns above the previous low
 	// (typically after a scene reload).
 	const int curHp = static_cast<int>(hudState.playerHealth.current);
-	if (lastPlayerHealth >= 0 && curHp < lastPlayerHealth)
+	const bool playerTookDamage = (lastPlayerHealth >= 0 && curHp < lastPlayerHealth);
+	if (playerTookDamage)
 	{
 		damageFlashAlpha = 1.0f;
 	}
 	lastPlayerHealth = curHp;
 	constexpr float kDamageFlashDuration = 0.35f;
 	damageFlashAlpha = std::max(0.0f, damageFlashAlpha - dt / kDamageFlashDuration);
+
+	// Screen-shake kickers. Heavy kick on player taking damage; lighter
+	// kick on any newly-spawned damage popup (i.e. *something* got hit).
+	// The popup-delta check is OR'd after the HP check so a hit that
+	// damaged the player doesn't double-trigger as both "took damage"
+	// AND "landed a hit on player". Direction is a random unit-vector
+	// in XZ so consecutive kicks don't reinforce one axis.
+	const bool popupCountGrew = (activePopups.size() > lastPopupCount);
+	if (playerTookDamage)
+	{
+		shakeMagnitude = std::max(shakeMagnitude, 0.35f);
+		shakeTimer = 0.0f;
+		const float angle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 6.2831853f;
+		shakeDirX = std::cos(angle);
+		shakeDirZ = std::sin(angle);
+	}
+	else if (popupCountGrew)
+	{
+		shakeMagnitude = std::max(shakeMagnitude, 0.14f);
+		shakeTimer = 0.0f;
+		const float angle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 6.2831853f;
+		shakeDirX = std::cos(angle);
+		shakeDirZ = std::sin(angle);
+	}
+	lastPopupCount = activePopups.size();
+	// Magnitude decays linearly over ~0.22s; timer always advances so the
+	// sin oscillation runs at fixed temporal frequency rather than warping
+	// with magnitude. Both reset cleanly when the next kick lands.
+	constexpr float kShakeDecayPerSec = 1.0f / 0.22f;
+	shakeMagnitude = std::max(0.0f, shakeMagnitude - dt * 0.35f * kShakeDecayPerSec);
+	shakeTimer += dt;
 
 	// Tick damage-popup ages and erase the ones past their lifetime. Done
 	// AFTER UpdateModel (which is where combat code appends new popups via
@@ -358,6 +392,15 @@ void App::ComposeFrame()
 {
 	wnd.SetTitle(GameplaySimulation::BuildWindowTitle(hudState));
 
+	// Push the live shake offset into the camera RIGHT before any view
+	// matrix is read this frame. ~32Hz oscillation (timer*200) feels
+	// "crunchy" — much lower reads as a slow swing, much higher as
+	// noise. Cleared at the end of ComposeFrame so any code path that
+	// peeks the view matrix outside the render block sees a stable
+	// camera.
+	const float shakeOsc = std::sin(shakeTimer * 200.0f) * shakeMagnitude;
+	camera.SetShakeOffsetXZ(shakeDirX * shakeOsc, shakeDirZ * shakeOsc);
+
 	wnd.Gfx().BeginFrame(0.07f, 0.09f, 0.14f);
 	// Catch any exception escaping the renderer (mesh import failures, etc.)
 	// so we can show a diagnostic dialog instead of aborting via
@@ -408,4 +451,5 @@ void App::ComposeFrame()
 	}
 	(void)wnd.Gfx().EndTextDraw();
 	wnd.Gfx().EndFrame();
+	camera.SetShakeOffsetXZ(0.0f, 0.0f);
 }

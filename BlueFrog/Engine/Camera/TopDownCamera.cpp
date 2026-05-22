@@ -43,14 +43,24 @@ const DirectX::XMFLOAT3& TopDownCamera::GetTarget() const noexcept
 	return target;
 }
 
+void TopDownCamera::SetShakeOffsetXZ(float x, float z) noexcept
+{
+	shakeOffsetX = x;
+	shakeOffsetZ = z;
+}
+
 DirectX::XMMATRIX TopDownCamera::GetViewMatrix() const noexcept
 {
 	using namespace DirectX;
 
+	// Apply the transient shake offset to BOTH eye and lookAt so the
+	// frustum slides bodily rather than swinging on the target. Sliding
+	// reads as impact; a swing would look like the camera is leaning to
+	// inspect something.
 	const auto position = GetPosition();
 	return XMMatrixLookAtLH(
-		XMVectorSet(position.x, position.y, position.z, 1.0f),
-		XMVectorSet(target.x, target.y, target.z, 1.0f),
+		XMVectorSet(position.x + shakeOffsetX, position.y, position.z + shakeOffsetZ, 1.0f),
+		XMVectorSet(target.x + shakeOffsetX,   target.y,   target.z + shakeOffsetZ,   1.0f),
 		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 }
 

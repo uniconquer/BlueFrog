@@ -19,6 +19,14 @@ struct CombatComponent
 	// still lives in PlayerController for now.
 	float attackCooldownRemaining = 0.0f;
 
+	// Per-instance attack-windup (telegraph) timer. Set to the behavior's
+	// windupDuration when an enemy commits to an attack; counted down each
+	// tick while the enemy holds rotation and visibly flashes. At
+	// attackWindupRemaining <= 0 the behavior fires the actual hit, then
+	// pushes the cooldown. Lives on the component for the same shared-state
+	// reason as attackCooldownRemaining. Player does not currently use it.
+	float attackWindupRemaining = 0.0f;
+
 	// Transient damage-immunity flag. Currently driven by PlayerController
 	// during the dash window so the player can roll through an incoming
 	// strike (i-frames). CombatSystem::TryMeleeAttack short-circuits when
