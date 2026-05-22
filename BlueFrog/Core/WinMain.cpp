@@ -1,7 +1,11 @@
 #include "App.h"
 #include "../Engine/Scene/PrefabLoader.h"
 #include "../Engine/Scene/SceneLoader.h"
+#include "../Game/Objectives/ObjectiveStateIO.h"
 
+#include <nlohmann/json.hpp>
+
+#include <fstream>
 #include <shellapi.h>
 #include <filesystem>
 #include <string>
@@ -68,8 +72,47 @@ namespace
 			return true;
 		};
 
-		if (!sweep(std::filesystem::path("Assets/Scenes"), ".json",
-			[](const std::filesystem::path& p, std::string* e) { return SceneLoader::Validate(p, e); }))
+		// Combined scene validator: SceneLoader::Validate (engine-side
+		// shape) then a deep game-side check of the "objective" block
+		// via ObjectiveStateIO::ParseJson. The deep check used to live
+		// inside SceneLoader, but that pulled the engine into the game's
+		// objective schema. Splitting it keeps Engine/ free of Game/
+		// dependencies while still catching authored typos at boot.
+		auto validateScene = [](const std::filesystem::path& p, std::string* e) -> bool
+		{
+			if (!SceneLoader::Validate(p, e))
+			{
+				return false;
+			}
+			std::ifstream file(p);
+			if (!file.is_open())
+			{
+				// SceneLoader::Validate already proved the file is openable;
+				// a race that closed it between calls is rare enough to log
+				// nothing and consider validation passed.
+				return true;
+			}
+			nlohmann::json root;
+			try
+			{
+				root = nlohmann::json::parse(file);
+			}
+			catch (const nlohmann::json::parse_error&)
+			{
+				// Same logic: SceneLoader::Validate already shape-checked the
+				// parse. If we get here something raced; let Load surface it.
+				return true;
+			}
+			if (!root.contains("objective"))
+			{
+				return true;
+			}
+			const std::string blockText = root["objective"].dump();
+			ObjectiveState scratch;
+			return ObjectiveStateIO::ParseJson(blockText, p.string() + ": ", scratch, e);
+		};
+
+		if (!sweep(std::filesystem::path("Assets/Scenes"), ".json", validateScene))
 		{
 			return false;
 		}

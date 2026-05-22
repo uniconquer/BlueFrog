@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Camera/TopDownCamera.h"
-#include "../../Game/Objectives/ObjectiveState.h"
 #include "Scene.h"
 
 #include <filesystem>
@@ -27,6 +26,12 @@
 //     (the condition spec is what matters for round-trip), so a saved
 //     file always loads with a fresh objective.
 //
+// `objectiveBlockJson` is the raw JSON text of the scene's "objective"
+// block, produced by the Game-layer ObjectiveStateIO::EncodeJson. Empty
+// string means "no objective block" — the writer simply omits the key.
+// This keeps the engine agnostic of the objective schema; SceneLoader and
+// SceneSerializer ferry the block as opaque text in both directions.
+//
 // Returns true on success. On failure, errorOut (if non-null) gets a path-
 // prefixed message matching SceneLoader's error style.
 namespace SceneSerializer
@@ -34,6 +39,6 @@ namespace SceneSerializer
 	bool Save(const std::filesystem::path& path,
 		const Scene& scene,
 		const TopDownCamera& camera,
-		const ObjectiveState& objective,
+		const std::string& objectiveBlockJson,
 		std::string* errorOut) noexcept;
 }

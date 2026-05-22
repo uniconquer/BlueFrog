@@ -18,21 +18,6 @@ using json = nlohmann::json;
 
 namespace
 {
-	// Cheap wide → ASCII narrowing. Objective text is authored as ASCII per
-	// the schema (validator path), so a faithful round-trip just needs the
-	// reverse of TextRenderer's Widen helper. Non-ASCII codepoints get
-	// dropped to '?' rather than failing the save.
-	std::string Narrow(const std::wstring& w)
-	{
-		std::string out;
-		out.reserve(w.size());
-		for (wchar_t c : w)
-		{
-			out.push_back((c >= 0x20 && c < 0x80) ? static_cast<char>(c) : '?');
-		}
-		return out;
-	}
-
 	json EncodeFloat3(const DirectX::XMFLOAT3& v)
 	{
 		return json::array({ v.x, v.y, v.z });
@@ -174,51 +159,6 @@ namespace
 		return j;
 	}
 
-	json EncodeObjectiveLeaf(const ObjectiveLeaf& leaf)
-	{
-		json j = json::object();
-		j["type"] = leaf.type;
-		j["name"] = leaf.name;
-		// Only emit `count` when it differs from the v1 default; a count of 1
-		// is implicit and writing it back would noisily diff against the
-		// hand-authored scenes that omit the field.
-		if (leaf.required != 1)
-		{
-			j["count"] = leaf.required;
-		}
-		// `progress` is runtime state, not part of the schema.
-		return j;
-	}
-
-	json EncodeObjective(const ObjectiveState& state)
-	{
-		json j = json::object();
-		j["text"]           = Narrow(state.text);
-		j["completionText"] = Narrow(state.completionText);
-
-		json conds = json::array();
-		for (const auto& cond : state.conditions)
-		{
-			if (cond.leaves.size() == 1)
-			{
-				conds.push_back(EncodeObjectiveLeaf(cond.leaves[0]));
-			}
-			else
-			{
-				json group = json::object();
-				group["type"]  = "any";
-				json anyOf = json::array();
-				for (const auto& leaf : cond.leaves)
-				{
-					anyOf.push_back(EncodeObjectiveLeaf(leaf));
-				}
-				group["anyOf"] = std::move(anyOf);
-				conds.push_back(std::move(group));
-			}
-		}
-		j["conditions"] = std::move(conds);
-		return j;
-	}
 }
 
 namespace SceneSerializer
@@ -226,7 +166,7 @@ namespace SceneSerializer
 	bool Save(const std::filesystem::path& path,
 		const Scene& scene,
 		const TopDownCamera& camera,
-		const ObjectiveState& objective,
+		const std::string& objectiveBlockJson,
 		std::string* errorOut) noexcept
 	{
 		try
@@ -234,13 +174,21 @@ namespace SceneSerializer
 			json root = json::object();
 			root["schemaVersion"] = 2;
 
-			// Only emit the objective block if it carries content. Empty
-			// objective + no conditions = scenes without a goal; the loader
-			// treats absence and emptiness identically, so write the cheaper
-			// form for cleaner files.
-			if (!objective.text.empty() || !objective.completionText.empty() || !objective.conditions.empty())
+			// Embed the pre-encoded objective block when the caller has
+			// content for us. Empty string = no goal; the loader treats
+			// absence and emptiness identically, so we omit the key for a
+			// cleaner file.
+			if (!objectiveBlockJson.empty())
 			{
-				root["objective"] = EncodeObjective(objective);
+				try
+				{
+					root["objective"] = json::parse(objectiveBlockJson);
+				}
+				catch (const json::parse_error& e)
+				{
+					if (errorOut) *errorOut = path.string() + ": objective JSON parse error during save: " + e.what();
+					return false;
+				}
 			}
 
 			json sceneNode = json::object();

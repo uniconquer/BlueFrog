@@ -171,6 +171,7 @@
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
     <ClCompile Include="Game\Combat\KnockbackSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
+    <ClCompile Include="Game\Objectives\ObjectiveStateIO.cpp" />
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp" />
     <ClCompile Include="Game\Player\PlayerController.cpp" />
     <ClCompile Include="Game\Simulation\GameplaySimulation.cpp" />
@@ -220,8 +221,9 @@
     <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h" />
     <ClInclude Include="Engine\Scene\AnimationStateComponent.h" />
     <ClInclude Include="Engine\Animation\AnimationSystem.h" />
-    <ClInclude Include="Engine\Animation\AnimationControllerSystem.h" />
+    <ClInclude Include="Game\Simulation\AnimationControllerSystem.h" />
     <ClInclude Include="Game\Objectives\ObjectiveState.h" />
+    <ClInclude Include="Game\Objectives\ObjectiveStateIO.h" />
     <ClInclude Include="Game\Objectives\ObjectiveSystem.h" />
     <ClInclude Include="Game\Player\PlayerController.h" />
     <ClInclude Include="Game\Player\PlayerAimSystem.h" />

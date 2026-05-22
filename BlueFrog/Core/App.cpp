@@ -1,9 +1,10 @@
 #include "App.h"
 
-#include "../Engine/Animation/AnimationControllerSystem.h"
+#include "../Game/Simulation/AnimationControllerSystem.h"
 #include "../Engine/Animation/AnimationSystem.h"
 #include "../Engine/Scene/SceneSerializer.h"
 #include "../Engine/UI/InspectorFields.h"
+#include "../Game/Objectives/ObjectiveStateIO.h"
 #include "../Game/Simulation/GameplaySceneIds.h"
 
 #include <algorithm>
@@ -222,10 +223,13 @@ void App::PollDebugToggles() noexcept
 			// to currentScenePath. Pairs with F5 (reload) as the editor
 			// round-trip — edit via inspector → F12 → F5 → verify on disk.
 			std::string err;
+			// SceneSerializer is engine-agnostic about objectives — encode
+			// to raw JSON text here on the game side, then hand it over.
+			const std::string objectiveBlockJson = ObjectiveStateIO::EncodeJson(gameplaySimulation.GetObjectiveState());
 			const bool ok = SceneSerializer::Save(
 				std::filesystem::path(currentScenePath),
 				scene, camera,
-				gameplaySimulation.GetObjectiveState(),
+				objectiveBlockJson,
 				&err);
 			if (ok)
 			{

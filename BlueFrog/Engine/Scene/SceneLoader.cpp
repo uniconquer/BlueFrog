@@ -15,8 +15,10 @@ using json = nlohmann::json;
 
 // ---- helpers ---------------------------------------------------------------
 
-// Forward declaration: ParseObjective (defined mid-file) emits path-prefixed
-// error messages via PathPrefix, which lives near the public interface below.
+// Forward declaration: PathPrefix (defined near the public interface) is
+// called from the per-component parsers (trigger, behavior) defined above
+// it; the file would otherwise have to be reshuffled to put PathPrefix
+// first. Keeping the declaration here is the lightest fix.
 static std::string PathPrefix(const std::filesystem::path& path);
 
 static bool SetError(std::string* out, std::string msg)
@@ -172,104 +174,6 @@ static bool ParseTrigger(const json& j, const std::filesystem::path& path, Trigg
 	return ParseTriggerAction(j, path, outTc.action, errorOut);
 }
 
-// ---- objective parsing ------------------------------------------------------
-
-// Narrow UTF-8 (std::string) to wchar_t for title-bar rendering. Scene JSON
-// holds ASCII-only strings in practice, so we widen 1:1. A non-ASCII byte
-// would simply appear as its code-point value; objectives never carry one.
-static std::wstring WidenAscii(const std::string& s)
-{
-	return std::wstring(s.begin(), s.end());
-}
-
-// Parses a single leaf-shaped JSON object into an ObjectiveLeaf. Used both for
-// top-level leaf conditions and for the entries inside an "any" group's
-// "anyOf" array. Rejects unknown types and non-positive counts.
-static bool ParseObjectiveLeaf(const json& leafNode, const std::filesystem::path& path, ObjectiveLeaf& out, std::string* errorOut)
-{
-	if (!leafNode.is_object())
-	{
-		return SetError(errorOut, PathPrefix(path) + "objective leaf must be a JSON object");
-	}
-	out.type = leafNode.value("type", std::string{});
-	out.name = leafNode.value("name", std::string{});
-
-	// v1 leaf allow-list. Add new leaf types here when their matcher is wired
-	// in ObjectiveSystem::Consume.
-	if (out.type != "enemy_killed")
-	{
-		return SetError(errorOut, PathPrefix(path) + "objective leaf: unknown type '" + out.type + "' (expected 'enemy_killed')");
-	}
-
-	// "count" is optional; absence means 1 (the v1 single-kill default).
-	out.required = leafNode.value("count", 1);
-	if (out.required < 1)
-	{
-		return SetError(errorOut, PathPrefix(path) + "objective leaf 'count' must be >= 1 (got " + std::to_string(out.required) + ")");
-	}
-	out.progress = 0;
-	return true;
-}
-
-static bool ParseObjective(const json& objNode, const std::filesystem::path& path, ObjectiveState& out, std::string* errorOut)
-{
-	out.text           = WidenAscii(objNode.value("text", std::string{}));
-	out.completionText = WidenAscii(objNode.value("completionText", std::string{}));
-	out.conditions.clear();
-
-	if (!objNode.contains("conditions"))
-	{
-		return true;
-	}
-	if (!objNode["conditions"].is_array())
-	{
-		return SetError(errorOut, PathPrefix(path) + "objective.conditions must be an array");
-	}
-
-	for (const auto& c : objNode["conditions"])
-	{
-		if (!c.is_object())
-		{
-			return SetError(errorOut, PathPrefix(path) + "objective.conditions entry must be a JSON object");
-		}
-
-		ObjectiveCondition cond;
-		const std::string slotType = c.value("type", std::string{});
-
-		if (slotType == "any")
-		{
-			// OR group. The slot itself carries no name/count; "anyOf" lists
-			// the leaves whose disjunction is the slot's truth value.
-			if (!c.contains("anyOf") || !c["anyOf"].is_array() || c["anyOf"].empty())
-			{
-				return SetError(errorOut, PathPrefix(path) + "objective 'any' condition requires non-empty 'anyOf' array");
-			}
-			for (const auto& leafNode : c["anyOf"])
-			{
-				ObjectiveLeaf leaf;
-				if (!ParseObjectiveLeaf(leafNode, path, leaf, errorOut))
-				{
-					return false;
-				}
-				cond.leaves.push_back(std::move(leaf));
-			}
-		}
-		else
-		{
-			// Single-leaf condition (v1 shape). The leaf is the slot itself.
-			ObjectiveLeaf leaf;
-			if (!ParseObjectiveLeaf(c, path, leaf, errorOut))
-			{
-				return false;
-			}
-			cond.leaves.push_back(std::move(leaf));
-		}
-
-		out.conditions.push_back(std::move(cond));
-	}
-	return true;
-}
-
 // ---- public interface -------------------------------------------------------
 
 // Prefixes every error message with the source file path so multi-scene /
@@ -309,7 +213,7 @@ static bool ReadSceneRoot(const std::filesystem::path& path, json& root, std::st
 	return true;
 }
 
-bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut, ObjectiveState* objectiveOut)
+bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut, std::string* objectiveBlockJsonOut)
 {
 	json root;
 	if (!ReadSceneRoot(path, root, errorOut))
@@ -319,22 +223,24 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 
 	const auto& sceneNode = root["scene"];
 
-	// Reset objective to empty defaults; a scene without an "objective" block
-	// should clear any prior state (important on mid-play reload).
-	if (objectiveOut)
+	// Export the "objective" block as raw JSON text. The Game-layer caller
+	// (GameplayArenaBuilder) feeds this into ObjectiveStateIO::ParseJson to
+	// realize an ObjectiveState — the engine never sees the parsed struct.
+	// A scene without an "objective" block clears the output to "" so a
+	// mid-play reload doesn't leak the previous scene's state.
+	if (objectiveBlockJsonOut)
 	{
-		*objectiveOut = {};
+		objectiveBlockJsonOut->clear();
 	}
-	if (objectiveOut && root.contains("objective"))
+	if (objectiveBlockJsonOut && root.contains("objective"))
 	{
 		if (!root["objective"].is_object())
 		{
 			return SetError(errorOut, PathPrefix(path) + "objective must be a JSON object");
 		}
-		if (!ParseObjective(root["objective"], path, *objectiveOut, errorOut))
-		{
-			return false;
-		}
+		// dump() with no indent — the consumer parses it back immediately,
+		// so the compact form is fine and avoids the indent option's cost.
+		*objectiveBlockJsonOut = root["objective"].dump();
 	}
 
 	scene.Clear();
@@ -476,20 +382,14 @@ bool SceneLoader::Validate(const std::filesystem::path& path, std::string* error
 		}
 	}
 
-	// Validate optional objective block: we run the same ParseObjective the
-	// real Load path uses, which rejects unknown condition types with a
-	// path-prefixed error before the window is ever created.
-	if (root.contains("objective"))
+	// Shape check only on the optional objective block — the engine no
+	// longer knows the condition schema. Deep validation runs in the
+	// boot-time asset validator one layer up, which feeds the dumped JSON
+	// back through ObjectiveStateIO::ParseJson and reports the same
+	// "<path>: <reason>" errors.
+	if (root.contains("objective") && !root["objective"].is_object())
 	{
-		if (!root["objective"].is_object())
-		{
-			return SetError(errorOut, PathPrefix(path) + "objective must be a JSON object");
-		}
-		ObjectiveState scratch;
-		if (!ParseObjective(root["objective"], path, scratch, errorOut))
-		{
-			return false;
-		}
+		return SetError(errorOut, PathPrefix(path) + "objective must be a JSON object");
 	}
 
 	return true;

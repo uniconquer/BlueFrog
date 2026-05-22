@@ -177,6 +177,9 @@
     <ClCompile Include="Engine\Events\EventBus.cpp">
       <Filter>Engine\Events</Filter>
     </ClCompile>
+    <ClCompile Include="Game\Objectives\ObjectiveStateIO.cpp">
+      <Filter>Game\Objectives</Filter>
+    </ClCompile>
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp">
       <Filter>Game\Objectives</Filter>
     </ClCompile>
@@ -299,8 +302,8 @@
     <ClInclude Include="Engine\Animation\AnimationSystem.h">
       <Filter>Engine\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Animation\AnimationControllerSystem.h">
-      <Filter>Engine\Animation</Filter>
+    <ClInclude Include="Game\Simulation\AnimationControllerSystem.h">
+      <Filter>Game\Simulation</Filter>
     </ClInclude>
     <ClInclude Include="Engine\UI\HealthBar.h">
       <Filter>Engine\UI</Filter>
@@ -387,6 +390,9 @@
       <Filter>Engine\Events</Filter>
     </ClInclude>
     <ClInclude Include="Game\Objectives\ObjectiveState.h">
+      <Filter>Game\Objectives</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Objectives\ObjectiveStateIO.h">
       <Filter>Game\Objectives</Filter>
     </ClInclude>
     <ClInclude Include="Game\Objectives\ObjectiveSystem.h">
