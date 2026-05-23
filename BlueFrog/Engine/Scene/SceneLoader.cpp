@@ -340,6 +340,7 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 			NpcComponent nc;
 			if (n.contains("displayName")) nc.displayName = n["displayName"].get<std::string>();
 			if (n.contains("dialogText"))  nc.dialogText  = n["dialogText"].get<std::string>();
+			if (n.contains("questId"))     nc.questId     = n["questId"].get<std::string>();
 			obj.npcComponent = std::move(nc);
 		}
 	}

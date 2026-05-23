@@ -14,6 +14,8 @@
 #include "../Engine/Audio/AudioEngine.h"
 #include "../Game/Simulation/GameplaySimulation.h"
 #include "../Game/Profile/PlayerProfile.h"
+#include "../Game/Quest/QuestRegistry.h"
+#include "../Game/Quest/QuestSystem.h"
 #include <string>
 #include <vector>
 
@@ -52,6 +54,14 @@ private:
 	HudState hudState;
 	GameplaySimulation gameplaySimulation;
 	AudioEngine audio;
+	// Quest layer (Phase I-2A). Registry holds the static quest
+	// definitions loaded from Assets/Quests/*.quest.json at boot;
+	// QuestSystem holds the per-quest runtime state (accepted /
+	// progress / turned-in) and survives scene reloads, since a
+	// quest can span multiple scenes (e.g. arena_trial conditions
+	// progressed while talking to a villager back in village).
+	QuestRegistry questRegistry;
+	QuestSystem   questSystem;
 	std::string currentScenePath;
 	bool   debugGizmosEnabled  = false;
 	bool   worldGridEnabled    = false;

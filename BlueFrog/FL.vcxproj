@@ -169,6 +169,9 @@
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp" />
     <ClCompile Include="Game\Player\PlayerController.cpp" />
     <ClCompile Include="Game\Profile\PlayerProfile.cpp" />
+    <ClCompile Include="Game\Quest\QuestLoader.cpp" />
+    <ClCompile Include="Game\Quest\QuestRegistry.cpp" />
+    <ClCompile Include="Game\Quest\QuestSystem.cpp" />
     <ClCompile Include="Game\Simulation\GameplaySimulation.cpp" />
     <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp" />
   </ItemGroup>
@@ -189,6 +192,10 @@
     <ClInclude Include="Game\Player\PlayerController.h" />
     <ClInclude Include="Game\Player\PlayerMovementSystem.h" />
     <ClInclude Include="Game\Profile\PlayerProfile.h" />
+    <ClInclude Include="Game\Quest\Quest.h" />
+    <ClInclude Include="Game\Quest\QuestLoader.h" />
+    <ClInclude Include="Game\Quest\QuestRegistry.h" />
+    <ClInclude Include="Game\Quest\QuestSystem.h" />
     <ClInclude Include="Game\Simulation\AnimationControllerSystem.h" />
     <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h" />
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h" />
@@ -218,6 +225,7 @@
     <None Include="Assets\Prefabs\EnemyScout.prefab.json" />
     <None Include="Assets\Prefabs\Player.prefab.json" />
     <None Include="Assets\Prefabs\Villager.prefab.json" />
+    <None Include="Assets\Quests\clear_arena_trial.quest.json" />
     <None Include="Assets\Scenes\arena_trial.json" />
     <None Include="Assets\Scenes\village.json" />
     <None Include="Assets\Scenes\boss_arena.json" />

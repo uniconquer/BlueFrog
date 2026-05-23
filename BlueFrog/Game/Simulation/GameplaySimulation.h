@@ -5,6 +5,7 @@
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/UI/DamagePopup.h"
 #include "../../Engine/UI/HudState.h"
+#include "../Quest/QuestSystem.h"
 #include <vector>
 #include "../Objectives/ObjectiveSystem.h"
 #include "GameplayCameraSystem.h"
@@ -63,6 +64,13 @@ public:
 	// pausing during dialog is a v2 decision.
 	void SetDialogActive(bool active) noexcept { dialogActive_ = active; }
 
+	// Optional pointer to the game-side QuestSystem. When set, the
+	// event drain at the end of Update feeds the same event batch
+	// into QuestSystem::Consume that ObjectiveSystem already sees —
+	// so EnemyKilled progresses both scene objectives and any
+	// in-flight quests in lockstep.
+	void SetQuestSystem(QuestSystem* qs) noexcept { questSystem_ = qs; }
+
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 
@@ -95,4 +103,5 @@ private:
 	std::vector<DamagePopup>*    damagePopupsSink_   = nullptr;
 	bool                         dialogActive_       = false;
 	const SceneObject*           interactTarget_     = nullptr;
+	QuestSystem*                 questSystem_        = nullptr;
 };

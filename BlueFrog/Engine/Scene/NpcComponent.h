@@ -25,4 +25,16 @@ struct NpcComponent
 {
 	std::string displayName;
 	std::string dialogText;
+
+	// Optional reference to a quest in the game-side QuestRegistry.
+	// Empty = NPC has no quest, dialogText is used verbatim. Non-empty
+	// = the game layer routes dialog through QuestSystem (the NPC
+	// becomes the giver / turn-in target for the referenced quest)
+	// and dialogText becomes the fallback when the quest doesn't
+	// supply a status-specific line for the current state.
+	//
+	// Engine doesn't know what a quest is — this field is just a
+	// string the game-side layer consumes. Loose coupling matches
+	// how SceneLoader already ferries "objective" blocks as raw JSON.
+	std::string questId;
 };

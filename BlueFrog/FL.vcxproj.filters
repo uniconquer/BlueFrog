@@ -28,6 +28,9 @@
     <Filter Include="Game\Profile">
       <UniqueIdentifier>{44444444-0000-0000-0000-000000000006}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Quest">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000009}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Game\Simulation">
       <UniqueIdentifier>{44444444-0000-0000-0000-000000000007}</UniqueIdentifier>
     </Filter>
@@ -47,6 +50,9 @@
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp"><Filter>Game\Objectives</Filter></ClCompile>
     <ClCompile Include="Game\Player\PlayerController.cpp"><Filter>Game\Player</Filter></ClCompile>
     <ClCompile Include="Game\Profile\PlayerProfile.cpp"><Filter>Game\Profile</Filter></ClCompile>
+    <ClCompile Include="Game\Quest\QuestLoader.cpp"><Filter>Game\Quest</Filter></ClCompile>
+    <ClCompile Include="Game\Quest\QuestRegistry.cpp"><Filter>Game\Quest</Filter></ClCompile>
+    <ClCompile Include="Game\Quest\QuestSystem.cpp"><Filter>Game\Quest</Filter></ClCompile>
     <ClCompile Include="Game\Simulation\GameplaySimulation.cpp"><Filter>Game\Simulation</Filter></ClCompile>
     <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp"><Filter>Game\Simulation</Filter></ClCompile>
   </ItemGroup>
@@ -67,6 +73,10 @@
     <ClInclude Include="Game\Player\PlayerController.h"><Filter>Game\Player</Filter></ClInclude>
     <ClInclude Include="Game\Player\PlayerMovementSystem.h"><Filter>Game\Player</Filter></ClInclude>
     <ClInclude Include="Game\Profile\PlayerProfile.h"><Filter>Game\Profile</Filter></ClInclude>
+    <ClInclude Include="Game\Quest\Quest.h"><Filter>Game\Quest</Filter></ClInclude>
+    <ClInclude Include="Game\Quest\QuestLoader.h"><Filter>Game\Quest</Filter></ClInclude>
+    <ClInclude Include="Game\Quest\QuestRegistry.h"><Filter>Game\Quest</Filter></ClInclude>
+    <ClInclude Include="Game\Quest\QuestSystem.h"><Filter>Game\Quest</Filter></ClInclude>
     <ClInclude Include="Game\Simulation\AnimationControllerSystem.h"><Filter>Game\Simulation</Filter></ClInclude>
     <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h"><Filter>Game\Simulation</Filter></ClInclude>
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h"><Filter>Game\Simulation</Filter></ClInclude>
@@ -96,6 +106,7 @@
     <None Include="Assets\Prefabs\EnemyScout.prefab.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Prefabs\Player.prefab.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Prefabs\Villager.prefab.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Quests\clear_arena_trial.quest.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\arena_trial.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\village.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\boss_arena.json"><Filter>Assets</Filter></None>

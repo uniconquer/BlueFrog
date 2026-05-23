@@ -119,6 +119,10 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 		}
 	}
 	objectiveSystem.Consume(events);
+	// Quests track the same event stream — kills against the active
+	// quest's conditions tick its per-condition progress, and the
+	// Active → Complete transition fires inside Consume.
+	if (questSystem_ != nullptr) questSystem_->Consume(events);
 
 	HudState hud = BuildHudState(scene);
 	hud.objectiveText = objectiveSystem.CurrentText();

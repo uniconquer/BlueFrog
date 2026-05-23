@@ -68,7 +68,7 @@
         "name": "VillagerElder",
         "prefab": "Assets/Prefabs/Villager.prefab.json",
         "transform": { "position": [-4.5, 0.0, 2.5], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] },
-        "npc": { "displayName": "Elder", "dialogText": "Welcome to our village. The eastern gate leads to the trial arena." }
+        "npc": { "displayName": "Elder", "dialogText": "Welcome to our village.", "questId": "clear_arena_trial" }
       },
       {
         "name": "VillagerChild",

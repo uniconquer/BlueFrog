@@ -1,0 +1,13 @@
+{
+  "id": "clear_arena_trial",
+  "title": "Trial of the Arena",
+  "conditions": [
+    { "type": "enemy_killed", "name": "EnemyScout" },
+    { "type": "enemy_killed", "name": "EnemyArcher" }
+  ],
+  "dialogOffer":    "The arena is overrun with foes. Will you clear it for us, traveler?",
+  "dialogActive":   "The scout and archer still draw breath. Return when they fall.",
+  "dialogComplete": "You did it! Come back so I can thank you properly.",
+  "dialogTurnedIn": "We owe you our peace, friend.",
+  "reward": { "healPlayer": 5, "boostMaxHealth": 1 }
+}

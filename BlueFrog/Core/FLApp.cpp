@@ -91,6 +91,17 @@ void FLApp::OnStartup()
 	audio.PlayBgm("arena");
 	gameplaySimulation.SetAudio(&audio);
 	gameplaySimulation.SetDamagePopupSink(&activePopups);
+
+	// Quest layer (Phase I-2A). Load every Assets/Quests/*.quest.json
+	// at boot; wire QuestSystem so it sees the same EnemyKilled events
+	// the scene-level ObjectiveSystem consumes.
+	std::string questErr;
+	if (!questRegistry.LoadAll(std::filesystem::path("Assets/Quests"), &questErr))
+	{
+		std::fputs(("[Quest] registry load failed: " + questErr + "\n").c_str(), stdout);
+		::OutputDebugStringA(("[Quest] registry load failed: " + questErr + "\n").c_str());
+	}
+	gameplaySimulation.SetQuestSystem(&questSystem);
 }
 
 void FLApp::OnUpdate(float dt)
@@ -121,8 +132,43 @@ void FLApp::OnUpdate(float dt)
 				dialogActive = true;
 				const auto& nc = npc->npcComponent.value();
 				dialogNpcName = Widen(nc.displayName.empty() ? npc->name : nc.displayName);
-				dialogText    = Widen(nc.dialogText);
-				dialogFade    = 0.0f;
+
+				// Quest-aware dialog branch (Phase I-2A). If the NPC
+				// references a quest, the spoken line depends on the
+				// QuestSystem state. First-time engagement auto-accepts
+				// the quest — v1 keeps offer and accept as the same
+				// beat. Status falls through to the NPC's default
+				// dialogText for unknown quest ids or NPCs without
+				// quest hooks.
+				const Quest* q = nc.questId.empty() ? nullptr : questRegistry.Find(nc.questId);
+				if (q != nullptr)
+				{
+					const QuestStatus status = questSystem.Status(nc.questId);
+					switch (status)
+					{
+					case QuestStatus::Available:
+						dialogText = q->dialogOffer;
+						questSystem.Accept(nc.questId, questRegistry);
+						break;
+					case QuestStatus::Active:
+						dialogText = q->dialogActive;
+						break;
+					case QuestStatus::Complete:
+						// Phase I-2B will gate turn-in on a second E
+						// press; for now Complete just shows the
+						// "ready to turn in" line and stays Complete.
+						dialogText = q->dialogComplete;
+						break;
+					case QuestStatus::TurnedIn:
+						dialogText = q->dialogTurnedIn;
+						break;
+					}
+				}
+				else
+				{
+					dialogText = Widen(nc.dialogText);
+				}
+				dialogFade = 0.0f;
 			}
 		}
 	}

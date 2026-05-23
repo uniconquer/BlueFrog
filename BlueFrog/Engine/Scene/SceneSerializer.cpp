@@ -154,11 +154,17 @@ namespace
 
 	json EncodeNpc(const NpcComponent& nc)
 	{
-		// Both fields always written so a round-trip preserves the exact
-		// authored shape; the loader treats absence as empty string anyway.
+		// Both core fields always written so a round-trip preserves the
+		// exact authored shape; loader treats absence as empty string.
 		json j = json::object();
 		j["displayName"] = nc.displayName;
 		j["dialogText"]  = nc.dialogText;
+		// questId only on round-trip when set, so quest-free villagers
+		// keep their files clean.
+		if (!nc.questId.empty())
+		{
+			j["questId"] = nc.questId;
+		}
 		return j;
 	}
 
