@@ -91,6 +91,14 @@ static RenderComponent ParseRender(const json& j)
 		if (m.contains("sampler")) mat.sampler       = ParseSamplerPreset(m["sampler"].get<std::string>());
 		rc.material = std::move(mat);
 	}
+	// Optional asset-level uniform scale. Absent or 0 ⇒ keep the
+	// default 1.0 (no correction). Zero is also rejected to defaults
+	// because authoring it would silently collapse the mesh.
+	if (j.contains("importScale"))
+	{
+		const float s = j["importScale"].get<float>();
+		if (s > 0.0f) rc.importScale = s;
+	}
 	return rc;
 }
 

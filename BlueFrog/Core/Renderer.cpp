@@ -263,7 +263,12 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 {
 	using namespace DirectX;
 
-	const XMMATRIX modelMatrix = transform.GetMatrix();
+	// Asset-level import scale is applied INSIDE the transform's local
+	// space (before rotation+translation) so it behaves like a baked
+	// mesh resize rather than a world-space scale. transform.scale
+	// stays meaningful as "intentional in-game size".
+	const float is = renderComponent.importScale;
+	const XMMATRIX modelMatrix = XMMatrixScaling(is, is, is) * transform.GetMatrix();
 	const XMMATRIX viewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
 
 	TransformData transformData = {};
@@ -539,7 +544,11 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 {
 	using namespace DirectX;
 
-	const XMMATRIX modelMatrix = transform.GetMatrix();
+	// Asset-level import scale (see DrawMesh comment). Multiplied in
+	// before the transform's TRS so it visually rescales the mesh
+	// without disturbing the actor's logical scale.
+	const float is = renderComponent.importScale;
+	const XMMATRIX modelMatrix = XMMatrixScaling(is, is, is) * transform.GetMatrix();
 	const XMMATRIX viewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
 
 	TransformData transformData = {};

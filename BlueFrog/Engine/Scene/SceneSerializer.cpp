@@ -81,6 +81,13 @@ namespace
 		{
 			j["material"] = EncodeMaterial(rc.material.value());
 		}
+		// Only emit importScale when it deviates from the no-op default,
+		// so prefabs / scenes that don't author the field stay diff-clean
+		// after a round-trip.
+		if (rc.importScale != 1.0f)
+		{
+			j["importScale"] = rc.importScale;
+		}
 		return j;
 	}
 
