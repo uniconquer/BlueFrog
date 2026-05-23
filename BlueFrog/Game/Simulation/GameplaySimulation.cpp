@@ -39,6 +39,11 @@ void GameplaySimulation::ReloadScene(const std::string& scenePath, Scene& scene,
 	deathTimer          = 0.0f;
 	deathSequenceActive = false;
 	pendingDeathReload  = false;
+	// interactTarget_ pointed into the *old* scene's object vector; that
+	// vector has been Cleared by BuildArena, so the pointer is now
+	// dangling. Drop it — the next Update tick will repopulate from the
+	// new scene.
+	interactTarget_     = nullptr;
 }
 
 std::optional<std::string> GameplaySimulation::ConsumePendingSceneLoad() noexcept
@@ -117,7 +122,9 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 	// player's post-knockback / post-trigger position is what the
 	// distance check uses. Prompt is suppressed while a dialog is open
 	// (game-side flag) so the dialog box and the prompt don't overlap.
-	InteractionSystem::Tick(scene, hud, /*suppressPrompt=*/dialogActive_);
+	// The returned NPC pointer is cached for FLApp to consume on the
+	// frame the player presses E (GetInteractTarget).
+	interactTarget_ = InteractionSystem::Tick(scene, hud, /*suppressPrompt=*/dialogActive_);
 
 	// Death-sequence bookkeeping. HudPresenter sets playerDefeated when the
 	// player's combat component crosses to dead; we latch that into a

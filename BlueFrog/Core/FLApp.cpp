@@ -17,6 +17,19 @@
 namespace
 {
 	constexpr const char* kDefaultScenePath = "Assets/Scenes/arena_trial.json";
+
+	// ASCII narrow→wide for HUD display. NPC text is validator-bound to
+	// ASCII per the scene schema, so a 1:1 widen is correct.
+	std::wstring Widen(const std::string& s)
+	{
+		std::wstring out;
+		out.reserve(s.size());
+		for (char c : s)
+		{
+			out.push_back(static_cast<wchar_t>(static_cast<unsigned char>(c)));
+		}
+		return out;
+	}
 }
 
 FLApp::FLApp(std::string scenePath)
@@ -85,6 +98,34 @@ void FLApp::OnUpdate(float dt)
 	currentPlayTimeSec += dt;
 	PollDebugToggles();
 	const GameplayInput input = CollectGameplayInput(dt);
+
+	// Dialog state transitions (Phase I-1C). E toggles: in dialog → exit;
+	// out of dialog + prompt visible → enter, capturing the NPC payload
+	// from the previous tick's InteractionSystem scan. Must happen
+	// BEFORE UpdateModel so the dialogActive flag we push into
+	// GameplaySimulation reflects this frame's decision — otherwise the
+	// prompt would flicker for one tick after dialog open.
+	if (input.interactPressed)
+	{
+		if (dialogActive)
+		{
+			dialogActive = false;
+			dialogNpcName.clear();
+			dialogText.clear();
+		}
+		else if (const SceneObject* npc = gameplaySimulation.GetInteractTarget())
+		{
+			if (npc->npcComponent.has_value())
+			{
+				dialogActive = true;
+				const auto& nc = npc->npcComponent.value();
+				dialogNpcName = Widen(nc.displayName.empty() ? npc->name : nc.displayName);
+				dialogText    = Widen(nc.dialogText);
+			}
+		}
+	}
+	gameplaySimulation.SetDialogActive(dialogActive);
+
 	UpdateModel(input, dt);
 
 	// Damage flash bookkeeping. Detect player HP drop between ticks; if
@@ -166,6 +207,13 @@ void FLApp::PollDebugToggles() noexcept
 		}
 		switch (e->GetCode())
 		{
+		case 'E':
+			// Dialog interact key. Latched here as an edge (press-only,
+			// since we already filtered to IsPress() above) so dialog
+			// open/close is one transition per physical keystroke. The
+			// flag is consumed and cleared in CollectGameplayInput.
+			interactPressedThisFrame = true;
+			break;
 		case VK_F1:
 			debugGizmosEnabled = !debugGizmosEnabled;
 			break;
@@ -356,6 +404,11 @@ GameplayInput FLApp::CollectGameplayInput(float dt) noexcept
 	// requirement, so plain held-key sampling is enough here.
 	input.dashHeld = GetKeyboard().KeyIsPressed(VK_SPACE);
 
+	// E-key edge (set during PollDebugToggles). Consume + clear so the
+	// next tick starts with a fresh flag.
+	input.interactPressed = interactPressedThisFrame;
+	interactPressedThisFrame = false;
+
 	if (GetMouse().IsInWindow())
 	{
 		const auto mousePos = GetMouse().GetPos();
@@ -440,7 +493,16 @@ void FLApp::OnRender()
 	// Interaction prompt: drawn between persistent HUD text and popups
 	// so the "[E] Talk to X" bottom hint sits cleanly above other
 	// transient overlays without fighting the inspector for column space.
-	textRenderer.RenderInteractPrompt(hudState, GetWindow().GetWidth(), GetWindow().GetHeight());
+	// Skipped while a dialog is open — the dialog box already covers
+	// that screen real estate.
+	if (!dialogActive)
+	{
+		textRenderer.RenderInteractPrompt(hudState, GetWindow().GetWidth(), GetWindow().GetHeight());
+	}
+	if (dialogActive)
+	{
+		textRenderer.RenderDialog(dialogNpcName, dialogText, GetWindow().GetWidth(), GetWindow().GetHeight());
+	}
 	// Damage-number overlay: drawn between the persistent HUD text and the
 	// inspector panel so the panel (if open) still covers the right-side
 	// popups, keeping the editor view tidy.

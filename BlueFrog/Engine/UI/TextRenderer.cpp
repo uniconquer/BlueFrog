@@ -197,6 +197,44 @@ TextRenderer::TextRenderer(Graphics& gfxIn)
     promptFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
     promptFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
 
+    // Dialog name (header). Bold so it reads as a heading distinct
+    // from the body line.
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::DialogNameSize),
+        TextLayout::kFontLocale,
+        dialogNameFormat.GetAddressOf());
+    if (FAILED(hr))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    dialogNameFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    dialogNameFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    dialogNameFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+    // Dialog body. Normal weight, word-wrap on so longer lines don't
+    // clip; only one line authored today but multi-line is cheap.
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::DialogBodySize),
+        TextLayout::kFontLocale,
+        dialogBodyFormat.GetAddressOf());
+    if (FAILED(hr))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    dialogBodyFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    dialogBodyFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    dialogBodyFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
+
     // Inspector resources. Consolas because the panel renders aligned
     // ASCII rows where proportional fonts would mis-align everything.
     hr = dwrite->CreateTextFormat(
@@ -405,6 +443,82 @@ void TextRenderer::RenderInteractPrompt(const HudState& hud, int viewportW, int 
         whiteBrush.Get(),
         D2D1_DRAW_TEXT_OPTIONS_NONE,
         DWRITE_MEASURING_MODE_NATURAL);
+}
+
+void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH) noexcept
+{
+    ID2D1RenderTarget* const target = gfx.GetD2DTarget();
+    if (target == nullptr || !dialogNameFormat || !dialogBodyFormat || !whiteBrush || !panelBrush) return;
+    if (npcName.empty()) return;
+
+    const float w = static_cast<float>(viewportW);
+    const float h = static_cast<float>(viewportH);
+
+    const float boxLeft   = TextLayout::DialogBoxMarginXDip;
+    const float boxRight  = w - TextLayout::DialogBoxMarginXDip;
+    const float boxBottom = h - TextLayout::DialogBoxMarginBotDip;
+    const float boxTop    = boxBottom - TextLayout::DialogBoxHeightDip;
+
+    // Reuse the inspector panel brush (translucent dark slate) so the
+    // dialog box reads as the same kind of "system surface" as the
+    // inspector — visually consistent.
+    target->FillRectangle(D2D1::RectF(boxLeft, boxTop, boxRight, boxBottom), panelBrush.Get());
+
+    const float padding   = TextLayout::DialogBoxPaddingDip;
+    const float innerLeft = boxLeft  + padding;
+    const float innerRight= boxRight - padding;
+    const float nameTop   = boxTop   + padding;
+    const float nameBot   = nameTop  + TextLayout::PointsToDips(TextLayout::DialogNameSize) * 1.4f;
+
+    // NPC name as the header. highlightBrush gives it a warm tint so
+    // the eye reads "who is speaking" first.
+    ID2D1SolidColorBrush* const nameBrush = highlightBrush ? highlightBrush.Get() : whiteBrush.Get();
+    target->DrawText(
+        npcName.c_str(),
+        static_cast<UINT32>(npcName.size()),
+        dialogNameFormat.Get(),
+        D2D1::RectF(innerLeft, nameTop, innerRight, nameBot),
+        nameBrush,
+        D2D1_DRAW_TEXT_OPTIONS_NONE,
+        DWRITE_MEASURING_MODE_NATURAL);
+
+    // Body line. Sits below the name with a small gap, fills the rest
+    // of the box up to a hint footer.
+    const float bodyTop = nameBot + 4.0f;
+    const float footerH = TextLayout::PointsToDips(TextLayout::DialogBodySize) * 1.2f;
+    const float bodyBot = boxBottom - padding - footerH;
+    if (!text.empty())
+    {
+        target->DrawText(
+            text.c_str(),
+            static_cast<UINT32>(text.size()),
+            dialogBodyFormat.Get(),
+            D2D1::RectF(innerLeft, bodyTop, innerRight, bodyBot),
+            whiteBrush.Get(),
+            D2D1_DRAW_TEXT_OPTIONS_NONE,
+            DWRITE_MEASURING_MODE_NATURAL);
+    }
+
+    // "[E] Continue" footer hint — right-aligned along the bottom of the
+    // box. Same format as the body but dimmed via the dimBrush.
+    const wchar_t kFooter[] = L"[E] Continue";
+    if (dimBrush)
+    {
+        // Build a transient right-aligned format on the fly would be
+        // ideal but DWrite doesn't let us mutate dialogBodyFormat
+        // mid-frame safely if other threads were involved. We're
+        // single-threaded, so flip the alignment, draw, flip back.
+        dialogBodyFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+        target->DrawText(
+            kFooter,
+            static_cast<UINT32>((sizeof(kFooter) / sizeof(wchar_t)) - 1u),
+            dialogBodyFormat.Get(),
+            D2D1::RectF(innerLeft, bodyBot, innerRight, bodyBot + footerH),
+            dimBrush.Get(),
+            D2D1_DRAW_TEXT_OPTIONS_NONE,
+            DWRITE_MEASURING_MODE_NATURAL);
+        dialogBodyFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    }
 }
 
 void TextRenderer::RenderDamagePopups(

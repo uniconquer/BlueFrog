@@ -22,6 +22,15 @@ namespace TextLayout
     // shouldn't dominate the screen.
     inline constexpr float InteractPromptPointSize = 16.0f;
     inline constexpr float InteractPromptBottomInsetDip = 96.0f;
+
+    // Dialog box: NPC name in bold semi-large, body in regular smaller.
+    // Box itself is a translucent dark rectangle docked along the bottom.
+    inline constexpr float DialogNameSize         = 18.0f;
+    inline constexpr float DialogBodySize         = 15.0f;
+    inline constexpr float DialogBoxHeightDip     = 110.0f;
+    inline constexpr float DialogBoxMarginXDip    = 32.0f;
+    inline constexpr float DialogBoxMarginBotDip  = 24.0f;
+    inline constexpr float DialogBoxPaddingDip    = 14.0f;
     inline constexpr float InspectorPointSize    = 11.0f;
     inline constexpr float InspectorTitlePointSize = 13.0f;
     // Objective text sits BELOW the HP bars (which occupy ~y=18..54 in

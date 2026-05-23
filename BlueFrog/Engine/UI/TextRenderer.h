@@ -34,6 +34,13 @@ public:
     // currently carry a prompt.
     void RenderInteractPrompt(const HudState& hud, int viewportW, int viewportH) noexcept;
 
+    // Dialog box: translucent panel docked along the bottom edge with
+    // the NPC's name as a header and one line of dialogText below.
+    // Painted on top of the interact prompt (so the prompt visually
+    // disappears once dialog opens). When `npcName` is empty the call
+    // is a no-op — caller controls whether dialog is "active".
+    void RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH) noexcept;
+
     // Floating damage-number overlay. Projects each popup's spawn worldPos
     // through the supplied camera, then floats the resulting screen point
     // upward over the popup's lifetime and fades it out at the tail end.
@@ -59,6 +66,8 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    defeatedFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    popupFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    promptFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    dialogNameFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    dialogBodyFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    inspectorFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    inspectorTitleFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> whiteBrush;

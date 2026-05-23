@@ -65,6 +65,14 @@ public:
 
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
+
+	// Pointer (possibly null) to the NPC the InteractionSystem found
+	// closest to the player this past tick — or nullptr when none was
+	// in range. Valid until the next Update or ReloadScene call. FLApp
+	// reads this on the frame the player pressed E to capture the
+	// dialog payload (NPC display name + dialogText) before opening
+	// the dialog UI.
+	[[nodiscard]] const SceneObject* GetInteractTarget() const noexcept { return interactTarget_; }
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
 
 	// Read-only access to the current ObjectiveState. SceneSerializer reads
@@ -86,4 +94,5 @@ private:
 	AudioEngine*                 audio_              = nullptr;
 	std::vector<DamagePopup>*    damagePopupsSink_   = nullptr;
 	bool                         dialogActive_       = false;
+	const SceneObject*           interactTarget_     = nullptr;
 };

@@ -89,4 +89,17 @@ private:
 	float  shakeDirX        = 1.0f;
 	float  shakeDirZ        = 0.0f;
 	size_t lastPopupCount   = 0;
+
+	// Dialog mode (Phase I-1C). When `dialogActive` is true, TextRenderer
+	// paints a bottom dialog box with the captured NPC's name + line.
+	// E key edge-toggles the mode. Game simulation keeps running
+	// underneath — pausing during dialog is a v2 decision once we have
+	// turn-based shop / quest accept screens that warrant it.
+	bool          dialogActive = false;
+	std::wstring  dialogNpcName;
+	std::wstring  dialogText;
+	// E-key edge detection. PollDebugToggles consumes the keyboard event
+	// queue and sets this flag for the current frame; CollectGameplayInput
+	// reads it into the GameplayInput, then we clear it.
+	bool          interactPressedThisFrame = false;
 };
