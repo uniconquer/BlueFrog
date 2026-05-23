@@ -157,6 +157,8 @@
     <ClCompile Include="Engine\Render\IndexBuffer.cpp" />
     <ClCompile Include="Engine\Render\InputLayout.cpp" />
     <ClCompile Include="Engine\Render\MeshImporter.cpp" />
+    <ClCompile Include="Engine\Render\ParticleRenderer.cpp" />
+    <ClCompile Include="Engine\Render\ParticleSystem.cpp" />
     <ClCompile Include="Engine\Render\PixelShader.cpp" />
     <ClCompile Include="Engine\Render\ShadowRenderer.cpp" />
     <ClCompile Include="Engine\Render\Topology.cpp" />
@@ -197,6 +199,9 @@
     <ClInclude Include="Engine\Render\LitPipeline.h" />
     <ClInclude Include="Engine\Render\MeshImporter.h" />
     <ClInclude Include="Engine\Render\PixelShader.h" />
+    <ClInclude Include="Engine\Render\ParticlePipeline.h" />
+    <ClInclude Include="Engine\Render\ParticleRenderer.h" />
+    <ClInclude Include="Engine\Render\ParticleSystem.h" />
     <ClInclude Include="Engine\Render\Sampler.h" />
     <ClInclude Include="Engine\Render\ShadowPipeline.h" />
     <ClInclude Include="Engine\Render\ShadowRenderer.h" />

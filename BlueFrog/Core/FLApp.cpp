@@ -40,6 +40,7 @@ FLApp::FLApp(std::string scenePath)
 	textRenderer(GetGfx()),
 	debugRenderer(GetGfx()),
 	shadowRenderer(GetGfx()),
+	particleRenderer(GetGfx()),
 	worldGridRenderer(GetGfx()),
 	camera(static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight())),
 	currentScenePath(scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath))
@@ -361,6 +362,26 @@ void FLApp::OnUpdate(float dt)
 		shakeDirX = std::cos(angle);
 		shakeDirZ = std::sin(angle);
 	}
+	// Particle splash on every newly-spawned damage popup. Walking
+	// the *new* tail of activePopups (slice [lastPopupCount, end))
+	// covers the multi-hit-in-one-tick case (a sweep killing several
+	// enemies still gets a splash per kill). Reddish color tied to
+	// the popup's worldPos so it visually anchors to the hit.
+	if (activePopups.size() > lastPopupCount)
+	{
+		for (size_t i = lastPopupCount; i < activePopups.size(); ++i)
+		{
+			const auto& p = activePopups[i];
+			particleSystem.Burst(
+				p.worldPos,
+				6,                                       // count
+				2.5f,                                    // speed
+				0.55f,                                   // lifetime
+				DirectX::XMFLOAT4{ 1.0f, 0.42f, 0.30f, 0.9f },  // warm start
+				DirectX::XMFLOAT4{ 1.0f, 0.60f, 0.45f, 0.0f },  // fade out
+				0.18f);                                  // size
+		}
+	}
 	lastPopupCount = activePopups.size();
 	// Magnitude decays linearly over ~0.22s; timer always advances so the
 	// sin oscillation runs at fixed temporal frequency rather than warping
@@ -381,6 +402,13 @@ void FLApp::OnUpdate(float dt)
 		std::remove_if(activePopups.begin(), activePopups.end(),
 			[](const DamagePopup& p) noexcept { return p.age >= DamagePopupConstants::kMaxAge; }),
 		activePopups.end());
+
+	// Particle system tick — gated on worldPaused so opening dialog
+	// or inventory freezes mid-flight particles cleanly.
+	if (!worldPaused)
+	{
+		particleSystem.Tick(dt);
+	}
 
 	// Animation controller picks clipName based on the gameplay state we
 	// just settled (player movement intent, enemy distance, alive flag).
@@ -782,6 +810,10 @@ void FLApp::OnRender()
 	// values prevent the shadow from painting on top of characters
 	// themselves (depth-test on, depth-write off).
 	shadowRenderer.Render(scene, camera);
+	// Particle splashes / VFX. Drawn after shadows so they pop on top
+	// of the shadow disc when both share the same y≈0 plane. Same
+	// alpha-blend / depth-read-only pattern.
+	particleRenderer.Render(particleSystem, camera);
 	if (worldGridEnabled)
 	{
 		// Ground reference grid (Unity-style). Drawn after the 3D pass and

@@ -9,6 +9,7 @@
 #include <vector>
 
 class AudioEngine;
+class ParticleSystem;
 
 // Per-tick parameter bundle passed to every gameplay system's Update call.
 //
@@ -45,4 +46,7 @@ struct SystemContext
     // successful damage application; nullptr means the feature is disabled
     // (no popups rendered, no crash).
     std::vector<DamagePopup>* damagePopups = nullptr;
+    // Optional VFX sink for transient combat effects (hit splashes,
+    // dash trails, sparkles). nullptr disables emission silently.
+    ParticleSystem*           particles    = nullptr;
 };
