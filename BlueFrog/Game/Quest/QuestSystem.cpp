@@ -29,6 +29,65 @@ void QuestSystem::Accept(const std::string& questId, const QuestRegistry& regist
 	state_.emplace(questId, std::move(rt));
 }
 
+std::vector<QuestSystem::ConditionProgressEntry> QuestSystem::SnapshotState() const
+{
+	std::vector<ConditionProgressEntry> out;
+	out.reserve(state_.size());
+	for (const auto& [id, rt] : state_)
+	{
+		ConditionProgressEntry e;
+		e.id     = id;
+		e.status = static_cast<int>(rt.status);
+		e.conditionProgress.reserve(rt.conditionsLive.size());
+		for (const auto& cond : rt.conditionsLive)
+		{
+			// v1 has no OR groups in shipped quests, so each slot's
+			// progress is just the single leaf's progress. When OR
+			// groups arrive, this collapses to max(leaf progress)
+			// per slot — meaningful, since hitting ANY leaf of an
+			// OR group is what advances the slot.
+			int slotProgress = 0;
+			for (const auto& leaf : cond.leaves)
+			{
+				if (leaf.progress > slotProgress) slotProgress = leaf.progress;
+			}
+			e.conditionProgress.push_back(slotProgress);
+		}
+		out.push_back(std::move(e));
+	}
+	return out;
+}
+
+void QuestSystem::RestoreFromSnapshot(const std::vector<ConditionProgressEntry>& entries,
+	const QuestRegistry& registry) noexcept
+{
+	state_.clear();
+	for (const auto& e : entries)
+	{
+		const Quest* def = registry.Find(e.id);
+		if (def == nullptr) continue; // stale save id — drop
+
+		Runtime rt;
+		rt.status         = static_cast<QuestStatus>(e.status);
+		rt.conditionsLive = def->conditions; // start with definition's clean slate
+		// Apply the saved per-slot progress. Spread it across the
+		// slot's leaves (v1 has 1 leaf per slot, so this is
+		// straightforward; with OR groups arriving later, restoring
+		// "slot X had progress N" by setting every leaf's progress
+		// to N is the simplest interpretation matching the
+		// snapshot's "max across leaves" rule).
+		const size_t n = std::min(rt.conditionsLive.size(), e.conditionProgress.size());
+		for (size_t i = 0; i < n; ++i)
+		{
+			for (auto& leaf : rt.conditionsLive[i].leaves)
+			{
+				leaf.progress = e.conditionProgress[i];
+			}
+		}
+		state_.emplace(e.id, std::move(rt));
+	}
+}
+
 std::string QuestSystem::FindFirstInFlight() const noexcept
 {
 	for (const auto& [id, rt] : state_)

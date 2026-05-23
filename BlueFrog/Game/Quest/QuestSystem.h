@@ -59,6 +59,22 @@ public:
 	// TurnedIn). Available quests don't allocate.
 	[[nodiscard]] std::size_t TrackedCount() const noexcept { return state_.size(); }
 
+	// Persistence (Phase I-D). One snapshot row per tracked quest.
+	// `conditionProgress[i]` = highest progress among the leaves of
+	// condition slot i (v1 has no OR groups so this is just the
+	// single leaf's progress). RestoreFromSnapshot recreates the
+	// runtime state by looking the static def up in the registry
+	// and applying status + progress on top.
+	struct ConditionProgressEntry
+	{
+		std::string id;
+		int         status; // QuestStatus enum value
+		std::vector<int> conditionProgress;
+	};
+	[[nodiscard]] std::vector<ConditionProgressEntry> SnapshotState() const;
+	void RestoreFromSnapshot(const std::vector<ConditionProgressEntry>& entries,
+		const QuestRegistry& registry) noexcept;
+
 	// Returns the id of the first quest currently Active or Complete,
 	// or empty when none. Useful as a "what should the HUD show right
 	// now" hint in the v1 single-tracked-quest model. Iteration order

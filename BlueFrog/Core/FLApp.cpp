@@ -104,13 +104,43 @@ void FLApp::OnStartup()
 	gameplaySimulation.SetQuestSystem(&questSystem);
 
 	// Inventory layer (Phase I-3A). Load every Assets/Items/*.item.json
-	// at boot. Inventory starts empty; future profile load will
-	// re-populate it.
+	// at boot.
 	std::string itemErr;
 	if (!itemRegistry.LoadAll(std::filesystem::path("Assets/Items"), &itemErr))
 	{
 		std::fputs(("[Item] registry load failed: " + itemErr + "\n").c_str(), stdout);
 		::OutputDebugStringA(("[Item] registry load failed: " + itemErr + "\n").c_str());
+	}
+
+	// Persistence restore (Phase I-D). The profile loaded at the top
+	// of this function already carries quest + inventory snapshots —
+	// just apply them now that QuestRegistry / ItemRegistry are up.
+	// RestoreFromSnapshot silently drops snapshots whose id is no
+	// longer in the registry, so an item or quest removed between
+	// builds doesn't crash the load.
+	if (profileLoaded)
+	{
+		if (!profile.quests.empty())
+		{
+			std::vector<QuestSystem::ConditionProgressEntry> entries;
+			entries.reserve(profile.quests.size());
+			for (const auto& q : profile.quests)
+			{
+				QuestSystem::ConditionProgressEntry e;
+				e.id                = q.id;
+				e.status            = q.status;
+				e.conditionProgress = q.conditionProgress;
+				entries.push_back(std::move(e));
+			}
+			questSystem.RestoreFromSnapshot(entries, questRegistry);
+		}
+		for (const auto& it : profile.inventory)
+		{
+			if (it.count > 0)
+			{
+				inventory.Add(it.id, it.count, &itemRegistry);
+			}
+		}
 	}
 }
 
@@ -415,10 +445,9 @@ void FLApp::PollDebugToggles() noexcept
 			break;
 		case VK_F8:
 		{
-			// Profile save: snapshot current scene + player HP + accumulated
-			// play time into Save/profile.json. Subsequent app launches
-			// auto-load this and start from the saved scene with the saved
-			// HP applied on top of the spawn defaults.
+			// Profile save: snapshot current scene + player HP +
+			// accumulated play time + quest progress + inventory.
+			// Subsequent launches auto-load this checkpoint.
 			PlayerProfile profile;
 			profile.scenePath = currentScenePath;
 			profile.playTimeSec = currentPlayTimeSec;
@@ -429,6 +458,26 @@ void FLApp::PollDebugToggles() noexcept
 					profile.playerHealth    = player->combatComponent->health;
 					profile.playerMaxHealth = player->combatComponent->maxHealth;
 				}
+			}
+			// Quest snapshot (Phase I-D). Each tracked quest's status
+			// + per-slot progress is captured; Available quests don't
+			// allocate so they're naturally absent.
+			for (const auto& e : questSystem.SnapshotState())
+			{
+				QuestStateSnapshot s;
+				s.id     = e.id;
+				s.status = e.status;
+				s.conditionProgress = e.conditionProgress;
+				profile.quests.push_back(std::move(s));
+			}
+			// Inventory snapshot — flat id/count pairs.
+			for (const auto& [id, count] : inventory.All())
+			{
+				if (count <= 0) continue;
+				InventoryEntrySnapshot s;
+				s.id    = id;
+				s.count = count;
+				profile.inventory.push_back(std::move(s));
 			}
 			const std::filesystem::path profilePath("Save/profile.json");
 			const bool ok = PlayerProfileIO::Save(profilePath, profile);
