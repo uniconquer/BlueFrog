@@ -128,19 +128,16 @@ const std::array<unsigned short, 36>& Renderer::GetCubeIndices() noexcept
 
 const std::array<Renderer::LitVertex, 4>& Renderer::GetPlaneVertices() noexcept
 {
-	// UV repeat is asymmetric on purpose: X repeats 9 times, Z only 7.
-	// Without the asymmetry, a square checker reads as a horizontally-
-	// stretched rectangle on screen because TopDownCamera looks down
-	// from 38.7° off vertical (height=15, radius=12), foreshortening
-	// world-Z by cos(38.7°) ≈ 0.78. Compensating in UV (9 × 0.78 ≈ 7)
-	// makes textured planes read as visually square on screen for the
-	// default camera setup. Trade-off: world-space cells are slightly
-	// non-square (X cell ≈ 1.28× narrower than Z cell), which only
-	// matters if a tool literally measures pixels off-screen.
+	// Square 9×9 UV. The previous 9×7 asymmetry was a misdiagnosis —
+	// the apparent rectangular checker was actually a PowerShell
+	// banker's rounding bug in the texture generator (cells came out
+	// 5px+7px instead of 8+8). Texture now correct; UV stays square.
+	// Top-down perspective foreshortening still applies but is gentle
+	// enough that a square mesh + square texture reads square.
 	static const std::array<LitVertex, 4> vertices =
 	{
-		LitVertex{ -1,0,-1,  0,1,0,  0,7 },
-		LitVertex{  1,0,-1,  0,1,0,  9,7 },
+		LitVertex{ -1,0,-1,  0,1,0,  0,9 },
+		LitVertex{  1,0,-1,  0,1,0,  9,9 },
 		LitVertex{ -1,0, 1,  0,1,0,  0,0 },
 		LitVertex{  1,0, 1,  0,1,0,  9,0 },
 	};
