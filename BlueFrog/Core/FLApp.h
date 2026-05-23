@@ -46,6 +46,11 @@ private:
 	GameplayInput CollectGameplayInput(float dt) noexcept;
 	void PollDebugToggles() noexcept;
 	void ApplyQuestReward(const struct QuestReward& reward) noexcept;
+	// Consume one of the (currently hardcoded) "healing_potion" item
+	// from inventory and apply its ItemEffect to the player. No-op
+	// when the inventory is empty. Phase I-3D will generalize to
+	// hotbar slot → item-id mapping.
+	void UseConsumable() noexcept;
 
 	Renderer renderer;
 	UIRenderer uiRenderer;
@@ -133,6 +138,8 @@ private:
 	// for the E key — PollDebugToggles latches, CollectGameplayInput
 	// reads + clears.
 	bool          inventoryKeyPressedThisFrame = false;
+	// '1' hotkey edge for the first consumable slot.
+	bool          consumeHotkeyPressedThisFrame = false;
 	// E-key edge detection. PollDebugToggles consumes the keyboard event
 	// queue and sets this flag for the current frame; CollectGameplayInput
 	// reads it into the GameplayInput, then we clear it.

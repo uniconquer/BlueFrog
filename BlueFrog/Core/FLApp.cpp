@@ -126,6 +126,20 @@ void FLApp::OnUpdate(float dt)
 	// BEFORE UpdateModel so the dialogActive flag we push into
 	// GameplaySimulation reflects this frame's decision — otherwise the
 	// prompt would flicker for one tick after dialog open.
+	// Consumable hotkey (Phase I-3C). Works whether the inventory
+	// panel is open or not — Diablo-style "hotbar always live"
+	// pattern. Skipped while dialog is active (turning a dialog
+	// into a heal moment would be confusing); inventory open is
+	// fine because the panel updates immediately.
+	if (consumeHotkeyPressedThisFrame)
+	{
+		consumeHotkeyPressedThisFrame = false;
+		if (!dialogActive)
+		{
+			UseConsumable();
+		}
+	}
+
 	// Inventory toggle (Phase I-3B). I key opens/closes the panel.
 	// Mutually exclusive with dialog: opening inventory while dialog
 	// is active closes the dialog first; E while inventory is open
@@ -376,6 +390,12 @@ void FLApp::PollDebugToggles() noexcept
 			// only FLApp itself does).
 			inventoryKeyPressedThisFrame = true;
 			break;
+		case '1':
+			// Consumable hotkey slot 0 (Phase I-3C). v1 hardcodes
+			// "healing_potion" as the target; a future hotbar system
+			// will map slot indices to item ids.
+			consumeHotkeyPressedThisFrame = true;
+			break;
 		case VK_F1:
 			debugGizmosEnabled = !debugGizmosEnabled;
 			break;
@@ -577,6 +597,38 @@ void FLApp::ApplyQuestReward(const QuestReward& reward) noexcept
 	}
 	// HudPresenter will pick up the new HP next BuildHudState call —
 	// no need to refresh here.
+}
+
+void FLApp::UseConsumable() noexcept
+{
+	// v1: slot 0 is hardcoded to healing_potion. Future Phase I-3D
+	// will introduce a real hotbar mapping (slot index → item id).
+	const std::string id = "healing_potion";
+	if (inventory.Count(id) <= 0)
+	{
+		// Silently no-op — pressing 1 with an empty hotbar shouldn't
+		// log spam every press during heated combat.
+		return;
+	}
+	const Item* def = itemRegistry.Find(id);
+	if (def == nullptr) return; // registry missing the item (authoring bug)
+
+	inventory.Take(id, 1);
+
+	// Reuse ApplyQuestReward's HP/maxHP path — both QuestReward and
+	// ItemEffect carry the same heal + boostMaxHealth channels, so
+	// re-wrapping into a QuestReward avoids duplicating the apply
+	// logic. The itemId field is left empty so it doesn't try to
+	// grant another item recursively.
+	QuestReward synthetic;
+	synthetic.healPlayer     = def->effect.heal;
+	synthetic.boostMaxHealth = def->effect.boostMaxHealth;
+	ApplyQuestReward(synthetic);
+
+	const std::string msg = "[Inventory] used '" + id + "' (+"
+		+ std::to_string(def->effect.heal) + " HP)\n";
+	std::fputs(msg.c_str(), stdout);
+	::OutputDebugStringA(msg.c_str());
 }
 
 GameplayInput FLApp::CollectGameplayInput(float dt) noexcept
