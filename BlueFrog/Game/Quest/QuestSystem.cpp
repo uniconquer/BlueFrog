@@ -29,6 +29,18 @@ void QuestSystem::Accept(const std::string& questId, const QuestRegistry& regist
 	state_.emplace(questId, std::move(rt));
 }
 
+std::string QuestSystem::FindFirstInFlight() const noexcept
+{
+	for (const auto& [id, rt] : state_)
+	{
+		if (rt.status == QuestStatus::Active || rt.status == QuestStatus::Complete)
+		{
+			return id;
+		}
+	}
+	return {};
+}
+
 bool QuestSystem::TurnIn(const std::string& questId) noexcept
 {
 	auto it = state_.find(questId);

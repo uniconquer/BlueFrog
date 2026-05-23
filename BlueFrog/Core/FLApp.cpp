@@ -203,6 +203,39 @@ void FLApp::OnUpdate(float dt)
 		UpdateModel(input, dt);
 	}
 
+	// Quest HUD overlay: if a quest is in flight (Active or Complete),
+	// override the scene-level objective text in the HUD with the
+	// quest title + progress. Done after UpdateModel (which is where
+	// hudState gets refreshed) so we replace the freshest value.
+	const std::string trackedId = questSystem.FindFirstInFlight();
+	if (!trackedId.empty())
+	{
+		if (const Quest* q = questRegistry.Find(trackedId))
+		{
+			const auto* live = questSystem.LiveConditions(trackedId);
+			int met = 0;
+			int total = live ? static_cast<int>(live->size()) : 0;
+			if (live)
+			{
+				for (const auto& c : *live) if (c.IsMet()) ++met;
+			}
+			std::wstring text = q->title;
+			if (total > 0)
+			{
+				text += L" (";
+				text += std::to_wstring(met);
+				text += L"/";
+				text += std::to_wstring(total);
+				text += L")";
+			}
+			if (questSystem.Status(trackedId) == QuestStatus::Complete)
+			{
+				text += L" -- return to giver";
+			}
+			hudState.objectiveText = std::move(text);
+		}
+	}
+
 	// Damage flash bookkeeping. Detect player HP drop between ticks; if
 	// so kick the flash to peak. Decay it every tick toward zero. Reset
 	// the baseline whenever the player respawns above the previous low

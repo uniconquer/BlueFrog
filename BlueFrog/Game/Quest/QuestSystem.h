@@ -59,6 +59,14 @@ public:
 	// TurnedIn). Available quests don't allocate.
 	[[nodiscard]] std::size_t TrackedCount() const noexcept { return state_.size(); }
 
+	// Returns the id of the first quest currently Active or Complete,
+	// or empty when none. Useful as a "what should the HUD show right
+	// now" hint in the v1 single-tracked-quest model. Iteration order
+	// is unordered_map's bucket order — fine for one tracked quest;
+	// when FL grows multiple in-flight quests we'll replace this with
+	// an explicit "tracked quest" selection.
+	[[nodiscard]] std::string FindFirstInFlight() const noexcept;
+
 private:
 	struct Runtime
 	{
