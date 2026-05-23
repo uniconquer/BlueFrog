@@ -112,5 +112,6 @@
     <None Include="Assets\Scenes\boss_arena.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\sparring_yard.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Textures\ground_checker.png"><Filter>Assets</Filter></None>
+    <None Include="Assets\Textures\ground_grey_check.png"><Filter>Assets</Filter></None>
   </ItemGroup>
 </Project>

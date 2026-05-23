@@ -231,6 +231,7 @@
     <None Include="Assets\Scenes\boss_arena.json" />
     <None Include="Assets\Scenes\sparring_yard.json" />
     <None Include="Assets\Textures\ground_checker.png" />
+    <None Include="Assets\Textures\ground_grey_check.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="BlueFrogEngine.vcxproj">
