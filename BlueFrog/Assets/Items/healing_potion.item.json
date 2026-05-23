@@ -1,0 +1,7 @@
+{
+  "id": "healing_potion",
+  "name": "Healing Potion",
+  "description": "A small flask of restorative tonic. Restores 3 HP when consumed.",
+  "maxStack": 9,
+  "effect": { "heal": 3 }
+}

@@ -94,6 +94,8 @@ namespace QuestLoader
 			const auto& r = j["reward"];
 			if (r.contains("healPlayer"))     out.reward.healPlayer     = r["healPlayer"].get<int>();
 			if (r.contains("boostMaxHealth")) out.reward.boostMaxHealth = r["boostMaxHealth"].get<int>();
+			if (r.contains("itemId"))         out.reward.itemId         = r["itemId"].get<std::string>();
+			if (r.contains("itemQuantity"))   out.reward.itemQuantity   = r["itemQuantity"].get<int>();
 		}
 
 		return true;

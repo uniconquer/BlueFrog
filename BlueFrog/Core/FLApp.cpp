@@ -102,6 +102,16 @@ void FLApp::OnStartup()
 		::OutputDebugStringA(("[Quest] registry load failed: " + questErr + "\n").c_str());
 	}
 	gameplaySimulation.SetQuestSystem(&questSystem);
+
+	// Inventory layer (Phase I-3A). Load every Assets/Items/*.item.json
+	// at boot. Inventory starts empty; future profile load will
+	// re-populate it.
+	std::string itemErr;
+	if (!itemRegistry.LoadAll(std::filesystem::path("Assets/Items"), &itemErr))
+	{
+		std::fputs(("[Item] registry load failed: " + itemErr + "\n").c_str(), stdout);
+		::OutputDebugStringA(("[Item] registry load failed: " + itemErr + "\n").c_str());
+	}
 }
 
 void FLApp::OnUpdate(float dt)
@@ -512,6 +522,18 @@ void FLApp::ApplyQuestReward(const QuestReward& reward) noexcept
 	if (reward.healPlayer > 0)
 	{
 		cc.health = std::min(cc.health + reward.healPlayer, cc.maxHealth);
+	}
+
+	// Item reward (Phase I-3A). Pushed into Inventory with stack cap
+	// from ItemRegistry. Logged to stdout for now since the inventory
+	// UI lands in I-3B — players can still confirm "got it" by
+	// inspecting the build log until then.
+	if (!reward.itemId.empty() && reward.itemQuantity > 0)
+	{
+		const int added = inventory.Add(reward.itemId, reward.itemQuantity, &itemRegistry);
+		const std::string msg = "[Inventory] +" + std::to_string(added) + " '" + reward.itemId + "'\n";
+		std::fputs(msg.c_str(), stdout);
+		::OutputDebugStringA(msg.c_str());
 	}
 	// HudPresenter will pick up the new HP next BuildHudState call —
 	// no need to refresh here.

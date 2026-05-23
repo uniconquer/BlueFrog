@@ -13,6 +13,8 @@
 #include "../Engine/Render/WorldGridRenderer.h"
 #include "../Engine/Audio/AudioEngine.h"
 #include "../Game/Simulation/GameplaySimulation.h"
+#include "../Game/Inventory/Inventory.h"
+#include "../Game/Inventory/ItemRegistry.h"
 #include "../Game/Profile/PlayerProfile.h"
 #include "../Game/Quest/QuestRegistry.h"
 #include "../Game/Quest/QuestSystem.h"
@@ -63,6 +65,15 @@ private:
 	// progressed while talking to a villager back in village).
 	QuestRegistry questRegistry;
 	QuestSystem   questSystem;
+
+	// Inventory layer (Phase I-3A). ItemRegistry holds static item
+	// definitions (loaded once from Assets/Items/*.item.json);
+	// Inventory holds the per-player runtime ownership. Both
+	// survive scene reloads since FLApp itself does. Phase I-3D /
+	// future profile-save commit will persist Inventory across
+	// launches.
+	ItemRegistry itemRegistry;
+	Inventory    inventory;
 	std::string currentScenePath;
 	bool   debugGizmosEnabled  = false;
 	bool   worldGridEnabled    = false;

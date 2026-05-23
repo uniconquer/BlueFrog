@@ -25,6 +25,12 @@ struct QuestReward
 {
 	int healPlayer     = 0;  // restore this many HP on turn-in (capped at maxHealth)
 	int boostMaxHealth = 0;  // permanently raise maxHealth by this much (and heal that delta)
+	// Optional item reward. Empty itemId = no item given. Quantity
+	// is clamped to the item's maxStack when actually inserted. The
+	// item must exist in the ItemRegistry; missing ids are logged
+	// at turn-in time but don't fail the quest.
+	std::string itemId;
+	int         itemQuantity = 0;
 };
 
 enum class QuestStatus

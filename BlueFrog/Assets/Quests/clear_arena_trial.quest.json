@@ -9,5 +9,5 @@
   "dialogActive":   "The scout and archer still draw breath. Return when they fall.",
   "dialogComplete": "You did it! Come back so I can thank you properly.",
   "dialogTurnedIn": "We owe you our peace, friend.",
-  "reward": { "healPlayer": 5, "boostMaxHealth": 1 }
+  "reward": { "healPlayer": 5, "boostMaxHealth": 1, "itemId": "healing_potion", "itemQuantity": 1 }
 }

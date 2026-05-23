@@ -31,6 +31,9 @@
     <Filter Include="Game\Quest">
       <UniqueIdentifier>{44444444-0000-0000-0000-000000000009}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Inventory">
+      <UniqueIdentifier>{44444444-0000-0000-0000-00000000000A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Game\Simulation">
       <UniqueIdentifier>{44444444-0000-0000-0000-000000000007}</UniqueIdentifier>
     </Filter>
@@ -45,6 +48,9 @@
     <ClCompile Include="Game\Combat\KnockbackSystem.cpp"><Filter>Game\Combat</Filter></ClCompile>
     <ClCompile Include="Game\Interaction\InteractionSystem.cpp"><Filter>Game\Interaction</Filter></ClCompile>
     <ClCompile Include="Game\Interaction\NpcFacingSystem.cpp"><Filter>Game\Interaction</Filter></ClCompile>
+    <ClCompile Include="Game\Inventory\Inventory.cpp"><Filter>Game\Inventory</Filter></ClCompile>
+    <ClCompile Include="Game\Inventory\ItemLoader.cpp"><Filter>Game\Inventory</Filter></ClCompile>
+    <ClCompile Include="Game\Inventory\ItemRegistry.cpp"><Filter>Game\Inventory</Filter></ClCompile>
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp"><Filter>Game\NPC</Filter></ClCompile>
     <ClCompile Include="Game\Objectives\ObjectiveStateIO.cpp"><Filter>Game\Objectives</Filter></ClCompile>
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp"><Filter>Game\Objectives</Filter></ClCompile>
@@ -62,6 +68,10 @@
     <ClInclude Include="Game\Combat\KnockbackSystem.h"><Filter>Game\Combat</Filter></ClInclude>
     <ClInclude Include="Game\Interaction\InteractionSystem.h"><Filter>Game\Interaction</Filter></ClInclude>
     <ClInclude Include="Game\Interaction\NpcFacingSystem.h"><Filter>Game\Interaction</Filter></ClInclude>
+    <ClInclude Include="Game\Inventory\Inventory.h"><Filter>Game\Inventory</Filter></ClInclude>
+    <ClInclude Include="Game\Inventory\Item.h"><Filter>Game\Inventory</Filter></ClInclude>
+    <ClInclude Include="Game\Inventory\ItemLoader.h"><Filter>Game\Inventory</Filter></ClInclude>
+    <ClInclude Include="Game\Inventory\ItemRegistry.h"><Filter>Game\Inventory</Filter></ClInclude>
     <ClInclude Include="Game\Hud\HudPresenter.h"><Filter>Game\Hud</Filter></ClInclude>
     <ClInclude Include="Game\NPC\EnemyArcherBehavior.h"><Filter>Game\NPC</Filter></ClInclude>
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h"><Filter>Game\NPC</Filter></ClInclude>
@@ -106,6 +116,7 @@
     <None Include="Assets\Prefabs\EnemyScout.prefab.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Prefabs\Player.prefab.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Prefabs\Villager.prefab.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Items\healing_potion.item.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Quests\clear_arena_trial.quest.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\arena_trial.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\village.json"><Filter>Assets</Filter></None>
