@@ -52,6 +52,21 @@
         "name": "AlphaFox",
         "prefab": "Assets/Prefabs/Boss.prefab.json",
         "transform": { "position": [4.5, 0.0, 0.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }
+      },
+      {
+        "name": "VillageReturnMarker",
+        "transform": { "position": [0.0, 0.4, -7.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.5, 0.8, 0.5] },
+        "render": { "mesh": "cube", "material": { "tint": [0.55, 0.92, 0.55] } }
+      },
+      {
+        "name": "VillageReturnPortal",
+        "transform": { "position": [0.0, 0.0, -7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
+        "trigger": {
+          "halfExtents": [0.8, 0.8],
+          "tag": "village_return",
+          "fireOnce": false,
+          "action": { "type": "load_scene", "param": "Assets/Scenes/village.json" }
+        }
       }
     ]
   }
