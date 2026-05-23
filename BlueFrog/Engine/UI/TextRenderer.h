@@ -37,9 +37,11 @@ public:
     // Dialog box: translucent panel docked along the bottom edge with
     // the NPC's name as a header and one line of dialogText below.
     // Painted on top of the interact prompt (so the prompt visually
-    // disappears once dialog opens). When `npcName` is empty the call
-    // is a no-op — caller controls whether dialog is "active".
-    void RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH) noexcept;
+    // disappears once dialog opens). When `npcName` is empty or
+    // `alpha` <= 0 the call is a no-op — caller controls when dialog
+    // is "active". `alpha` (0..1) scales the opacity of every brush
+    // used for the dialog so the caller can fade-in / fade-out.
+    void RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH, float alpha) noexcept;
 
     // Floating damage-number overlay. Projects each popup's spawn worldPos
     // through the supplied camera, then floats the resulting screen point

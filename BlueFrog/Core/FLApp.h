@@ -92,12 +92,14 @@ private:
 
 	// Dialog mode (Phase I-1C). When `dialogActive` is true, TextRenderer
 	// paints a bottom dialog box with the captured NPC's name + line.
-	// E key edge-toggles the mode. Game simulation keeps running
-	// underneath — pausing during dialog is a v2 decision once we have
-	// turn-based shop / quest accept screens that warrant it.
+	// E key edge-toggles the mode. Dialog also freezes the simulation
+	// (Polish 3): GameplaySimulation::Update sees dt=0 so movement,
+	// combat, animation, and triggers all hold their state until the
+	// dialog closes. dialogFade tracks the 0→1 fade-in animation.
 	bool          dialogActive = false;
 	std::wstring  dialogNpcName;
 	std::wstring  dialogText;
+	float         dialogFade   = 0.0f;
 	// E-key edge detection. PollDebugToggles consumes the keyboard event
 	// queue and sets this flag for the current frame; CollectGameplayInput
 	// reads it into the GameplayInput, then we clear it.

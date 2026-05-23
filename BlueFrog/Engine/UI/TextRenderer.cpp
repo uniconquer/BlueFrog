@@ -445,11 +445,23 @@ void TextRenderer::RenderInteractPrompt(const HudState& hud, int viewportW, int 
         DWRITE_MEASURING_MODE_NATURAL);
 }
 
-void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH) noexcept
+void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH, float alpha) noexcept
 {
     ID2D1RenderTarget* const target = gfx.GetD2DTarget();
     if (target == nullptr || !dialogNameFormat || !dialogBodyFormat || !whiteBrush || !panelBrush) return;
     if (npcName.empty()) return;
+    const float a = std::clamp(alpha, 0.0f, 1.0f);
+    if (a <= 0.0f) return;
+
+    // Scale every brush used in this draw by `a`. SetOpacity multiplies
+    // the brush's authored color alpha (panelBrush is already 0.82 in
+    // its ColorF), so passing `a` here yields a final alpha of 0.82*a
+    // for the panel and `a` for the text brushes. Originals restored
+    // at the end so other overlays this frame aren't dimmed by mistake.
+    panelBrush->SetOpacity(a);
+    whiteBrush->SetOpacity(a);
+    if (highlightBrush) highlightBrush->SetOpacity(a);
+    if (dimBrush)       dimBrush->SetOpacity(a);
 
     const float w = static_cast<float>(viewportW);
     const float h = static_cast<float>(viewportH);
@@ -519,6 +531,12 @@ void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring&
             DWRITE_MEASURING_MODE_NATURAL);
         dialogBodyFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
     }
+
+    // Restore brushes the rest of the renderer assumes are at opacity 1.
+    panelBrush->SetOpacity(1.0f);
+    whiteBrush->SetOpacity(1.0f);
+    if (highlightBrush) highlightBrush->SetOpacity(1.0f);
+    if (dimBrush)       dimBrush->SetOpacity(1.0f);
 }
 
 void TextRenderer::RenderDamagePopups(

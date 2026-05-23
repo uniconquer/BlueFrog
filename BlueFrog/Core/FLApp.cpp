@@ -112,6 +112,7 @@ void FLApp::OnUpdate(float dt)
 			dialogActive = false;
 			dialogNpcName.clear();
 			dialogText.clear();
+			dialogFade = 0.0f;
 		}
 		else if (const SceneObject* npc = gameplaySimulation.GetInteractTarget())
 		{
@@ -121,12 +122,30 @@ void FLApp::OnUpdate(float dt)
 				const auto& nc = npc->npcComponent.value();
 				dialogNpcName = Widen(nc.displayName.empty() ? npc->name : nc.displayName);
 				dialogText    = Widen(nc.dialogText);
+				dialogFade    = 0.0f;
 			}
 		}
 	}
 	gameplaySimulation.SetDialogActive(dialogActive);
 
-	UpdateModel(input, dt);
+	// Dialog fade-in: 0→1 over kDialogFadeDuration after the dialog
+	// opens. Reset to 0 on close (above). Real time (not the dt we hand
+	// to the simulation) so the fade runs even while the world is
+	// paused.
+	constexpr float kDialogFadeDuration = 0.15f;
+	if (dialogActive)
+	{
+		dialogFade = std::min(1.0f, dialogFade + dt / kDialogFadeDuration);
+	}
+
+	// Simulation pause during dialog: skip UpdateModel entirely so
+	// movement, combat, animation, triggers, AND queued input (LMB
+	// attacks, dash starts) all freeze. The dialog fade above this
+	// point still runs on real dt because it ticks before the gate.
+	if (!dialogActive)
+	{
+		UpdateModel(input, dt);
+	}
 
 	// Damage flash bookkeeping. Detect player HP drop between ticks; if
 	// so kick the flash to peak. Decay it every tick toward zero. Reset
@@ -189,9 +208,13 @@ void FLApp::OnUpdate(float dt)
 	// Animation controller picks clipName based on the gameplay state we
 	// just settled (player movement intent, enemy distance, alive flag).
 	// Runs BEFORE AnimationSystem::Tick so the time-advance step uses the
-	// freshly-selected clip's duration.
-	AnimationControllerSystem::Tick(scene, input, dt);
-	AnimationSystem::Tick(scene, dt);
+	// freshly-selected clip's duration. Also gated on dialogActive so
+	// characters visibly freeze (no walk-in-place) while dialog is open.
+	if (!dialogActive)
+	{
+		AnimationControllerSystem::Tick(scene, input, dt);
+		AnimationSystem::Tick(scene, dt);
+	}
 }
 
 void FLApp::PollDebugToggles() noexcept
@@ -504,7 +527,7 @@ void FLApp::OnRender()
 	}
 	if (dialogActive)
 	{
-		textRenderer.RenderDialog(dialogNpcName, dialogText, GetWindow().GetWidth(), GetWindow().GetHeight());
+		textRenderer.RenderDialog(dialogNpcName, dialogText, GetWindow().GetWidth(), GetWindow().GetHeight(), dialogFade);
 	}
 	// Damage-number overlay: drawn between the persistent HUD text and the
 	// inspector panel so the panel (if open) still covers the right-side
