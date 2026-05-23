@@ -3,6 +3,7 @@
 
 #include "../Combat/KnockbackSystem.h"
 #include "../Interaction/InteractionSystem.h"
+#include "../Interaction/NpcFacingSystem.h"
 
 #include <sstream>
 #include <string>
@@ -94,6 +95,10 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 	// tick is the impulse. Runs BEFORE triggerSystem so a knocked-back
 	// actor can still trip a boundary trigger from the impulse motion.
 	KnockbackSystem::Tick(scene, dt);
+	// Visual polish: NPCs turn to face the player once they enter the
+	// notice range. Runs after KnockbackSystem so the rotation uses the
+	// player's final position for the tick.
+	NpcFacingSystem::Tick(scene);
 	triggerSystem.Update(ctx);
 	cameraSystem.FollowPlayer(ctx);
 

@@ -163,6 +163,7 @@
     <ClCompile Include="Game\Combat\CombatSystem.cpp" />
     <ClCompile Include="Game\Combat\KnockbackSystem.cpp" />
     <ClCompile Include="Game\Interaction\InteractionSystem.cpp" />
+    <ClCompile Include="Game\Interaction\NpcFacingSystem.cpp" />
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp" />
     <ClCompile Include="Game\Objectives\ObjectiveStateIO.cpp" />
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp" />
@@ -176,6 +177,7 @@
     <ClInclude Include="Game\Combat\CombatSystem.h" />
     <ClInclude Include="Game\Combat\KnockbackSystem.h" />
     <ClInclude Include="Game\Interaction\InteractionSystem.h" />
+    <ClInclude Include="Game\Interaction\NpcFacingSystem.h" />
     <ClInclude Include="Game\Hud\HudPresenter.h" />
     <ClInclude Include="Game\NPC\EnemyArcherBehavior.h" />
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h" />
