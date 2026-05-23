@@ -159,6 +159,7 @@ All three fields are `[x, y, z]` arrays. Rotation is Euler radians (roll/pitch/y
 |---|---|---|
 | `mesh` | `"cube"`, `"plane"` | `"cube"` |
 | `meshPath` | Path to a glTF file (Stage 1 imports). When present, takes precedence over `mesh`. | (none) |
+| `importScale` | Asset-level uniform scale applied to the imported mesh. Use this to normalize a glTF whose authored size is not in BlueFrog's 1-unit-=-1-meter convention (e.g. Khronos `Fox.gltf` ships at ~70m; set `0.04` to land it at ~3m). Does **not** affect `CollisionComponent.halfExtents`. See [`UNITS_AND_SCALES.md`](UNITS_AND_SCALES.md) for the full workflow. Values ≤ 0 reset to the default. | `1.0` |
 | `material.texture` | Path to texture (WIC-supported format). Omit for untextured. | (none) |
 | `material.tint` | `[r, g, b]` in 0..1 linear space | `[1, 1, 1]` |
 | `material.sampler` | `"wrap_linear"`, `"clamp_linear"`, `"wrap_point"` | `"wrap_linear"` |
