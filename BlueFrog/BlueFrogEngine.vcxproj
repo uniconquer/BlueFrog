@@ -158,6 +158,7 @@
     <ClCompile Include="Engine\Render\InputLayout.cpp" />
     <ClCompile Include="Engine\Render\MeshImporter.cpp" />
     <ClCompile Include="Engine\Render\PixelShader.cpp" />
+    <ClCompile Include="Engine\Render\ShadowRenderer.cpp" />
     <ClCompile Include="Engine\Render\Topology.cpp" />
     <ClCompile Include="Engine\Render\VertexBuffer.cpp" />
     <ClCompile Include="Engine\Render\VertexShader.cpp" />
@@ -197,6 +198,8 @@
     <ClInclude Include="Engine\Render\MeshImporter.h" />
     <ClInclude Include="Engine\Render\PixelShader.h" />
     <ClInclude Include="Engine\Render\Sampler.h" />
+    <ClInclude Include="Engine\Render\ShadowPipeline.h" />
+    <ClInclude Include="Engine\Render\ShadowRenderer.h" />
     <ClInclude Include="Engine\Render\SkinnedPipeline.h" />
     <ClInclude Include="Engine\Render\Surface.h" />
     <ClInclude Include="Engine\Render\Texture2D.h" />

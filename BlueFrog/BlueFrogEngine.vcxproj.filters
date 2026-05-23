@@ -56,6 +56,7 @@
     <ClCompile Include="Engine\Render\InputLayout.cpp"><Filter>Engine\Render</Filter></ClCompile>
     <ClCompile Include="Engine\Render\MeshImporter.cpp"><Filter>Engine\Render</Filter></ClCompile>
     <ClCompile Include="Engine\Render\PixelShader.cpp"><Filter>Engine\Render</Filter></ClCompile>
+    <ClCompile Include="Engine\Render\ShadowRenderer.cpp"><Filter>Engine\Render</Filter></ClCompile>
     <ClCompile Include="Engine\Render\Topology.cpp"><Filter>Engine\Render</Filter></ClCompile>
     <ClCompile Include="Engine\Render\VertexBuffer.cpp"><Filter>Engine\Render</Filter></ClCompile>
     <ClCompile Include="Engine\Render\VertexShader.cpp"><Filter>Engine\Render</Filter></ClCompile>
@@ -95,6 +96,8 @@
     <ClInclude Include="Engine\Render\MeshImporter.h"><Filter>Engine\Render</Filter></ClInclude>
     <ClInclude Include="Engine\Render\PixelShader.h"><Filter>Engine\Render</Filter></ClInclude>
     <ClInclude Include="Engine\Render\Sampler.h"><Filter>Engine\Render</Filter></ClInclude>
+    <ClInclude Include="Engine\Render\ShadowPipeline.h"><Filter>Engine\Render</Filter></ClInclude>
+    <ClInclude Include="Engine\Render\ShadowRenderer.h"><Filter>Engine\Render</Filter></ClInclude>
     <ClInclude Include="Engine\Render\SkinnedPipeline.h"><Filter>Engine\Render</Filter></ClInclude>
     <ClInclude Include="Engine\Render\Surface.h"><Filter>Engine\Render</Filter></ClInclude>
     <ClInclude Include="Engine\Render\Texture2D.h"><Filter>Engine\Render</Filter></ClInclude>

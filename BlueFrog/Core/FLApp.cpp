@@ -39,6 +39,7 @@ FLApp::FLApp(std::string scenePath)
 	uiRenderer(GetGfx()),
 	textRenderer(GetGfx()),
 	debugRenderer(GetGfx()),
+	shadowRenderer(GetGfx()),
 	worldGridRenderer(GetGfx()),
 	camera(static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight())),
 	currentScenePath(scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath))
@@ -776,6 +777,11 @@ void FLApp::OnRender()
 		::MessageBoxA(nullptr, msg, "Renderer error", MB_OK | MB_ICONEXCLAMATION);
 		std::exit(1);
 	}
+	// Blob shadows for every combat-bearing actor. Drawn after the lit
+	// pass so it composes over the ground but the lit pass's depth
+	// values prevent the shadow from painting on top of characters
+	// themselves (depth-test on, depth-write off).
+	shadowRenderer.Render(scene, camera);
 	if (worldGridEnabled)
 	{
 		// Ground reference grid (Unity-style). Drawn after the 3D pass and

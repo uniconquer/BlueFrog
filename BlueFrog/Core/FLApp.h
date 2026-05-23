@@ -10,6 +10,7 @@
 #include "../Engine/UI/UIRenderer.h"
 #include "../Engine/UI/TextRenderer.h"
 #include "../Engine/Render/DebugRenderer.h"
+#include "../Engine/Render/ShadowRenderer.h"
 #include "../Engine/Render/WorldGridRenderer.h"
 #include "../Engine/Audio/AudioEngine.h"
 #include "../Game/Simulation/GameplaySimulation.h"
@@ -56,6 +57,7 @@ private:
 	UIRenderer uiRenderer;
 	TextRenderer textRenderer;
 	DebugRenderer debugRenderer;
+	ShadowRenderer shadowRenderer;
 	WorldGridRenderer worldGridRenderer;
 	TopDownCamera camera;
 	Scene scene;
