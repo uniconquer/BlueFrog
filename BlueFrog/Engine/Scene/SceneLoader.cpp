@@ -321,6 +321,19 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 			if (a.contains("looping"))   asc.looping   = a["looping"].get<bool>();
 			obj.animationStateComponent = std::move(asc);
 		}
+		if (objJson.contains("npc"))
+		{
+			// NPC block: every field optional, defaults match struct.
+			// displayName defaults to "" (InteractionSystem falls back to
+			// the SceneObject name). dialogText defaults to "" (NPC stays
+			// approachable but has nothing to say — useful for ambient
+			// villagers that are placeholders for future dialog).
+			const auto& n = objJson["npc"];
+			NpcComponent nc;
+			if (n.contains("displayName")) nc.displayName = n["displayName"].get<std::string>();
+			if (n.contains("dialogText"))  nc.dialogText  = n["dialogText"].get<std::string>();
+			obj.npcComponent = std::move(nc);
+		}
 	}
 
 	return true;

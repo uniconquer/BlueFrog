@@ -88,7 +88,9 @@
     <None Include="Assets\Prefabs\EnemyArcher.prefab.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Prefabs\EnemyScout.prefab.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Prefabs\Player.prefab.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Prefabs\Villager.prefab.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\arena_trial.json"><Filter>Assets</Filter></None>
+    <None Include="Assets\Scenes\village.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\boss_arena.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Scenes\sparring_yard.json"><Filter>Assets</Filter></None>
     <None Include="Assets\Textures\ground_checker.png"><Filter>Assets</Filter></None>

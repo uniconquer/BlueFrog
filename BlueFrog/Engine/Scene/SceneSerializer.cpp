@@ -145,6 +145,16 @@ namespace
 		return j;
 	}
 
+	json EncodeNpc(const NpcComponent& nc)
+	{
+		// Both fields always written so a round-trip preserves the exact
+		// authored shape; the loader treats absence as empty string anyway.
+		json j = json::object();
+		j["displayName"] = nc.displayName;
+		j["dialogText"]  = nc.dialogText;
+		return j;
+	}
+
 	json EncodeSceneObject(const SceneObject& obj)
 	{
 		json j = json::object();
@@ -156,6 +166,7 @@ namespace
 		if (obj.triggerComponent.has_value())  j["trigger"]   = EncodeTrigger(obj.triggerComponent.value());
 		if (obj.enemyBehaviorComponent.has_value()) j["behavior"] = EncodeBehavior(obj.enemyBehaviorComponent.value());
 		if (obj.animationStateComponent.has_value()) j["animation"] = EncodeAnimation(obj.animationStateComponent.value());
+		if (obj.npcComponent.has_value())      j["npc"]       = EncodeNpc(obj.npcComponent.value());
 		return j;
 	}
 

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 2,
+  "objective": {
+    "text": "Explore the village",
+    "completionText": "Welcome, traveler",
+    "conditions": []
+  },
+  "scene": {
+    "name": "Village",
+    "camera": { "target": [0.0, 1.0, 0.0] },
+    "objects": [
+      {
+        "name": "Ground",
+        "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [24.0, 1.0, 24.0] },
+        "render": {
+          "mesh": "plane",
+          "material": { "texture": "Assets/Textures/ground_checker.png", "tint": [0.85, 0.92, 0.78], "sampler": "wrap_linear" }
+        }
+      },
+      {
+        "name": "NorthWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
+        "transform": { "position": [0.0, 1.0, 9.5], "rotation": [0.0, 0.0, 0.0], "scale": [9.0, 1.0, 0.7] },
+        "collision": { "halfExtents": [9.0, 0.7], "blocking": true }
+      },
+      {
+        "name": "SouthWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
+        "transform": { "position": [0.0, 1.0, -9.5], "rotation": [0.0, 0.0, 0.0], "scale": [9.0, 1.0, 0.7] },
+        "collision": { "halfExtents": [9.0, 0.7], "blocking": true }
+      },
+      {
+        "name": "WestWall",
+        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
+        "transform": { "position": [-9.5, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.7, 1.0, 9.0] },
+        "collision": { "halfExtents": [0.7, 9.0], "blocking": true }
+      },
+      {
+        "name": "WellMarker",
+        "transform": { "position": [0.0, 0.5, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.2, 1.0, 1.2] },
+        "render": { "mesh": "cube", "material": { "tint": [0.55, 0.55, 0.62] } },
+        "collision": { "halfExtents": [1.2, 1.2], "blocking": true }
+      },
+      {
+        "name": "HouseA",
+        "transform": { "position": [-5.5, 1.2, 5.0], "rotation": [0.0, 0.0, 0.0], "scale": [2.5, 2.4, 2.5] },
+        "render": { "mesh": "cube", "material": { "tint": [0.92, 0.78, 0.62] } },
+        "collision": { "halfExtents": [2.5, 2.5], "blocking": true }
+      },
+      {
+        "name": "HouseB",
+        "transform": { "position": [5.5, 1.2, 5.0], "rotation": [0.0, 0.0, 0.0], "scale": [2.5, 2.4, 2.5] },
+        "render": { "mesh": "cube", "material": { "tint": [0.88, 0.72, 0.58] } },
+        "collision": { "halfExtents": [2.5, 2.5], "blocking": true }
+      },
+      {
+        "name": "HouseC",
+        "transform": { "position": [-5.5, 1.2, -5.0], "rotation": [0.0, 0.0, 0.0], "scale": [2.5, 2.4, 2.5] },
+        "render": { "mesh": "cube", "material": { "tint": [0.85, 0.74, 0.60] } },
+        "collision": { "halfExtents": [2.5, 2.5], "blocking": true }
+      },
+      {
+        "name": "Player",
+        "prefab": "Assets/Prefabs/Player.prefab.json",
+        "transform": { "position": [-3.0, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.4, 1.4, 1.4] }
+      },
+      {
+        "name": "VillagerElder",
+        "prefab": "Assets/Prefabs/Villager.prefab.json",
+        "transform": { "position": [-4.5, 0.0, 2.5], "rotation": [0.0, 1.5708, 0.0], "scale": [1.4, 1.4, 1.4] },
+        "npc": { "displayName": "Elder", "dialogText": "Welcome to our village. The eastern gate leads to the trial arena." }
+      },
+      {
+        "name": "VillagerChild",
+        "prefab": "Assets/Prefabs/Villager.prefab.json",
+        "transform": { "position": [4.5, 0.0, -2.5], "rotation": [0.0, -1.5708, 0.0], "scale": [1.1, 1.1, 1.1] },
+        "npc": { "displayName": "Lina", "dialogText": "Have you seen the fox? It runs around the arena!" }
+      },
+      {
+        "name": "ArenaGateMarker",
+        "transform": { "position": [8.5, 0.4, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.6, 1.6, 0.6] },
+        "render": { "mesh": "cube", "material": { "tint": [0.85, 0.55, 0.35] } }
+      },
+      {
+        "name": "ArenaGate",
+        "transform": { "position": [9.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
+        "trigger": {
+          "halfExtents": [1.0, 2.5],
+          "tag": "arena_gate",
+          "fireOnce": true,
+          "action": { "type": "load_scene", "param": "Assets/Scenes/arena_trial.json" }
+        }
+      }
+    ]
+  }
+}

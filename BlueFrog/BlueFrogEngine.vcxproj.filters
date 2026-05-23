@@ -107,6 +107,7 @@
     <ClInclude Include="Engine\Scene\CombatComponent.h"><Filter>Engine\Scene</Filter></ClInclude>
     <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h"><Filter>Engine\Scene</Filter></ClInclude>
     <ClInclude Include="Engine\Scene\Material.h"><Filter>Engine\Scene</Filter></ClInclude>
+    <ClInclude Include="Engine\Scene\NpcComponent.h"><Filter>Engine\Scene</Filter></ClInclude>
     <ClInclude Include="Engine\Scene\PrefabLoader.h"><Filter>Engine\Scene</Filter></ClInclude>
     <ClInclude Include="Engine\Scene\RenderComponent.h"><Filter>Engine\Scene</Filter></ClInclude>
     <ClInclude Include="Engine\Scene\Scene.h"><Filter>Engine\Scene</Filter></ClInclude>

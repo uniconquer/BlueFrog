@@ -209,6 +209,7 @@
     <ClInclude Include="Engine\Scene\CombatComponent.h" />
     <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h" />
     <ClInclude Include="Engine\Scene\Material.h" />
+    <ClInclude Include="Engine\Scene\NpcComponent.h" />
     <ClInclude Include="Engine\Scene\PrefabLoader.h" />
     <ClInclude Include="Engine\Scene\RenderComponent.h" />
     <ClInclude Include="Engine\Scene\Scene.h" />
