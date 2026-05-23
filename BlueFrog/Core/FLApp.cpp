@@ -154,10 +154,20 @@ void FLApp::OnUpdate(float dt)
 						dialogText = q->dialogActive;
 						break;
 					case QuestStatus::Complete:
-						// Phase I-2B will gate turn-in on a second E
-						// press; for now Complete just shows the
-						// "ready to turn in" line and stays Complete.
+						// Phase I-2B: auto-turn-in on first dialog
+						// open after the quest hits Complete. The
+						// player sees `dialogComplete` THIS frame and
+						// the reward applies immediately; subsequent
+						// opens land in the TurnedIn branch below and
+						// show the past-tense line.
 						dialogText = q->dialogComplete;
+						if (questSystem.TurnIn(nc.questId))
+						{
+							ApplyQuestReward(q->reward);
+							// Audio cue would be ideal here (a "quest
+							// complete" jingle), but no asset shipped
+							// yet — TODO Phase I-2 follow-up.
+						}
 						break;
 					case QuestStatus::TurnedIn:
 						dialogText = q->dialogTurnedIn;
@@ -448,6 +458,30 @@ void FLApp::UpdateModel(const GameplayInput& input, float dt) noexcept
 		gameplaySimulation.ReloadScene(currentScenePath, scene, camera);
 		hudState = gameplaySimulation.BuildHudState(scene);
 	}
+}
+
+void FLApp::ApplyQuestReward(const QuestReward& reward) noexcept
+{
+	// Both fields are independent. Apply boostMaxHealth FIRST so the
+	// heal step has the new ceiling to clamp against (a +1 maxHealth
+	// bump should feel like "+1 over the top"), and grant the player
+	// the delta health for free — quest rewards shouldn't leave the
+	// player with a higher max but unchanged current.
+	SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
+	if (player == nullptr || !player->combatComponent.has_value()) return;
+	auto& cc = player->combatComponent.value();
+
+	if (reward.boostMaxHealth > 0)
+	{
+		cc.maxHealth += reward.boostMaxHealth;
+		cc.health    += reward.boostMaxHealth;
+	}
+	if (reward.healPlayer > 0)
+	{
+		cc.health = std::min(cc.health + reward.healPlayer, cc.maxHealth);
+	}
+	// HudPresenter will pick up the new HP next BuildHudState call —
+	// no need to refresh here.
 }
 
 GameplayInput FLApp::CollectGameplayInput(float dt) noexcept

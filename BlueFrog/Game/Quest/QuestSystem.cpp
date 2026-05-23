@@ -29,21 +29,13 @@ void QuestSystem::Accept(const std::string& questId, const QuestRegistry& regist
 	state_.emplace(questId, std::move(rt));
 }
 
-QuestReward QuestSystem::TurnIn(const std::string& questId) noexcept
+bool QuestSystem::TurnIn(const std::string& questId) noexcept
 {
 	auto it = state_.find(questId);
-	if (it == state_.end()) return QuestReward{};
-	if (it->second.status != QuestStatus::Complete) return QuestReward{};
-
+	if (it == state_.end()) return false;
+	if (it->second.status != QuestStatus::Complete) return false;
 	it->second.status = QuestStatus::TurnedIn;
-
-	// The reward is owned by the registry's Quest, but we don't have
-	// a registry pointer here. The caller (FLApp's turn-in dialog
-	// handler) does the registry lookup and applies the reward —
-	// keeping QuestSystem free of registry references. So this
-	// function returns an empty reward; the caller fetches the real
-	// one from registry.Find(questId)->reward.
-	return QuestReward{};
+	return true;
 }
 
 void QuestSystem::Consume(const std::vector<GameEvent>& events) noexcept

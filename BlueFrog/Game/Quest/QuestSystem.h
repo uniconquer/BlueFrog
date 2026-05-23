@@ -40,11 +40,13 @@ public:
 	// id isn't in the registry.
 	void Accept(const std::string& questId, const QuestRegistry& registry) noexcept;
 
-	// Complete → TurnedIn transition. Returns the Quest's reward (so
-	// the caller can apply HP/maxHP changes to the player) when the
-	// turn-in actually happened, or an empty QuestReward when the
-	// quest wasn't in Complete state.
-	[[nodiscard]] QuestReward TurnIn(const std::string& questId) noexcept;
+	// Complete → TurnedIn transition. Returns true when the turn-in
+	// actually happened (status was Complete and is now TurnedIn).
+	// False when the quest wasn't in Complete state — caller must
+	// not apply a reward in that case. The Quest's QuestReward lives
+	// on the registry's definition, not here; the caller fetches it
+	// via QuestRegistry::Find(questId)->reward when this returns true.
+	bool TurnIn(const std::string& questId) noexcept;
 
 	// Consume a batch of game events (typically drained from the
 	// EventBus once per tick). For every Active quest, walks each

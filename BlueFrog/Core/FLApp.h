@@ -43,6 +43,7 @@ private:
 	void UpdateModel(const GameplayInput& input, float dt) noexcept;
 	GameplayInput CollectGameplayInput(float dt) noexcept;
 	void PollDebugToggles() noexcept;
+	void ApplyQuestReward(const struct QuestReward& reward) noexcept;
 
 	Renderer renderer;
 	UIRenderer uiRenderer;
