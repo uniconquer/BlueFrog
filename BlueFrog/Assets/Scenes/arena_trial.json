@@ -68,12 +68,12 @@
       {
         "name": "Player",
         "prefab": "Assets/Prefabs/Player.prefab.json",
-        "transform": { "position": [-4.0, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.4, 1.4, 1.4] }
+        "transform": { "position": [-4.0, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }
       },
       {
         "name": "EnemyScout",
         "prefab": "Assets/Prefabs/EnemyScout.prefab.json",
-        "transform": { "position": [3.8, 0.0, -3.8], "rotation": [0.0, 0.0, 0.0], "scale": [0.04, 0.04, 0.04] }
+        "transform": { "position": [3.8, 0.0, -3.8], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }
       },
       {
         "name": "EnemyArcher",

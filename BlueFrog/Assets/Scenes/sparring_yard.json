@@ -46,7 +46,7 @@
       {
         "name": "Player",
         "prefab": "Assets/Prefabs/Player.prefab.json",
-        "transform": { "position": [-2.5, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.4, 1.4, 1.4] }
+        "transform": { "position": [-2.5, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }
       },
       {
         "name": "TriggerZone_Center",

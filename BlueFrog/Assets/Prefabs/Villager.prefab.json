@@ -1,5 +1,5 @@
 {
-  "render":    { "meshPath": "Assets/Models/CesiumMan/CesiumMan.gltf", "material": { "tint": [0.95, 0.85, 0.55] } },
+  "render":    { "meshPath": "Assets/Models/CesiumMan/CesiumMan.gltf", "importScale": 1.4, "material": { "tint": [0.95, 0.85, 0.55] } },
   "collision": { "halfExtents": [0.5, 0.5], "blocking": true },
   "combat":    { "faction": "neutral", "maxHp": 3, "currentHp": 3 },
   "animation": { "clipName": "", "playSpeed": 0.0, "looping": true },
