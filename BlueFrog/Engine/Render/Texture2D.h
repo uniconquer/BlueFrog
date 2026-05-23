@@ -14,7 +14,12 @@ public:
 		textureDesc.Height = surface.GetHeight();
 		textureDesc.MipLevels = 1u;
 		textureDesc.ArraySize = 1u;
-		textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		// sRGB texture format so hardware auto-decodes sRGB-encoded
+		// source PNGs to linear when sampled in the shader. Combined
+		// with the _SRGB RTV in Graphics.cpp this completes the
+		// linear-shading pipeline: source PNG → linear sample →
+		// linear math → sRGB encode on present.
+		textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		textureDesc.SampleDesc.Count = 1u;
 		textureDesc.SampleDesc.Quality = 0u;
 		textureDesc.Usage = D3D11_USAGE_DEFAULT;

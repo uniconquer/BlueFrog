@@ -99,7 +99,18 @@ Graphics::Graphics(HWND hWnd)
 		throw BFGFX_EXCEPT(hr);
 	}
 
-	if (FAILED(hr = pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, pRenderTarget.GetAddressOf())))
+	// sRGB render-target view (Engine B). Swap chain buffer itself stays
+	// B8G8R8A8_UNORM — DXGI requires the resource format to be the
+	// non-_SRGB variant. The _SRGB view on top is what makes the
+	// hardware encode linear shader output to sRGB on present, so
+	// linear shading math finally produces gamma-correct pixels on
+	// screen. Without this every Lambert dot-product looks ~40% too
+	// dark and tints read muddy.
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice = 0u;
+	if (FAILED(hr = pDevice->CreateRenderTargetView(pBackBuffer.Get(), &rtvDesc, pRenderTarget.GetAddressOf())))
 	{
 		throw BFGFX_EXCEPT(hr);
 	}
@@ -260,7 +271,7 @@ void Graphics::RecreateD2DTarget()
 
 	const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
 		D2D1_RENDER_TARGET_TYPE_DEFAULT,
-		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
+		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, D2D1_ALPHA_MODE_PREMULTIPLIED),
 		0.0f,
 		0.0f);
 
