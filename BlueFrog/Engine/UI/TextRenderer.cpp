@@ -177,6 +177,26 @@ TextRenderer::TextRenderer(Graphics& gfxIn)
         throw BFGFX_EXCEPT(hr);
     }
 
+    // Interaction prompt format: same Segoe UI face as the rest of the
+    // HUD, slightly smaller, semi-bold so it reads cleanly against busy
+    // scene content underneath.
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_SEMI_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::InteractPromptPointSize),
+        TextLayout::kFontLocale,
+        promptFormat.GetAddressOf());
+    if (FAILED(hr))
+    {
+        throw BFGFX_EXCEPT(hr);
+    }
+    promptFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    promptFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    promptFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
     // Inspector resources. Consolas because the panel renders aligned
     // ASCII rows where proportional fonts would mis-align everything.
     hr = dwrite->CreateTextFormat(
@@ -353,6 +373,38 @@ void TextRenderer::Render(const HudState& hud, int viewportW, int viewportH, boo
                 DWRITE_MEASURING_MODE_NATURAL);
         }
     }
+}
+
+void TextRenderer::RenderInteractPrompt(const HudState& hud, int viewportW, int viewportH) noexcept
+{
+    ID2D1RenderTarget* const target = gfx.GetD2DTarget();
+    if (target == nullptr || !promptFormat || !whiteBrush) return;
+    if (!hud.hasInteractPrompt || hud.interactPromptName.empty()) return;
+
+    // Compose "[E] Talk to <name>" — kept literal for v1. A future
+    // commit can swap in a context-specific verb (Buy, Read, Open) once
+    // we have multiple interactable kinds.
+    std::wstring text = L"[E] Talk to ";
+    text += hud.interactPromptName;
+
+    const float w = static_cast<float>(viewportW);
+    const float h = static_cast<float>(viewportH);
+
+    // Bottom-center band. Width = full viewport so the center-aligned
+    // text just lands on the screen middle without us measuring it.
+    const float bandHeight = TextLayout::PointsToDips(TextLayout::InteractPromptPointSize) * 1.8f;
+    const float top    = h - TextLayout::InteractPromptBottomInsetDip - bandHeight * 0.5f;
+    const float bottom = top + bandHeight;
+
+    const D2D1_RECT_F layoutRect = D2D1::RectF(0.0f, top, w, bottom);
+    target->DrawText(
+        text.c_str(),
+        static_cast<UINT32>(text.size()),
+        promptFormat.Get(),
+        layoutRect,
+        whiteBrush.Get(),
+        D2D1_DRAW_TEXT_OPTIONS_NONE,
+        DWRITE_MEASURING_MODE_NATURAL);
 }
 
 void TextRenderer::RenderDamagePopups(

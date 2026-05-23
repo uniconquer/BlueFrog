@@ -10,6 +10,9 @@
     <Filter Include="Game\Combat">
       <UniqueIdentifier>{44444444-0000-0000-0000-000000000001}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Interaction">
+      <UniqueIdentifier>{44444444-0000-0000-0000-000000000008}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Game\Hud">
       <UniqueIdentifier>{44444444-0000-0000-0000-000000000002}</UniqueIdentifier>
     </Filter>
@@ -37,6 +40,7 @@
     <ClCompile Include="Core\WinMain.cpp"><Filter>Core</Filter></ClCompile>
     <ClCompile Include="Game\Combat\CombatSystem.cpp"><Filter>Game\Combat</Filter></ClCompile>
     <ClCompile Include="Game\Combat\KnockbackSystem.cpp"><Filter>Game\Combat</Filter></ClCompile>
+    <ClCompile Include="Game\Interaction\InteractionSystem.cpp"><Filter>Game\Interaction</Filter></ClCompile>
     <ClCompile Include="Game\NPC\SimpleEnemyController.cpp"><Filter>Game\NPC</Filter></ClCompile>
     <ClCompile Include="Game\Objectives\ObjectiveStateIO.cpp"><Filter>Game\Objectives</Filter></ClCompile>
     <ClCompile Include="Game\Objectives\ObjectiveSystem.cpp"><Filter>Game\Objectives</Filter></ClCompile>
@@ -49,6 +53,7 @@
     <ClInclude Include="Core\FLApp.h"><Filter>Core</Filter></ClInclude>
     <ClInclude Include="Game\Combat\CombatSystem.h"><Filter>Game\Combat</Filter></ClInclude>
     <ClInclude Include="Game\Combat\KnockbackSystem.h"><Filter>Game\Combat</Filter></ClInclude>
+    <ClInclude Include="Game\Interaction\InteractionSystem.h"><Filter>Game\Interaction</Filter></ClInclude>
     <ClInclude Include="Game\Hud\HudPresenter.h"><Filter>Game\Hud</Filter></ClInclude>
     <ClInclude Include="Game\NPC\EnemyArcherBehavior.h"><Filter>Game\NPC</Filter></ClInclude>
     <ClInclude Include="Game\NPC\EnemyScoutBehavior.h"><Filter>Game\NPC</Filter></ClInclude>

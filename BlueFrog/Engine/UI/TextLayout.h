@@ -17,6 +17,11 @@ namespace TextLayout
     // between the HP-numeric readout and the objective banner so the
     // popup reads clearly without competing with permanent HUD text.
     inline constexpr float DamagePopupPointSize  = 22.0f;
+    // Bottom-center interaction prompt ("[E] Talk to X"). A bit smaller
+    // than the objective banner because the prompt is contextual and
+    // shouldn't dominate the screen.
+    inline constexpr float InteractPromptPointSize = 16.0f;
+    inline constexpr float InteractPromptBottomInsetDip = 96.0f;
     inline constexpr float InspectorPointSize    = 11.0f;
     inline constexpr float InspectorTitlePointSize = 13.0f;
     // Objective text sits BELOW the HP bars (which occupy ~y=18..54 in

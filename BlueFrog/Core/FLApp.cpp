@@ -437,6 +437,10 @@ void FLApp::OnRender()
 	uiRenderer.Render(hudState);
 	GetGfx().BeginTextDraw();
 	textRenderer.Render(hudState, GetWindow().GetWidth(), GetWindow().GetHeight(), inspectorEnabled, damageFlashAlpha);
+	// Interaction prompt: drawn between persistent HUD text and popups
+	// so the "[E] Talk to X" bottom hint sits cleanly above other
+	// transient overlays without fighting the inspector for column space.
+	textRenderer.RenderInteractPrompt(hudState, GetWindow().GetWidth(), GetWindow().GetHeight());
 	// Damage-number overlay: drawn between the persistent HUD text and the
 	// inspector panel so the panel (if open) still covers the right-side
 	// popups, keeping the editor view tidy.

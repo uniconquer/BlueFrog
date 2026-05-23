@@ -2,6 +2,7 @@
 #include "SystemContext.h"
 
 #include "../Combat/KnockbackSystem.h"
+#include "../Interaction/InteractionSystem.h"
 
 #include <sstream>
 #include <string>
@@ -111,6 +112,12 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 
 	HudState hud = BuildHudState(scene);
 	hud.objectiveText = objectiveSystem.CurrentText();
+
+	// Interaction prompt scan. Runs after all simulation steps so the
+	// player's post-knockback / post-trigger position is what the
+	// distance check uses. Prompt is suppressed while a dialog is open
+	// (game-side flag) so the dialog box and the prompt don't overlap.
+	InteractionSystem::Tick(scene, hud, /*suppressPrompt=*/dialogActive_);
 
 	// Death-sequence bookkeeping. HudPresenter sets playerDefeated when the
 	// player's combat component crosses to dead; we latch that into a

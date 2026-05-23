@@ -57,6 +57,12 @@ public:
 	// the next frame. nullptr disables the feature.
 	void SetDamagePopupSink(std::vector<DamagePopup>* popups) noexcept { damagePopupsSink_ = popups; }
 
+	// Dialog gating signal. While dialog is active the HUD interaction
+	// prompt is suppressed so we don't paint "[E] Talk to X" on top of
+	// the open dialog box. The simulation otherwise continues to run —
+	// pausing during dialog is a v2 decision.
+	void SetDialogActive(bool active) noexcept { dialogActive_ = active; }
+
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 	[[nodiscard]] static std::wstring BuildWindowTitle(const HudState& hudState) noexcept;
@@ -79,4 +85,5 @@ private:
 	bool                         pendingDeathReload  = false;
 	AudioEngine*                 audio_              = nullptr;
 	std::vector<DamagePopup>*    damagePopupsSink_   = nullptr;
+	bool                         dialogActive_       = false;
 };

@@ -27,4 +27,12 @@ struct HudState
 	bool hasTarget = false;
 	bool playerDefeated = false;
 	std::wstring objectiveText;
+
+	// Interaction prompt — set by InteractionSystem each tick when the
+	// player stands within range of an NPC and is NOT already in a
+	// dialog. TextRenderer draws a small bottom-center hint when this
+	// is non-empty ("[E] Talk to <name>"). The string is the NPC's
+	// display name (already widened).
+	std::wstring interactPromptName;
+	bool         hasInteractPrompt = false;
 };

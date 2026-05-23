@@ -29,6 +29,11 @@ public:
     // overlay that fades out after the player takes damage; 0 = no flash.
     void Render(const HudState& hud, int viewportW, int viewportH, bool inspectorOpen = false, float damageFlashAlpha = 0.0f) noexcept;
 
+    // Bottom-center "[E] Talk to <name>" prompt. Drawn behind dialog UI
+    // (so dialog box covers it when active). No-op when hud doesn't
+    // currently carry a prompt.
+    void RenderInteractPrompt(const HudState& hud, int viewportW, int viewportH) noexcept;
+
     // Floating damage-number overlay. Projects each popup's spawn worldPos
     // through the supplied camera, then floats the resulting screen point
     // upward over the popup's lifetime and fades it out at the tail end.
@@ -53,6 +58,7 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    numericFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    defeatedFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    popupFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    promptFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    inspectorFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    inspectorTitleFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> whiteBrush;
