@@ -43,6 +43,14 @@ public:
     // used for the dialog so the caller can fade-in / fade-out.
     void RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH, float alpha) noexcept;
 
+    // Inventory panel — centered modal listing the player's owned
+    // items. Each entry in `lines` is one row of pre-formatted text
+    // (e.g. "Healing Potion  x1"); the game side does the lookup-
+    // and-format work so this stays engine-agnostic about what an
+    // item actually is. Empty `lines` renders the "(empty)"
+    // placeholder. `alpha` mirrors RenderDialog's fade param.
+    void RenderInventory(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept;
+
     // Floating damage-number overlay. Projects each popup's spawn worldPos
     // through the supplied camera, then floats the resulting screen point
     // upward over the popup's lifetime and fades it out at the tail end.
@@ -70,6 +78,8 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    promptFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    dialogNameFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    dialogBodyFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    inventoryHeaderFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat>    inventoryRowFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    inspectorFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    inspectorTitleFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> whiteBrush;

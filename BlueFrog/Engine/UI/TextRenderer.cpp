@@ -235,6 +235,37 @@ TextRenderer::TextRenderer(Graphics& gfxIn)
     dialogBodyFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
     dialogBodyFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
 
+    // Inventory: bold header + plain rows. Center-aligned header
+    // ("Inventory" title); leading-aligned rows so item names line
+    // up flush left even with varying lengths.
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::InventoryHeaderPointSize),
+        TextLayout::kFontLocale,
+        inventoryHeaderFormat.GetAddressOf());
+    if (FAILED(hr)) throw BFGFX_EXCEPT(hr);
+    inventoryHeaderFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    inventoryHeaderFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    inventoryHeaderFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+    hr = dwrite->CreateTextFormat(
+        TextLayout::kFontFamily,
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        TextLayout::PointsToDips(TextLayout::InventoryRowPointSize),
+        TextLayout::kFontLocale,
+        inventoryRowFormat.GetAddressOf());
+    if (FAILED(hr)) throw BFGFX_EXCEPT(hr);
+    inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    inventoryRowFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    inventoryRowFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
     // Inspector resources. Consolas because the panel renders aligned
     // ASCII rows where proportional fonts would mis-align everything.
     hr = dwrite->CreateTextFormat(
@@ -537,6 +568,101 @@ void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring&
     whiteBrush->SetOpacity(1.0f);
     if (highlightBrush) highlightBrush->SetOpacity(1.0f);
     if (dimBrush)       dimBrush->SetOpacity(1.0f);
+}
+
+void TextRenderer::RenderInventory(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept
+{
+    ID2D1RenderTarget* const target = gfx.GetD2DTarget();
+    if (target == nullptr || !inventoryHeaderFormat || !inventoryRowFormat || !whiteBrush || !panelBrush) return;
+    const float a = std::clamp(alpha, 0.0f, 1.0f);
+    if (a <= 0.0f) return;
+
+    panelBrush->SetOpacity(a);
+    whiteBrush->SetOpacity(a);
+    if (dimBrush)        dimBrush->SetOpacity(a);
+    if (highlightBrush)  highlightBrush->SetOpacity(a);
+
+    const float w = static_cast<float>(viewportW);
+    const float h = static_cast<float>(viewportH);
+    const float pw = TextLayout::InventoryPanelWidthDip;
+    const float ph = TextLayout::InventoryPanelHeightDip;
+    const float left   = (w - pw) * 0.5f;
+    const float top    = (h - ph) * 0.5f;
+    const float right  = left + pw;
+    const float bottom = top  + ph;
+    const float pad    = TextLayout::DialogBoxPaddingDip;
+
+    target->FillRectangle(D2D1::RectF(left, top, right, bottom), panelBrush.Get());
+
+    // Header
+    const wchar_t kHeader[] = L"Inventory";
+    const float headerH = TextLayout::PointsToDips(TextLayout::InventoryHeaderPointSize) * 1.5f;
+    target->DrawText(
+        kHeader,
+        static_cast<UINT32>((sizeof(kHeader) / sizeof(wchar_t)) - 1u),
+        inventoryHeaderFormat.Get(),
+        D2D1::RectF(left + pad, top + pad, right - pad, top + pad + headerH),
+        highlightBrush ? highlightBrush.Get() : whiteBrush.Get(),
+        D2D1_DRAW_TEXT_OPTIONS_NONE,
+        DWRITE_MEASURING_MODE_NATURAL);
+
+    // Rows or "(empty)" placeholder
+    float rowY = top + pad + headerH + 6.0f;
+    const float rowH = TextLayout::InventoryRowHeightDip;
+    const float footerH = TextLayout::PointsToDips(TextLayout::InventoryRowPointSize) * 1.2f;
+    const float maxRowBottom = bottom - pad - footerH - 4.0f;
+
+    if (lines.empty())
+    {
+        const wchar_t kEmpty[] = L"(empty)";
+        target->DrawText(
+            kEmpty,
+            static_cast<UINT32>((sizeof(kEmpty) / sizeof(wchar_t)) - 1u),
+            inventoryRowFormat.Get(),
+            D2D1::RectF(left + pad * 2, rowY, right - pad, rowY + rowH),
+            dimBrush ? dimBrush.Get() : whiteBrush.Get(),
+            D2D1_DRAW_TEXT_OPTIONS_NONE,
+            DWRITE_MEASURING_MODE_NATURAL);
+    }
+    else
+    {
+        for (const auto& line : lines)
+        {
+            if (rowY + rowH > maxRowBottom) break; // overflow guard
+            target->DrawText(
+                line.c_str(),
+                static_cast<UINT32>(line.size()),
+                inventoryRowFormat.Get(),
+                D2D1::RectF(left + pad * 2, rowY, right - pad, rowY + rowH),
+                whiteBrush.Get(),
+                D2D1_DRAW_TEXT_OPTIONS_NONE,
+                DWRITE_MEASURING_MODE_NATURAL);
+            rowY += rowH;
+        }
+    }
+
+    // Footer hint at bottom of panel.
+    if (dimBrush)
+    {
+        const wchar_t kFooter[] = L"[I] Close";
+        // Trailing-align hint via temporary alignment flip (same trick
+        // RenderDialog uses for "[E] Continue").
+        inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+        target->DrawText(
+            kFooter,
+            static_cast<UINT32>((sizeof(kFooter) / sizeof(wchar_t)) - 1u),
+            inventoryRowFormat.Get(),
+            D2D1::RectF(left + pad, bottom - pad - footerH, right - pad, bottom - pad),
+            dimBrush.Get(),
+            D2D1_DRAW_TEXT_OPTIONS_NONE,
+            DWRITE_MEASURING_MODE_NATURAL);
+        inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    }
+
+    panelBrush->SetOpacity(1.0f);
+    whiteBrush->SetOpacity(1.0f);
+    if (dimBrush)        dimBrush->SetOpacity(1.0f);
+    if (highlightBrush)  highlightBrush->SetOpacity(1.0f);
 }
 
 void TextRenderer::RenderDamagePopups(

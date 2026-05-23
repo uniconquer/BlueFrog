@@ -31,6 +31,14 @@ namespace TextLayout
     inline constexpr float DialogBoxMarginXDip    = 32.0f;
     inline constexpr float DialogBoxMarginBotDip  = 24.0f;
     inline constexpr float DialogBoxPaddingDip    = 14.0f;
+
+    // Inventory modal: centered panel a bit narrower than the screen
+    // with rows for each item.
+    inline constexpr float InventoryPanelWidthDip  = 380.0f;
+    inline constexpr float InventoryPanelHeightDip = 280.0f;
+    inline constexpr float InventoryHeaderPointSize = 22.0f;
+    inline constexpr float InventoryRowPointSize    = 16.0f;
+    inline constexpr float InventoryRowHeightDip    = 24.0f;
     inline constexpr float InspectorPointSize    = 11.0f;
     inline constexpr float InspectorTitlePointSize = 13.0f;
     // Objective text sits BELOW the HP bars (which occupy ~y=18..54 in

@@ -122,6 +122,17 @@ private:
 	std::wstring  dialogNpcName;
 	std::wstring  dialogText;
 	float         dialogFade   = 0.0f;
+
+	// Inventory UI mode (Phase I-3B). I key edge-toggles the panel.
+	// Mutually exclusive with dialog mode — opening one closes the
+	// other so the player isn't stuck in two modals at once. Both
+	// modals pause the simulation.
+	bool          inventoryActive = false;
+	float         inventoryFade   = 0.0f;
+	// I-key edge detection. Parallel to interactPressedThisFrame
+	// for the E key — PollDebugToggles latches, CollectGameplayInput
+	// reads + clears.
+	bool          inventoryKeyPressedThisFrame = false;
 	// E-key edge detection. PollDebugToggles consumes the keyboard event
 	// queue and sets this flag for the current frame; CollectGameplayInput
 	// reads it into the GameplayInput, then we clear it.

@@ -126,7 +126,35 @@ void FLApp::OnUpdate(float dt)
 	// BEFORE UpdateModel so the dialogActive flag we push into
 	// GameplaySimulation reflects this frame's decision — otherwise the
 	// prompt would flicker for one tick after dialog open.
-	if (input.interactPressed)
+	// Inventory toggle (Phase I-3B). I key opens/closes the panel.
+	// Mutually exclusive with dialog: opening inventory while dialog
+	// is active closes the dialog first; E while inventory is open
+	// is ignored below. Both modes pause the simulation.
+	if (inventoryKeyPressedThisFrame)
+	{
+		inventoryKeyPressedThisFrame = false;
+		if (inventoryActive)
+		{
+			inventoryActive = false;
+			inventoryFade   = 0.0f;
+		}
+		else
+		{
+			inventoryActive = true;
+			inventoryFade   = 0.0f;
+			// Close any active dialog so the player doesn't have two
+			// modals stacked.
+			if (dialogActive)
+			{
+				dialogActive = false;
+				dialogNpcName.clear();
+				dialogText.clear();
+				dialogFade = 0.0f;
+			}
+		}
+	}
+
+	if (input.interactPressed && !inventoryActive)
 	{
 		if (dialogActive)
 		{
@@ -203,12 +231,17 @@ void FLApp::OnUpdate(float dt)
 	{
 		dialogFade = std::min(1.0f, dialogFade + dt / kDialogFadeDuration);
 	}
+	if (inventoryActive)
+	{
+		inventoryFade = std::min(1.0f, inventoryFade + dt / kDialogFadeDuration);
+	}
 
-	// Simulation pause during dialog: skip UpdateModel entirely so
-	// movement, combat, animation, triggers, AND queued input (LMB
-	// attacks, dash starts) all freeze. The dialog fade above this
-	// point still runs on real dt because it ticks before the gate.
-	if (!dialogActive)
+	// Simulation pause during any modal (dialog OR inventory): skip
+	// UpdateModel entirely so movement, combat, animation, triggers,
+	// AND queued input all freeze. The fades above still run on real
+	// dt because they tick before the gate.
+	const bool worldPaused = dialogActive || inventoryActive;
+	if (!worldPaused)
 	{
 		UpdateModel(input, dt);
 	}
@@ -307,9 +340,9 @@ void FLApp::OnUpdate(float dt)
 	// Animation controller picks clipName based on the gameplay state we
 	// just settled (player movement intent, enemy distance, alive flag).
 	// Runs BEFORE AnimationSystem::Tick so the time-advance step uses the
-	// freshly-selected clip's duration. Also gated on dialogActive so
-	// characters visibly freeze (no walk-in-place) while dialog is open.
-	if (!dialogActive)
+	// freshly-selected clip's duration. Gated on any modal so characters
+	// visibly freeze (no walk-in-place) while dialog or inventory is up.
+	if (!worldPaused)
 	{
 		AnimationControllerSystem::Tick(scene, input, dt);
 		AnimationSystem::Tick(scene, dt);
@@ -335,6 +368,13 @@ void FLApp::PollDebugToggles() noexcept
 			// open/close is one transition per physical keystroke. The
 			// flag is consumed and cleared in CollectGameplayInput.
 			interactPressedThisFrame = true;
+			break;
+		case 'I':
+			// Inventory toggle key. Same edge-trigger pattern as E.
+			// Consumed and cleared in OnUpdate (no GameplayInput field
+			// since the simulation systems don't need inventory input —
+			// only FLApp itself does).
+			inventoryKeyPressedThisFrame = true;
 			break;
 		case VK_F1:
 			debugGizmosEnabled = !debugGizmosEnabled;
@@ -663,6 +703,22 @@ void FLApp::OnRender()
 	if (dialogActive)
 	{
 		textRenderer.RenderDialog(dialogNpcName, dialogText, GetWindow().GetWidth(), GetWindow().GetHeight(), dialogFade);
+	}
+	if (inventoryActive)
+	{
+		// Flatten inventory contents into pre-formatted display lines.
+		// Engine-side RenderInventory stays game-agnostic this way —
+		// it doesn't know what an Item is, just what the rows say.
+		std::vector<std::wstring> lines;
+		lines.reserve(inventory.All().size());
+		for (const auto& [id, count] : inventory.All())
+		{
+			const Item* def = itemRegistry.Find(id);
+			std::wstring name = def ? def->name : Widen(id);
+			if (name.empty()) name = Widen(id);
+			lines.push_back(name + L"  x" + std::to_wstring(count));
+		}
+		textRenderer.RenderInventory(lines, GetWindow().GetWidth(), GetWindow().GetHeight(), inventoryFade);
 	}
 	// Damage-number overlay: drawn between the persistent HUD text and the
 	// inspector panel so the panel (if open) still covers the right-side
