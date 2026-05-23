@@ -9,7 +9,6 @@ namespace UiLayout
 	inline constexpr DirectX::XMFLOAT3 PlayerFillTint{ 0.18f, 0.84f, 0.36f };
 	inline constexpr DirectX::XMFLOAT3 CooldownFillTint{ 0.95f, 0.78f, 0.22f };
 	inline constexpr DirectX::XMFLOAT3 TargetFillTint{ 0.92f, 0.24f, 0.22f };
-	inline constexpr DirectX::XMFLOAT3 CrosshairTint{ 0.95f, 0.98f, 1.0f };
 
 	inline constexpr float PlayerHealthCenterX = -0.62f;
 	inline constexpr float PlayerHealthCenterY = 0.88f;
@@ -23,12 +22,6 @@ namespace UiLayout
 	inline constexpr float TargetHealthCenterY = 0.88f;
 	inline constexpr float TargetHealthWidth = 0.42f;
 	inline constexpr float TargetHealthHeight = 0.06f;
-
-	inline constexpr float CrosshairCenterX = 0.0f;
-	inline constexpr float CrosshairCenterY = 0.0f;
-	inline constexpr float CrosshairLength = 0.08f;
-	inline constexpr float CrosshairThickness = 0.006f;
-	inline constexpr float CrosshairGap = 0.014f;
 
 	inline HealthBar MakePlayerHealthBar(float ratio) noexcept
 	{

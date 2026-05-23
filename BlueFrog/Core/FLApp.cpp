@@ -392,11 +392,14 @@ GameplayInput FLApp::CollectGameplayInput(float dt) noexcept
 		(GetKeyboard().KeyIsPressed('W') ? 1.0f : 0.0f) - (GetKeyboard().KeyIsPressed('S') ? 1.0f : 0.0f)
 	};
 
+	// Camera orbit: Q rotates left, R rotates right. R replaced the
+	// original E binding so E is interact-only — pressing E to talk no
+	// longer also nudges the camera.
 	if (GetKeyboard().KeyIsPressed('Q'))
 	{
 		input.orbitDelta -= orbitSpeed;
 	}
-	if (GetKeyboard().KeyIsPressed('E'))
+	if (GetKeyboard().KeyIsPressed('R'))
 	{
 		input.orbitDelta += orbitSpeed;
 	}

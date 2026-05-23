@@ -148,23 +148,6 @@ void UIRenderer::DrawBar(const HealthBar& bar) noexcept
 	DrawQuad(left + fillWidth * 0.5f, bar.centerY, fillWidth, bar.height, bar.fillTint);
 }
 
-void UIRenderer::DrawCrosshair() noexcept
-{
-	using namespace UiLayout;
-
-	const float armLength = CrosshairLength * 0.5f - CrosshairGap * 0.5f;
-	if (armLength <= 0.0f)
-	{
-		return;
-	}
-
-	const float armOffset = CrosshairGap * 0.5f + armLength * 0.5f;
-	DrawQuad(CrosshairCenterX - armOffset, CrosshairCenterY, armLength, CrosshairThickness, CrosshairTint);
-	DrawQuad(CrosshairCenterX + armOffset, CrosshairCenterY, armLength, CrosshairThickness, CrosshairTint);
-	DrawQuad(CrosshairCenterX, CrosshairCenterY - armOffset, CrosshairThickness, armLength, CrosshairTint);
-	DrawQuad(CrosshairCenterX, CrosshairCenterY + armOffset, CrosshairThickness, armLength, CrosshairTint);
-}
-
 void UIRenderer::Render(const HudState& hudState) noexcept
 {
 	BindSharedState();
@@ -181,8 +164,6 @@ void UIRenderer::Render(const HudState& hudState) noexcept
 	{
 		DrawBar(UiLayout::MakeTargetHealthBar(hudState.targetHealth.Ratio()));
 	}
-
-	DrawCrosshair();
 
 	gfx.GetContext()->OMSetDepthStencilState(nullptr, 0u);
 }
