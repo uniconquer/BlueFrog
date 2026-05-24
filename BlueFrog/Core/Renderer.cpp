@@ -344,8 +344,15 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	const XMVECTOR rawDir = XMVector3Normalize(XMVectorSet(0.3f, -1.0f, 0.2f, 0.0f));
 	LightData lightData = {};
 	XMStoreFloat3(&lightData.lightDir,   rawDir);
-	lightData.ambient    = 0.35f;
-	lightData.lightColor = { 1.0f, 0.96f, 0.90f };
+	// Tuned for the sRGB-correct output pipeline (Engine B). Pre-sRGB
+	// these were ambient=0.35 / lightColor=1.0 to compensate for the
+	// display undershoot; now those values produce a sun-bleached
+	// overbright look. ambient 0.18 + lightColor ≈0.85 keeps the peak
+	// `ambient + nDotL*lightColor` close to 1.0 so directly-lit
+	// surfaces sit at "natural daylight" rather than blown-out white,
+	// and shadowed faces retain visible color instead of going flat.
+	lightData.ambient    = 0.18f;
+	lightData.lightColor = { 0.86f, 0.83f, 0.78f };
 	lightBuffer.Update(gfx, lightData);
 
 	// Two-pass split: lit (static) first, skinned second. Each pass binds
