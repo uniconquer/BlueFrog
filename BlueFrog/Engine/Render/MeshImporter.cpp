@@ -191,136 +191,202 @@ namespace MeshImporter
 			return SetError(errorOut, prefix + "cgltf_load_buffers failed: " + CgltfResultName(r));
 		}
 
-		// v1 still consumes one mesh / one primitive. Multi-mesh / multi-
-		// primitive support is a Stage 2+ extension once we have a real
-		// authoring pipeline producing such files.
+		// v1 still consumes one mesh per file but now accepts ANY number of
+		// primitives within that mesh — they get merged into a single
+		// ImportedMesh stream with per-primitive vertex base offsets
+		// applied to indices. This is what makes Mixamo / Sketchfab
+		// characters loadable, since those split body/eyes/clothing/etc.
+		// into separate primitives. v1 still keeps the single-diffuse-
+		// texture limit: first primitive with a material wins.
 		if (data->meshes_count == 0 || data->meshes[0].primitives_count == 0)
 		{
 			cgltf_free(data);
 			return SetError(errorOut, prefix + "no meshes/primitives in glTF");
 		}
 		const cgltf_mesh& mesh = data->meshes[0];
-		const cgltf_primitive& prim = mesh.primitives[0];
-		if (prim.type != cgltf_primitive_type_triangles)
-		{
-			cgltf_free(data);
-			return SetError(errorOut, prefix + "primitive type must be TRIANGLES");
-		}
 
-		// Walk attributes once, picking out the channels we care about.
-		const cgltf_accessor* accPos = nullptr;
-		const cgltf_accessor* accNor = nullptr;
-		const cgltf_accessor* accUv  = nullptr;
-		const cgltf_accessor* accJoints = nullptr;
-		const cgltf_accessor* accWeights = nullptr;
-		for (cgltf_size i = 0; i < prim.attributes_count; ++i)
+		// Per-primitive accumulator. We append into out.* streams as we
+		// go; uint16 index cap applies to the merged total at the end.
+		bool materialCaptured = false;
+		bool anyHasJoints     = false;
+		for (cgltf_size pi = 0; pi < mesh.primitives_count; ++pi)
 		{
-			const cgltf_attribute& a = prim.attributes[i];
-			switch (a.type)
-			{
-			case cgltf_attribute_type_position: accPos = a.data; break;
-			case cgltf_attribute_type_normal:   accNor = a.data; break;
-			case cgltf_attribute_type_texcoord:
-				if (a.index == 0) accUv = a.data; // only TEXCOORD_0 in v1
-				break;
-			case cgltf_attribute_type_joints:
-				if (a.index == 0) accJoints = a.data; // only JOINTS_0 — Stage 2 supports 4 influences
-				break;
-			case cgltf_attribute_type_weights:
-				if (a.index == 0) accWeights = a.data; // only WEIGHTS_0
-				break;
-			default: break;
-			}
-		}
-
-		if (accPos == nullptr)
-		{
-			cgltf_free(data);
-			return SetError(errorOut, prefix + "primitive missing required POSITION attribute");
-		}
-
-		if (!UnpackFloatAttribute(accPos, out.positions, errorOut, prefix, "POSITION") ||
-			!UnpackFloatAttribute(accNor, out.normals,   errorOut, prefix, "NORMAL")   ||
-			!UnpackFloatAttribute(accUv,  out.uvs,       errorOut, prefix, "TEXCOORD_0"))
-		{
-			cgltf_free(data);
-			return false;
-		}
-
-		// Indices. Two cases:
-		//  - prim.indices != nullptr: explicit index buffer (most authored
-		//    assets). cgltf_accessor_unpack_indices converts to uint16.
-		//  - prim.indices == nullptr: non-indexed primitive (glTF spec
-		//    allows this — vertices laid out as a flat triangle list
-		//    where each triangle's verts are listed in order). Synthesize
-		//    sequential indices [0, vertexCount).
-		// Stage 1 keeps the ImportedMesh::indices vector at uint16, so any
-		// mesh with > 65535 vertices rejects either way.
-		const cgltf_size vertexCount = out.positions.size() / 3;
-		if (vertexCount > 65535)
-		{
-			cgltf_free(data);
-			return SetError(errorOut, prefix + "mesh has " + std::to_string(vertexCount) + " vertices (max 65535 in v1, 16-bit index buffer)");
-		}
-		if (prim.indices != nullptr)
-		{
-			out.indices.resize(prim.indices->count);
-			const cgltf_size unpacked = cgltf_accessor_unpack_indices(prim.indices, out.indices.data(), sizeof(std::uint16_t), prim.indices->count);
-			if (unpacked != prim.indices->count)
+			const cgltf_primitive& prim = mesh.primitives[pi];
+			if (prim.type != cgltf_primitive_type_triangles)
 			{
 				cgltf_free(data);
-				return SetError(errorOut, prefix + "index unpack failed (" + std::to_string(unpacked) + "/" + std::to_string(prim.indices->count) + ")");
+				return SetError(errorOut, prefix + "primitive[" + std::to_string(pi) + "] type must be TRIANGLES");
 			}
-		}
-		else
-		{
-			// Non-indexed: synthesize identity indices. For TRIANGLES mode
-			// vertexCount must be a multiple of 3 (each triangle's three
-			// verts back-to-back), but we don't enforce that here — let the
-			// downstream draw call reject if the asset is malformed.
-			out.indices.resize(vertexCount);
-			for (cgltf_size i = 0; i < vertexCount; ++i)
-			{
-				out.indices[i] = static_cast<std::uint16_t>(i);
-			}
-		}
 
-		// Diffuse texture extraction. We pull the primitive's material's
-		// pbrMetallicRoughness.baseColorTexture if any; missing slots
-		// silently skip — no error. The ImportedTexture::bytes vector
-		// stays empty in that case and the renderer falls back to its
-		// default white texture during draw.
-		if (prim.material != nullptr && prim.material->has_pbr_metallic_roughness)
-		{
-			const cgltf_texture_view& bcView = prim.material->pbr_metallic_roughness.base_color_texture;
-			if (bcView.texture != nullptr && bcView.texture->image != nullptr)
+			const cgltf_accessor* accPos     = nullptr;
+			const cgltf_accessor* accNor     = nullptr;
+			const cgltf_accessor* accUv      = nullptr;
+			const cgltf_accessor* accJoints  = nullptr;
+			const cgltf_accessor* accWeights = nullptr;
+			for (cgltf_size i = 0; i < prim.attributes_count; ++i)
 			{
-				std::vector<std::uint8_t> bytes;
-				if (ResolveImageBytes(*bcView.texture->image, gltfPath, bytes))
+				const cgltf_attribute& a = prim.attributes[i];
+				switch (a.type)
 				{
-					out.diffuseTexture.bytes = std::move(bytes);
-					out.diffuseTexture.sourceTag = pathStr +
-						(bcView.texture->image->name ? std::string("#") + bcView.texture->image->name
-						                              : std::string("#image0"));
+				case cgltf_attribute_type_position: accPos = a.data; break;
+				case cgltf_attribute_type_normal:   accNor = a.data; break;
+				case cgltf_attribute_type_texcoord: if (a.index == 0) accUv      = a.data; break;
+				case cgltf_attribute_type_joints:   if (a.index == 0) accJoints  = a.data; break;
+				case cgltf_attribute_type_weights:  if (a.index == 0) accWeights = a.data; break;
+				default: break;
+				}
+			}
+
+			if (accPos == nullptr)
+			{
+				cgltf_free(data);
+				return SetError(errorOut, prefix + "primitive[" + std::to_string(pi) + "] missing POSITION");
+			}
+
+			std::vector<float> tmpPos, tmpNor, tmpUv, tmpWeights;
+			if (!UnpackFloatAttribute(accPos, tmpPos, errorOut, prefix, "POSITION") ||
+				!UnpackFloatAttribute(accNor, tmpNor, errorOut, prefix, "NORMAL")   ||
+				!UnpackFloatAttribute(accUv,  tmpUv,  errorOut, prefix, "TEXCOORD_0"))
+			{
+				cgltf_free(data);
+				return false;
+			}
+
+			const cgltf_size primVertexCount = tmpPos.size() / 3;
+			if (primVertexCount == 0)
+			{
+				cgltf_free(data);
+				return SetError(errorOut, prefix + "primitive[" + std::to_string(pi) + "] has zero vertices");
+			}
+
+			const cgltf_size vertexBase = out.positions.size() / 3;
+			// uint16 cap: stop if appending this primitive would overflow.
+			if (vertexBase + primVertexCount > 65535)
+			{
+				cgltf_free(data);
+				return SetError(errorOut, prefix + "merged mesh exceeds 65535 vertices at primitive[" + std::to_string(pi) + "] (v1 16-bit index buffer)");
+			}
+
+			// Position: straight append.
+			out.positions.insert(out.positions.end(), tmpPos.begin(), tmpPos.end());
+
+			// Normal: append or pad with (0,1,0) so downstream stride stays consistent.
+			if (tmpNor.size() / 3 == primVertexCount)
+			{
+				out.normals.insert(out.normals.end(), tmpNor.begin(), tmpNor.end());
+			}
+			else
+			{
+				for (cgltf_size i = 0; i < primVertexCount; ++i)
+				{
+					out.normals.push_back(0.0f); out.normals.push_back(1.0f); out.normals.push_back(0.0f);
+				}
+			}
+
+			// UV: append or pad with (0,0).
+			if (tmpUv.size() / 2 == primVertexCount)
+			{
+				out.uvs.insert(out.uvs.end(), tmpUv.begin(), tmpUv.end());
+			}
+			else
+			{
+				for (cgltf_size i = 0; i < primVertexCount; ++i)
+				{
+					out.uvs.push_back(0.0f); out.uvs.push_back(0.0f);
+				}
+			}
+
+			// Skin attributes: append (or pad with zeros so the merged stride
+			// stays uniform even when some primitives are skinned and others
+			// aren't — rare but legal authoring choice).
+			if (accJoints != nullptr && accWeights != nullptr)
+			{
+				anyHasJoints = true;
+				const cgltf_size base = out.jointIndices.size();
+				out.jointIndices.resize(base + primVertexCount * 4);
+				for (cgltf_size i = 0; i < primVertexCount; ++i)
+				{
+					cgltf_uint tmp[4] = {};
+					if (!cgltf_accessor_read_uint(accJoints, i, tmp, 4))
+					{
+						cgltf_free(data);
+						return SetError(errorOut, prefix + "primitive[" + std::to_string(pi) + "] JOINTS_0 read failed at vertex " + std::to_string(i));
+					}
+					for (int k = 0; k < 4; ++k)
+					{
+						out.jointIndices[base + i * 4 + k] = static_cast<std::uint16_t>(tmp[k]);
+					}
+				}
+				if (!UnpackFloatAttribute(accWeights, tmpWeights, errorOut, prefix, "WEIGHTS_0"))
+				{
+					cgltf_free(data);
+					return false;
+				}
+				if (tmpWeights.size() / 4 != primVertexCount)
+				{
+					cgltf_free(data);
+					return SetError(errorOut, prefix + "primitive[" + std::to_string(pi) + "] WEIGHTS_0 count mismatch");
+				}
+				out.jointWeights.insert(out.jointWeights.end(), tmpWeights.begin(), tmpWeights.end());
+			}
+			else if (anyHasJoints)
+			{
+				// Skinned primitive followed by non-skinned: pad with zeros
+				// so the merged stride survives.
+				out.jointIndices.resize(out.jointIndices.size() + primVertexCount * 4, 0);
+				out.jointWeights.resize(out.jointWeights.size() + primVertexCount * 4, 0.0f);
+			}
+
+			// Indices with vertex-base offset.
+			if (prim.indices != nullptr)
+			{
+				std::vector<std::uint16_t> tmpInd(prim.indices->count);
+				const cgltf_size unpacked = cgltf_accessor_unpack_indices(prim.indices, tmpInd.data(), sizeof(std::uint16_t), prim.indices->count);
+				if (unpacked != prim.indices->count)
+				{
+					cgltf_free(data);
+					return SetError(errorOut, prefix + "primitive[" + std::to_string(pi) + "] index unpack failed");
+				}
+				const std::uint16_t off = static_cast<std::uint16_t>(vertexBase);
+				for (auto idx : tmpInd)
+				{
+					out.indices.push_back(static_cast<std::uint16_t>(idx + off));
+				}
+			}
+			else
+			{
+				for (cgltf_size i = 0; i < primVertexCount; ++i)
+				{
+					out.indices.push_back(static_cast<std::uint16_t>(vertexBase + i));
+				}
+			}
+
+			// Material: first primitive that has one wins. Multi-material
+			// per mesh would need a per-primitive draw split which is a
+			// renderer-side change for a later phase.
+			if (!materialCaptured && prim.material != nullptr && prim.material->has_pbr_metallic_roughness)
+			{
+				const cgltf_texture_view& bcView = prim.material->pbr_metallic_roughness.base_color_texture;
+				if (bcView.texture != nullptr && bcView.texture->image != nullptr)
+				{
+					std::vector<std::uint8_t> bytes;
+					if (ResolveImageBytes(*bcView.texture->image, gltfPath, bytes))
+					{
+						out.diffuseTexture.bytes = std::move(bytes);
+						out.diffuseTexture.sourceTag = pathStr +
+							(bcView.texture->image->name ? std::string("#") + bcView.texture->image->name
+							                              : std::string("#image0"));
+						materialCaptured = true;
+					}
 				}
 			}
 		}
 
-		// Sanity: vertex count consistency.
+		const cgltf_size vertexCount = out.positions.size() / 3;
 		if (vertexCount == 0)
 		{
 			cgltf_free(data);
-			return SetError(errorOut, prefix + "primitive has zero vertices");
-		}
-		if (!out.normals.empty() && out.normals.size() / 3 != vertexCount)
-		{
-			cgltf_free(data);
-			return SetError(errorOut, prefix + "NORMAL count does not match POSITION count");
-		}
-		if (!out.uvs.empty() && out.uvs.size() / 2 != vertexCount)
-		{
-			cgltf_free(data);
-			return SetError(errorOut, prefix + "TEXCOORD_0 count does not match POSITION count");
+			return SetError(errorOut, prefix + "merged mesh has zero vertices");
 		}
 
 		// Skin data extraction (Stage 2). Both JOINTS_0 and WEIGHTS_0 must
@@ -380,31 +446,15 @@ namespace MeshImporter
 			outS[2] = n->has_scale ? n->scale[2] : 1.0f;
 		};
 
-		if (accJoints && accWeights && skin && skin->joints_count > 0)
+		if (anyHasJoints && skin && skin->joints_count > 0)
 		{
-			// Joints: read as uint, stride 4. cgltf's read_uint handles the
-			// underlying UNSIGNED_BYTE / UNSIGNED_SHORT representations
-			// uniformly so we don't have to branch on accessor componentType.
-			out.jointIndices.resize(vertexCount * 4);
-			for (cgltf_size i = 0; i < vertexCount; ++i)
-			{
-				cgltf_uint tmp[4] = {};
-				if (!cgltf_accessor_read_uint(accJoints, i, tmp, 4))
-				{
-					cgltf_free(data);
-					return SetError(errorOut, prefix + "JOINTS_0 read failed at vertex " + std::to_string(i));
-				}
-				for (int k = 0; k < 4; ++k)
-				{
-					out.jointIndices[i * 4 + k] = static_cast<std::uint16_t>(tmp[k]);
-				}
-			}
-
-			// Weights: float vec4 stream.
-			if (!UnpackFloatAttribute(accWeights, out.jointWeights, errorOut, prefix, "WEIGHTS_0"))
+			// JOINTS_0 / WEIGHTS_0 streams were already merged in the
+			// primitive loop above; here we only validate the merged
+			// counts and continue with skin-level data (IBMs + hierarchy).
+			if (out.jointWeights.size() != out.jointIndices.size())
 			{
 				cgltf_free(data);
-				return false;
+				return SetError(errorOut, prefix + "joint/weight stride mismatch after merge");
 			}
 			if (out.jointWeights.size() / 4 != vertexCount)
 			{
