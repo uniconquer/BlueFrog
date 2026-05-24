@@ -271,7 +271,14 @@ void Graphics::RecreateD2DTarget()
 
 	const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
 		D2D1_RENDER_TARGET_TYPE_DEFAULT,
-		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, D2D1_ALPHA_MODE_PREMULTIPLIED),
+		// D2D rejects creating a surface render target with the _SRGB
+		// view format on a non-typeless _UNORM swap-chain buffer
+		// (E_INVALIDARG). Keep D2D on _UNORM — text is colored white
+		// in linear space anyway and the swap chain hands raw bytes
+		// to the display untouched for D2D writes, so HUD colors stay
+		// correct. The 3D pass continues to use the _SRGB RTV above
+		// for proper linear-to-sRGB encoding.
+		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
 		0.0f,
 		0.0f);
 
