@@ -25,7 +25,13 @@ class SkillSystem
 public:
 	void BindRegistry(const SkillRegistry& registry) noexcept { registry_ = &registry; }
 
-	bool Start(const std::string& casterObjectName, const std::string& skillId) noexcept;
+	// Begin executing `skillId` for the named caster. When `scene` is
+	// non-null, the caster's AnimationStateComponent is snapped to the
+	// skill's animationClip with clipTime reset to 0 so the swing
+	// plays from frame zero rather than picking up mid-walk-loop.
+	// AnimationControllerSystem then defers to the skill while
+	// IsExecuting is true, leaving that clip in place.
+	bool Start(const std::string& casterObjectName, const std::string& skillId, Scene* scene = nullptr) noexcept;
 
 	[[nodiscard]] bool IsExecuting(const std::string& casterObjectName) const noexcept;
 

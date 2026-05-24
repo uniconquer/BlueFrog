@@ -432,7 +432,7 @@ void FLApp::OnUpdate(float dt)
 	// visibly freeze (no walk-in-place) while dialog or inventory is up.
 	if (!worldPaused)
 	{
-		AnimationControllerSystem::Tick(scene, input, dt);
+		AnimationControllerSystem::Tick(scene, input, dt, &skillSystem);
 		AnimationSystem::Tick(scene, dt);
 	}
 }

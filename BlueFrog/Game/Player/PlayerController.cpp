@@ -76,7 +76,15 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	// scene reload mid-dash can't strand the player invulnerable forever.
 	player->combatComponent->invulnerable = (dashTimeRemaining > 0.0f);
 
-	const float effectiveSpeed = (dashTimeRemaining > 0.0f) ? (moveSpeed * dashSpeedMul) : moveSpeed;
+	// Movement lock during skill execution — the player is committed
+	// to the swing and shouldn't slide. Dash overrides this since dash
+	// is itself a deliberate burst the player chose; cancellation
+	// semantics ("dash cancels skill" or vice versa) are a v2 design
+	// decision left open.
+	const bool castingSkill = (skills != nullptr) && skills->IsExecuting(std::string(GameplaySceneIds::Player));
+	const float effectiveSpeed = (dashTimeRemaining > 0.0f)
+		? (moveSpeed * dashSpeedMul)
+		: (castingSkill ? 0.0f : moveSpeed);
 	const float useX = (dashTimeRemaining > 0.0f) ? dashDirX : move.x;
 	const float useZ = (dashTimeRemaining > 0.0f) ? dashDirZ : move.z;
 	DirectX::XMFLOAT3 desiredPosition = player->transform.position;
@@ -96,7 +104,9 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		// SkillSystem.Start returns false if the skill is mid-execution
 		// or still on cooldown — we gate the SFX off the same signal so
 		// players aren't spammed with whiff sounds during a held LMB.
-		if (skills->Start(std::string(GameplaySceneIds::Player), "slash"))
+		// Pass &scene so Start can snap the player's animation clip to
+		// the skill's clip + reset clipTime for a fresh-frame swing.
+		if (skills->Start(std::string(GameplaySceneIds::Player), "slash", &scene))
 		{
 			if (audio) audio->Play("attack");
 		}

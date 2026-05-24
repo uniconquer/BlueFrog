@@ -9,7 +9,7 @@
 #include <cmath>
 #include <DirectXMath.h>
 
-bool SkillSystem::Start(const std::string& casterObjectName, const std::string& skillId) noexcept
+bool SkillSystem::Start(const std::string& casterObjectName, const std::string& skillId, Scene* scene) noexcept
 {
 	if (registry_ == nullptr) return false;
 	if (active_.count(casterObjectName) > 0) return false;
@@ -22,6 +22,25 @@ bool SkillSystem::Start(const std::string& casterObjectName, const std::string& 
 	e.elapsed = 0.0f;
 	e.firedFlags.assign(def->events.size(), false);
 	active_.emplace(casterObjectName, std::move(e));
+
+	// Snap the caster's animation to the skill's clip from frame 0.
+	// Without this the attack would pick up wherever the walk loop
+	// currently sat — visibly mid-stride. Safe no-op when the scene
+	// pointer is missing or the caster has no animation component.
+	if (scene != nullptr && !def->animationClip.empty())
+	{
+		if (SceneObject* obj = scene->FindObject(casterObjectName))
+		{
+			if (obj->animationStateComponent.has_value())
+			{
+				auto& asc = obj->animationStateComponent.value();
+				asc.clipName  = def->animationClip;
+				asc.clipTime  = 0.0f;
+				asc.playSpeed = 1.0f;
+				asc.looping   = false; // attacks play once, not loop
+			}
+		}
+	}
 	return true;
 }
 

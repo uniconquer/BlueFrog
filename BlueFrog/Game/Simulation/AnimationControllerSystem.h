@@ -2,6 +2,7 @@
 
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/Scene/SceneObject.h"
+#include "../Skill/SkillSystem.h"
 #include "GameplayInput.h"
 #include "GameplaySceneIds.h"
 
@@ -29,7 +30,7 @@
 // chase/attack ranges so the visible clip matches the AI behavior.
 namespace AnimationControllerSystem
 {
-	inline void Tick(Scene& scene, const GameplayInput& input, float /*dt*/) noexcept
+	inline void Tick(Scene& scene, const GameplayInput& input, float /*dt*/, const SkillSystem* skills = nullptr) noexcept
 	{
 		const SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 		if (player == nullptr) return;
@@ -46,6 +47,12 @@ namespace AnimationControllerSystem
 		{
 			if (!obj.animationStateComponent.has_value()) continue;
 			auto& asc = obj.animationStateComponent.value();
+
+			// Yield to SkillSystem while the actor is mid-skill — the
+			// skill installed its own clipName/clipTime/playSpeed in
+			// Start(), and overriding it here would crush the swing
+			// animation back to walk/idle on the very next tick.
+			if (skills != nullptr && skills->IsExecuting(obj.name)) continue;
 
 			const bool isPlayer = (&obj == player);
 			const bool isEnemy = obj.combatComponent.has_value()
