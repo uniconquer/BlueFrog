@@ -6,6 +6,7 @@
 #include "../../Engine/UI/DamagePopup.h"
 #include "../../Engine/UI/HudState.h"
 #include "../Quest/QuestSystem.h"
+#include "../Skill/SkillSystem.h"
 #include <vector>
 #include "../Objectives/ObjectiveSystem.h"
 #include "GameplayCameraSystem.h"
@@ -71,6 +72,12 @@ public:
 	// in-flight quests in lockstep.
 	void SetQuestSystem(QuestSystem* qs) noexcept { questSystem_ = qs; }
 
+	// Skill execution dispatcher. Once installed, GameplaySimulation::
+	// Update tick the SkillSystem after Player/Enemy moves so events
+	// fire on the freshest scene state.
+	void SetSkillSystem(SkillSystem* ss) noexcept { skillSystem_ = ss; }
+	void SetParticleSystem(class ParticleSystem* ps) noexcept { particleSystem_ = ps; }
+
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 
@@ -104,4 +111,6 @@ private:
 	bool                         dialogActive_       = false;
 	const SceneObject*           interactTarget_     = nullptr;
 	QuestSystem*                 questSystem_        = nullptr;
+	SkillSystem*                 skillSystem_        = nullptr;
+	class ParticleSystem*        particleSystem_     = nullptr;
 };

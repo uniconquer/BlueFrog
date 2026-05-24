@@ -1,0 +1,11 @@
+{
+  "id": "slash",
+  "name": "Slash",
+  "animationClip": "Walk",
+  "duration": 0.45,
+  "cooldown": 0.45,
+  "events": [
+    { "type": "damage",   "time": 0.18, "amount": 1, "range": 2.4 },
+    { "type": "particle", "time": 0.20 }
+  ]
+}

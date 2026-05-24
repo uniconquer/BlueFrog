@@ -8,15 +8,15 @@
 
 class EventBus;
 class AudioEngine;
+class SkillSystem;
 
 class PlayerController
 {
 public:
-	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
+	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups, SkillSystem* skills) noexcept;
 	float GetAttackCooldownProgress01() const noexcept;
 private:
 	SceneObject* FindPlayer(Scene& scene) noexcept;
-	bool TryAttack(Scene& scene, SceneObject& player, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
 	void UpdateTint(SceneObject& player) const noexcept;
 private:
 	static constexpr float moveSpeed = 6.5f;
@@ -24,10 +24,11 @@ private:
 	// plane (Phase F Stage 4c switched the player from a center-pivoted
 	// cube to a feet-pivoted skinned character mesh).
 	static constexpr float playerHeight = 0.0f;
-	static constexpr float attackRange = 2.4f;
-	static constexpr float attackCooldown = 0.45f;
-	static constexpr int attackDamage = 1;
-	float attackCooldownRemaining = 0.0f;
+
+	// Cached pointer to the SkillSystem so GetAttackCooldownProgress01
+	// (called by HudPresenter) can answer without needing its own
+	// ctx-threading. Updated every Update tick.
+	SkillSystem* skillsCached = nullptr;
 
 	// Dash: short burst at higher speed in the current movement direction
 	// (or facing if no movement input). Fixed window of dashDuration with

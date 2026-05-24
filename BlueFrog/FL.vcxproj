@@ -175,6 +175,9 @@
     <ClCompile Include="Game\Quest\QuestLoader.cpp" />
     <ClCompile Include="Game\Quest\QuestRegistry.cpp" />
     <ClCompile Include="Game\Quest\QuestSystem.cpp" />
+    <ClCompile Include="Game\Skill\SkillLoader.cpp" />
+    <ClCompile Include="Game\Skill\SkillRegistry.cpp" />
+    <ClCompile Include="Game\Skill\SkillSystem.cpp" />
     <ClCompile Include="Game\Simulation\GameplaySimulation.cpp" />
     <ClCompile Include="Game\Simulation\TriggerGameplaySystem.cpp" />
   </ItemGroup>
@@ -203,6 +206,10 @@
     <ClInclude Include="Game\Quest\QuestLoader.h" />
     <ClInclude Include="Game\Quest\QuestRegistry.h" />
     <ClInclude Include="Game\Quest\QuestSystem.h" />
+    <ClInclude Include="Game\Skill\Skill.h" />
+    <ClInclude Include="Game\Skill\SkillLoader.h" />
+    <ClInclude Include="Game\Skill\SkillRegistry.h" />
+    <ClInclude Include="Game\Skill\SkillSystem.h" />
     <ClInclude Include="Game\Simulation\AnimationControllerSystem.h" />
     <ClInclude Include="Game\Simulation\EnemyGameplaySystem.h" />
     <ClInclude Include="Game\Simulation\GameplayArenaBuilder.h" />
@@ -234,6 +241,7 @@
     <None Include="Assets\Prefabs\Villager.prefab.json" />
     <None Include="Assets\Items\healing_potion.item.json" />
     <None Include="Assets\Quests\clear_arena_trial.quest.json" />
+    <None Include="Assets\Skills\slash.skill.json" />
     <None Include="Assets\Scenes\arena_trial.json" />
     <None Include="Assets\Scenes\village.json" />
     <None Include="Assets\Scenes\boss_arena.json" />

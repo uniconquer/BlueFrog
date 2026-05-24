@@ -93,6 +93,21 @@ void FLApp::OnStartup()
 	audio.PlayBgm("arena");
 	gameplaySimulation.SetAudio(&audio);
 	gameplaySimulation.SetDamagePopupSink(&activePopups);
+	gameplaySimulation.SetParticleSystem(&particleSystem);
+
+	// Skill layer. Load Assets/Skills/*.skill.json, bind into
+	// SkillSystem, hand to GameplaySimulation so per-tick dispatch
+	// runs alongside the other systems. Must come BEFORE quest /
+	// inventory so the skill registry is up when PlayerController
+	// fires its first Start("slash").
+	std::string skillErr;
+	if (!skillRegistry.LoadAll(std::filesystem::path("Assets/Skills"), &skillErr))
+	{
+		std::fputs(("[Skill] registry load failed: " + skillErr + "\n").c_str(), stdout);
+		::OutputDebugStringA(("[Skill] registry load failed: " + skillErr + "\n").c_str());
+	}
+	skillSystem.BindRegistry(skillRegistry);
+	gameplaySimulation.SetSkillSystem(&skillSystem);
 
 	// Quest layer (Phase I-2A). Load every Assets/Quests/*.quest.json
 	// at boot; wire QuestSystem so it sees the same EnemyKilled events

@@ -10,6 +10,7 @@
 
 class AudioEngine;
 class ParticleSystem;
+class SkillSystem;
 
 // Per-tick parameter bundle passed to every gameplay system's Update call.
 //
@@ -49,4 +50,9 @@ struct SystemContext
     // Optional VFX sink for transient combat effects (hit splashes,
     // dash trails, sparkles). nullptr disables emission silently.
     ParticleSystem*           particles    = nullptr;
+    // Skill execution dispatcher. PlayerController calls Start() on
+    // attack input; SkillSystem itself ticks once per frame in
+    // GameplaySimulation::Update to fire damage/particle events at
+    // their authored timeline points.
+    SkillSystem*              skills       = nullptr;
 };

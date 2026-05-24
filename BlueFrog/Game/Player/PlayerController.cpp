@@ -5,14 +5,16 @@
 #include "PlayerAimSystem.h"
 #include "../Simulation/GameplaySceneIds.h"
 #include "../Combat/CombatSystem.h"
+#include "../Skill/SkillSystem.h"
 #include <algorithm>
 #include <cmath>
 
-bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept
+bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups, SkillSystem* skills) noexcept
 {
-	attackCooldownRemaining = std::max(0.0f, attackCooldownRemaining - dt);
+	skillsCached = skills;
 	dashTimeRemaining        = std::max(0.0f, dashTimeRemaining - dt);
 	dashCooldownRemaining    = std::max(0.0f, dashCooldownRemaining - dt);
+	(void)bus; (void)popups; // skill events route through SkillSystem now
 
 	SceneObject* player = FindPlayer(scene);
 	if (player == nullptr || !player->combatComponent.has_value())
@@ -89,14 +91,15 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		player->transform.rotation.y = PlayerAimSystem::ComputeYawRadians(player->transform.position, mouseGroundPoint);
 	}
 
-	if (input.attackQueued && attackCooldownRemaining <= 0.0f)
+	if (input.attackQueued && skills != nullptr)
 	{
-		// Play the swing SFX on every cooldown-passed click, even if no
-		// target is in range — the sound represents the player swinging,
-		// not a successful hit.
-		if (audio) audio->Play("attack");
-		TryAttack(scene, *player, bus, audio, popups);
-		attackCooldownRemaining = attackCooldown;
+		// SkillSystem.Start returns false if the skill is mid-execution
+		// or still on cooldown — we gate the SFX off the same signal so
+		// players aren't spammed with whiff sounds during a held LMB.
+		if (skills->Start(std::string(GameplaySceneIds::Player), "slash"))
+		{
+			if (audio) audio->Play("attack");
+		}
 	}
 
 	UpdateTint(*player);
@@ -105,49 +108,16 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 
 float PlayerController::GetAttackCooldownProgress01() const noexcept
 {
-	if (attackCooldown <= 0.0f)
-	{
-		return 1.0f;
-	}
-
-	return std::clamp(1.0f - (attackCooldownRemaining / attackCooldown), 0.0f, 1.0f);
+	// Cooldown is now owned by SkillSystem. PlayerController stays the
+	// HUD's familiar door so HudPresenter doesn't grow its own
+	// SkillSystem dependency.
+	if (skillsCached == nullptr) return 1.0f;
+	return skillsCached->CooldownProgress01(std::string(GameplaySceneIds::Player), "slash");
 }
 
 SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept
 {
 	return scene.FindObject(GameplaySceneIds::Player);
-}
-
-bool PlayerController::TryAttack(Scene& scene, SceneObject& player, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept
-{
-	// Hit the nearest alive enemy combatant within range. Iterating each
-	// attack is fine — scenes have a handful of objects, and centralizing
-	// "what counts as a valid target" here avoids the hardcoded-name lookup
-	// that broke as soon as a scene added a second enemy.
-	SceneObject* best = nullptr;
-	float bestDistSq = attackRange * attackRange;
-	for (SceneObject& obj : scene.GetObjects())
-	{
-		if (&obj == &player) continue;
-		if (!obj.combatComponent.has_value()) continue;
-		if (obj.combatComponent->faction != CombatFaction::Enemy) continue;
-		if (!obj.combatComponent->IsAlive()) continue;
-
-		const float dx = obj.transform.position.x - player.transform.position.x;
-		const float dz = obj.transform.position.z - player.transform.position.z;
-		const float distSq = dx * dx + dz * dz;
-		if (distSq < bestDistSq)
-		{
-			best = &obj;
-			bestDistSq = distSq;
-		}
-	}
-
-	if (best == nullptr)
-	{
-		return false;
-	}
-	return CombatSystem::TryMeleeAttack(player, *best, attackDamage, attackRange, &bus, audio, popups);
 }
 
 void PlayerController::UpdateTint(SceneObject& player) const noexcept
@@ -164,7 +134,13 @@ void PlayerController::UpdateTint(SceneObject& player) const noexcept
 	}
 
 	const float healthRatio = static_cast<float>(player.combatComponent->health) / static_cast<float>(std::max(1, player.combatComponent->maxHealth));
-	const float cooldownRatio = attackCooldownRemaining > 0.0f ? attackCooldownRemaining / attackCooldown : 0.0f;
+	// Tint cooldown ratio derives from the skill system now. Mid-skill
+	// or mid-cooldown reads as "1 - progress" so the player visibly
+	// shifts color while their swing is recovering.
+	const float cooldownProgress = (skillsCached != nullptr)
+		? skillsCached->CooldownProgress01(std::string(GameplaySceneIds::Player), "slash")
+		: 1.0f;
+	const float cooldownRatio = 1.0f - cooldownProgress;
 	player.renderComponent->material->tint =
 	{
 		0.55f + (1.0f - cooldownRatio) * 0.35f,

@@ -85,7 +85,9 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 	//      LoadSceneRequested.
 	//   6. camera.FollowPlayer — snap camera target after the player has
 	//      moved so the view stays locked.
-	const SystemContext ctx{ input, scene, camera, eventBus, dt, audio_, damagePopupsSink_ };
+	SystemContext ctx{ input, scene, camera, eventBus, dt, audio_, damagePopupsSink_ };
+	ctx.particles = particleSystem_;
+	ctx.skills    = skillSystem_;
 	cameraSystem.ApplyInput(ctx);
 	playerSystem.Update(ctx);
 	enemySystem.Update(ctx);
@@ -95,6 +97,14 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 	// tick is the impulse. Runs BEFORE triggerSystem so a knocked-back
 	// actor can still trip a boundary trigger from the impulse motion.
 	KnockbackSystem::Tick(scene, dt);
+	// Skill tick — runs after player + enemy + knockback so per-event
+	// damage hits the freshest scene positions. Cooldowns decay every
+	// frame (handled inside Tick) regardless of whether anyone is
+	// mid-skill.
+	if (skillSystem_ != nullptr)
+	{
+		skillSystem_->Tick(scene, dt, &eventBus, audio_, damagePopupsSink_, particleSystem_);
+	}
 	// Visual polish: NPCs turn to face the player once they enter the
 	// notice range. Runs after KnockbackSystem so the rotation uses the
 	// player's final position for the tick.

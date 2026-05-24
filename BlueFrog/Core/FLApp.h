@@ -21,6 +21,8 @@
 #include "../Game/Profile/PlayerProfile.h"
 #include "../Game/Quest/QuestRegistry.h"
 #include "../Game/Quest/QuestSystem.h"
+#include "../Game/Skill/SkillRegistry.h"
+#include "../Game/Skill/SkillSystem.h"
 #include <string>
 #include <vector>
 
@@ -85,6 +87,13 @@ private:
 	// launches.
 	ItemRegistry itemRegistry;
 	Inventory    inventory;
+
+	// Skill layer. Registry holds static definitions loaded from
+	// Assets/Skills/*.skill.json; SkillSystem owns per-actor
+	// execution state (mid-skill elapsed, fired event flags,
+	// cooldowns) across scene reloads.
+	SkillRegistry skillRegistry;
+	SkillSystem   skillSystem;
 	std::string currentScenePath;
 	bool   debugGizmosEnabled  = false;
 	bool   worldGridEnabled    = false;
