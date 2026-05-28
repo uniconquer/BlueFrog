@@ -5,12 +5,12 @@
 
 namespace SkinnedPipeline
 {
-	// Compile-time max joints per skinned mesh. 64 is comfortable for
-	// humanoid rigs (RiggedSimple = 2 joints, typical biped = ~30, complex
-	// face rig = 50-60). Bumping this is a one-line change here + a matching
-	// cbuffer size adjustment; D3D11 cbuffers cap at 64KB so we have plenty
-	// of headroom (64 * 64B = 4KB).
-	inline constexpr int MaxJoints = 64;
+	// Compile-time max joints per skinned mesh. 128 covers the Mixamo
+	// default rig (65 joints) with comfortable headroom for facial /
+	// fingered variants and the occasional weapon socket bone. D3D11
+	// cbuffers cap at 64KB so we have plenty of room (128 * 64B = 8KB).
+	// If you bump this further, the HLSL literal below has to match.
+	inline constexpr int MaxJoints = 128;
 
 	// Vertex format consumed by the skinned shader. Stride 56 bytes:
 	//   12 (pos) + 12 (normal) + 8 (uv) + 8 (joints u16x4) + 16 (weights f32x4).
@@ -72,10 +72,16 @@ namespace SkinnedPipeline
 			"};\n"
 			"cbuffer SkinningBuffer : register(b3)\n"
 			"{\n"
-			"    matrix jointMatrices[64];\n"
+			"    matrix jointMatrices[128];\n"
+			"};\n"
+			"cbuffer ShadowBuffer : register(b4)\n"
+			"{\n"
+			"    matrix lightViewProj;\n"
 			"};\n"
 			"Texture2D surfaceTexture : register(t0);\n"
 			"SamplerState surfaceSampler : register(s0);\n"
+			"Texture2D shadowMap : register(t1);\n"
+			"SamplerComparisonState shadowSampler : register(s1);\n"
 			"struct VSIn\n"
 			"{\n"
 			"    float3 pos     : POSITION;\n"
@@ -88,7 +94,8 @@ namespace SkinnedPipeline
 			"{\n"
 			"    float4 pos      : SV_Position;\n"
 			"    float3 normalWS : NORMAL;\n"
-			"    float2 uv       : TEXCOORD;\n"
+			"    float2 uv       : TEXCOORD0;\n"
+			"    float4 lightPos : TEXCOORD1;\n"
 			"};\n"
 			"PSIn VSMain(VSIn input)\n"
 			"{\n"
@@ -103,13 +110,23 @@ namespace SkinnedPipeline
 			"    output.pos      = mul(skinnedPos, transform);\n"
 			"    output.normalWS = mul(skinnedNormal, (float3x3)model);\n"
 			"    output.uv       = input.uv;\n"
+			"    output.lightPos = mul(mul(skinnedPos, model), lightViewProj);\n"
 			"    return output;\n"
+			"}\n"
+			"float SampleShadow(float4 lightPos)\n"
+			"{\n"
+			"    float3 proj = lightPos.xyz / lightPos.w;\n"
+			"    float2 uv   = proj.xy * float2(0.5f, -0.5f) + 0.5f;\n"
+			"    if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f) return 1.0f;\n"
+			"    float depth = proj.z - 0.0025f;\n"
+			"    return shadowMap.SampleCmpLevelZero(shadowSampler, uv, depth);\n"
 			"}\n"
 			"float4 PSMain(PSIn input) : SV_Target\n"
 			"{\n"
 			"    float3 n        = normalize(input.normalWS);\n"
 			"    float  nDotL    = saturate(dot(n, -lightDir));\n"
-			"    float3 light    = ambient + nDotL * lightColor;\n"
+			"    float  shadow   = SampleShadow(input.lightPos);\n"
+			"    float3 light    = ambient + nDotL * lightColor * shadow;\n"
 			"    float4 albedo   = surfaceTexture.Sample(surfaceSampler, input.uv);\n"
 			"    return float4(albedo.rgb * tint * light, albedo.a);\n"
 			"}\n";

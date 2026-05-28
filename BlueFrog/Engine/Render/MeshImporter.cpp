@@ -620,6 +620,89 @@ namespace MeshImporter
 			}
 		}
 
+		// ----------------------------------------------------------
+		// glTF (right-handed) -> our engine (left-handed) conversion.
+		//
+		// We use the standard X-axis mirror (DirectX / Unity / Unreal
+		// convention): flip the X component of every position, normal,
+		// translation, and quaternion-X-related rotation, mirror the
+		// matrices accordingly, and reverse triangle winding so backface
+		// culling stays correct.
+		//
+		// Without this, a glTF authored as "RightHand bone on the
+		// character's own right side" landed on the LEFT side of the
+		// rendered character — which made the Mixamo Sword+Shield asset
+		// look mirrored in-game. Symmetric meshes (CesiumMan, Fox) are
+		// effectively unchanged by the mirror so older assets continue
+		// to look the same.
+		auto mirrorMatX = [](float* m) noexcept
+		{
+			// Column-major 4x4: flip row 0 (entries with j!=0) and col 0
+			// (entries with i!=0). Algebraically: S @ M @ S where
+			// S = diag(-1, 1, 1, 1).
+			m[1]  = -m[1];   // col 0 row 1
+			m[2]  = -m[2];   // col 0 row 2
+			m[3]  = -m[3];   // col 0 row 3
+			m[4]  = -m[4];   // col 1 row 0
+			m[8]  = -m[8];   // col 2 row 0
+			m[12] = -m[12];  // col 3 row 0 (translation X)
+		};
+
+		for (cgltf_size i = 0; i < out.positions.size(); i += 3) out.positions[i] = -out.positions[i];
+		for (cgltf_size i = 0; i < out.normals.size();   i += 3) out.normals[i]   = -out.normals[i];
+
+		// Triangle winding: glTF authors CCW front faces; after the X
+		// mirror those become CW, and our rasterizer culls CW backfaces
+		// by default — without this swap the whole model culls inside-out.
+		for (cgltf_size i = 0; i + 2 < out.indices.size(); i += 3)
+		{
+			std::swap(out.indices[i + 1], out.indices[i + 2]);
+		}
+
+		// Skin bind data + cached parent-base matrices need the same mirror.
+		for (cgltf_size i = 0; i < out.jointBindTranslation.size(); i += 3)
+		{
+			out.jointBindTranslation[i] = -out.jointBindTranslation[i];
+		}
+		for (cgltf_size i = 0; i + 3 < out.jointBindRotation.size(); i += 4)
+		{
+			// Quaternion mirror across YZ plane: (qx, qy, qz, qw) becomes
+			// (qx, -qy, -qz, qw). Derivation: mirrored rotation axis is
+			// (-ax, ay, az), mirrored angle is -θ, and the two minus signs
+			// in q = sin(θ/2)*axis collapse onto qy/qz only.
+			out.jointBindRotation[i + 1] = -out.jointBindRotation[i + 1];
+			out.jointBindRotation[i + 2] = -out.jointBindRotation[i + 2];
+		}
+		for (cgltf_size i = 0; i + 15 < out.inverseBindMatrices.size(); i += 16)
+		{
+			mirrorMatX(&out.inverseBindMatrices[i]);
+		}
+		for (cgltf_size i = 0; i + 15 < out.jointParentBaseWorld.size(); i += 16)
+		{
+			mirrorMatX(&out.jointParentBaseWorld[i]);
+		}
+
+		// Animation keyframes: translation X flips, rotation qy/qz flip,
+		// scale is preserved.
+		for (auto& anim : out.animations)
+		{
+			for (auto& ch : anim.channels)
+			{
+				if (ch.path == ImportedAnimationChannel::Path::Translation)
+				{
+					for (cgltf_size i = 0; i < ch.values.size(); i += 3) ch.values[i] = -ch.values[i];
+				}
+				else if (ch.path == ImportedAnimationChannel::Path::Rotation)
+				{
+					for (cgltf_size i = 0; i + 3 < ch.values.size(); i += 4)
+					{
+						ch.values[i + 1] = -ch.values[i + 1];
+						ch.values[i + 2] = -ch.values[i + 2];
+					}
+				}
+			}
+		}
+
 		cgltf_free(data);
 		return true;
 	}
