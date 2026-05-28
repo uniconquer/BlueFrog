@@ -6,8 +6,10 @@
 #include "../../Engine/Scene/SceneObject.h"
 #include "../../Engine/UI/DamagePopup.h"
 #include "../Combat/CombatSystem.h"
+#include "../Skill/SkillSystem.h"
 #include <algorithm>
 #include <cmath>
+#include <string>
 #include <vector>
 
 class AudioEngine;
@@ -20,8 +22,9 @@ class AudioEngine;
 class EnemyScoutBehavior final
 {
 public:
-	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) const noexcept
+	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups, SkillSystem* skills) const noexcept
 	{
+		(void)bus; (void)audio; (void)popups; // SkillSystem owns damage routing now
 		if (!enemy.combatComponent.has_value() || !player.combatComponent.has_value())
 		{
 			return;
@@ -90,7 +93,10 @@ public:
 
 			if (cc.attackWindupRemaining <= 0.0f)
 			{
-				CombatSystem::TryMeleeAttack(enemy, player, attackDamage, attackRange + 0.2f, &bus, audio, popups);
+				// Damage now routes through SkillSystem (started below at
+				// windup commit). Cooldown is the only thing left for the
+				// behavior to track because we still want range-based
+				// abort semantics (windup) before the swing fires.
 				cc.attackCooldownRemaining = attackCooldown;
 			}
 			return;
@@ -116,11 +122,18 @@ public:
 		}
 
 		// In range + cooldown spent → COMMIT to a swing by starting the
-		// windup. The actual TryMeleeAttack fires when the windup expires
-		// (above), giving the player a readable telegraph window.
+		// windup AND kicking off the Slash skill on this enemy. The skill
+		// drives both the animation clip swap (via SkillSystem ↔
+		// AnimationController hand-off) and the damage event at the
+		// authored time on the clip; this behavior just retains the
+		// windup timer for the tint-flash telegraph + abort semantics.
 		if (cc.attackCooldownRemaining <= 0.0f)
 		{
 			cc.attackWindupRemaining = windupDuration;
+			if (skills != nullptr)
+			{
+				skills->Start(enemy.name, std::string("enemy_slash"), &scene);
+			}
 		}
 	}
 

@@ -1,0 +1,11 @@
+{
+  "id": "enemy_arrow",
+  "name": "Enemy Arrow",
+  "animationClip": "Slash",
+  "duration": 1.0,
+  "cooldown": 0.0,
+  "events": [
+    { "type": "damage",   "time": 0.50, "amount": 1, "range": 9.5 },
+    { "type": "particle", "time": 0.52 }
+  ]
+}

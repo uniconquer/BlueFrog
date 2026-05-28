@@ -1,0 +1,6 @@
+{
+  "render":    { "meshPath": "Assets/Models/Horse/Horse.gltf", "importScale": 0.5, "material": { "tint": [1.0, 1.0, 1.0] } },
+  "collision": { "halfExtents": [0.55, 0.85], "blocking": true },
+  "animation": { "clipName": "Idle", "playSpeed": 1.0, "looping": true },
+  "mount":     { "displayName": "Horse", "speedMultiplier": 1.7 }
+}

@@ -12,9 +12,12 @@
 namespace
 {
 	// Delay between the player crossing into HP <= 0 and the auto-reload of
-	// the current scene. Long enough for the "Defeated" text to register, short
+	// the current scene. Long enough for the Die animation (Knight.glb has a
+	// 5.8s Mixamo Dying clip — we cut it short at ~3s so the body visibly
+	// hits the floor and settles, without leaving the player staring at a
+	// corpse for the whole clip) AND the "Defeated" text to register, short
 	// enough not to feel like punishment.
-	constexpr float kDeathReloadDelay = 1.5f;
+	constexpr float kDeathReloadDelay = 3.2f;
 }
 
 void GameplaySimulation::BuildArena(Scene& scene, TopDownCamera& camera, const std::string& scenePath) noexcept

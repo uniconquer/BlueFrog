@@ -343,6 +343,14 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 			if (n.contains("questId"))     nc.questId     = n["questId"].get<std::string>();
 			obj.npcComponent = std::move(nc);
 		}
+		if (objJson.contains("mount"))
+		{
+			const auto& m = objJson["mount"];
+			MountComponent mc;
+			if (m.contains("displayName"))     mc.displayName     = m["displayName"].get<std::string>();
+			if (m.contains("speedMultiplier")) mc.speedMultiplier = m["speedMultiplier"].get<float>();
+			obj.mountComponent = std::move(mc);
+		}
 	}
 
 	return true;

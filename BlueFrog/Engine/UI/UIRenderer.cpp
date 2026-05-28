@@ -159,6 +159,7 @@ void UIRenderer::Render(const HudState& hudState) noexcept
 
 	DrawBar(UiLayout::MakePlayerHealthBar(hudState.playerHealth.Ratio()));
 	DrawBar(UiLayout::MakeAttackCooldownBar(hudState.attackCooldown01));
+	DrawBar(UiLayout::MakeHeavyAttackCooldownBar(hudState.heavyAttackCooldown01));
 
 	if (hudState.hasTarget)
 	{

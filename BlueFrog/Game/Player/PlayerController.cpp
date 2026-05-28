@@ -28,6 +28,119 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		return true;
 	}
 
+	// Mounted branch: while riding, the player's own position is slaved
+	// to the mount, movement input drives the mount's transform, and
+	// attacks/dash are disabled. The legacy walk/dash/attack code path
+	// is reached only when on foot.
+	if (!mountedOnName.empty())
+	{
+		SceneObject* mount = scene.FindObject(mountedOnName);
+		if (mount == nullptr || !mount->mountComponent.has_value())
+		{
+			// Mount vanished (scene reload, despawn) — fall back to walking.
+			mountedOnName.clear();
+			if (player->collisionComponent.has_value())
+			{
+				player->collisionComponent->blocksMovement = true;
+			}
+		}
+		else
+		{
+			// The rider sits on the mount at the same XZ. If the player
+			// keeps blocksMovement=true, the mount's MoveAndSlide will
+			// snag on the player every tick and the horse can't budge.
+			// Turn off player collision while mounted; restore it on
+			// dismount (M3 dismount path below + the early-out above).
+			if (player->collisionComponent.has_value())
+			{
+				player->collisionComponent->blocksMovement = false;
+			}
+
+			// GTA-style weighty vehicle controls. WASD picks a TARGET yaw;
+			// the mount turns toward it at a finite angular rate. A scalar
+			// speed (mountSpeed) ramps up under input and coasts down by
+			// friction when released, and the mount always moves along its
+			// CURRENT forward axis. Net effect: the horse leans into a
+			// curve as it turns and glides to a stop instead of freezing —
+			// the heavy, momentum-y feel of GTA1/2 car handling.
+			const DirectX::XMFLOAT3 move = PlayerMovementSystem::ComputeMoveVector(input, camera);
+			const float moveMagSq = move.x * move.x + move.z * move.z;
+			const bool hasInput   = moveMagSq > 0.001f;
+			const float topSpeed  = moveSpeed * mount->mountComponent->speedMultiplier;
+
+			float yaw = mount->transform.rotation.y;
+			if (hasInput)
+			{
+				// Turn toward the input direction. Wrap the delta into
+				// [-π, π] (atan2 of sin/cos) so a 359°->1° turn goes the
+				// short way. Turn rate scales mildly with speed so a
+				// near-stopped horse still pivots but a galloping one
+				// arcs wider — reads as momentum.
+				const float targetYaw = std::atan2(move.x, move.z);
+				const float delta = std::atan2(std::sin(targetYaw - yaw),
+				                               std::cos(targetYaw - yaw));
+				constexpr float kTurnRate = 4.0f; // rad/s
+				const float maxStep = kTurnRate * dt;
+				yaw += (std::fabs(delta) > maxStep)
+					? (delta > 0.0f ? maxStep : -maxStep)
+					: delta;
+				mount->transform.rotation.y = yaw;
+
+				// Accelerate toward top speed.
+				mountSpeed = std::min(mountSpeed + mountAccel * dt, topSpeed);
+			}
+			else
+			{
+				// No input: coast down by friction. The horse keeps
+				// gliding along its last heading until speed bleeds off.
+				mountSpeed = std::max(mountSpeed - mountDecel * dt, 0.0f);
+			}
+
+			// Integrate position along the current forward axis at the
+			// current speed (zero speed => no move, so a fully stopped
+			// horse holds position).
+			if (mountSpeed > 0.0f)
+			{
+				const float fwdX = std::sin(yaw);
+				const float fwdZ = std::cos(yaw);
+				DirectX::XMFLOAT3 desired = mount->transform.position;
+				desired.x += fwdX * mountSpeed * dt;
+				desired.z += fwdZ * mountSpeed * dt;
+				// Mount keeps its own Y; we don't fly horses.
+				CollisionSystem::MoveAndSlide(*mount, scene, desired);
+			}
+
+			// Animate off actual speed, not raw input — so the gallop
+			// keeps playing through the coast-down and only drops to Idle
+			// once the horse has truly stopped.
+			if (mount->animationStateComponent.has_value())
+			{
+				auto& mAsc = mount->animationStateComponent.value();
+				mAsc.clipName  = (mountSpeed > 0.1f) ? std::string("Gallop") : std::string("Idle");
+				mAsc.playSpeed = 1.0f;
+				mAsc.looping   = true;
+			}
+
+			// Slave the player to the mount's transform every tick so
+			// rendering/skinning/HUD use the player object as the anchor
+			// (camera follow, blob shadow, popups already key off player).
+			player->transform.position    = mount->transform.position;
+			player->transform.position.y += mountRiderYOffset;
+			player->transform.rotation.y  = mount->transform.rotation.y;
+
+			player->combatComponent->invulnerable = false;
+			UpdateTint(*player);
+			return true;
+		}
+	}
+
+	// On-foot path: idempotently restore collision so dismount cleanup
+	// doesn't have to be done by every caller. Cheap — single bool write.
+	if (player->collisionComponent.has_value())
+	{
+		player->collisionComponent->blocksMovement = true;
+	}
+
 	// Knockback stun overrides movement / dash start / attack. KnockbackSystem
 	// owns the actual slide; this just makes sure the player's own intent
 	// doesn't fight it or queue a swing mid-stagger. Aim still updates each
@@ -112,6 +225,17 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		}
 	}
 
+	// Second skill slot (F key) — heavy slash. SkillSystem rejects the
+	// call if any skill is already mid-execution on this caster, so the
+	// two slots can't double-cast on top of each other.
+	if (input.heavyAttackQueued && skills != nullptr)
+	{
+		if (skills->Start(std::string(GameplaySceneIds::Player), "heavy_slash", &scene))
+		{
+			if (audio) audio->Play("attack");
+		}
+	}
+
 	UpdateTint(*player);
 	return true;
 }
@@ -123,6 +247,12 @@ float PlayerController::GetAttackCooldownProgress01() const noexcept
 	// SkillSystem dependency.
 	if (skillsCached == nullptr) return 1.0f;
 	return skillsCached->CooldownProgress01(std::string(GameplaySceneIds::Player), "slash");
+}
+
+float PlayerController::GetHeavyAttackCooldownProgress01() const noexcept
+{
+	if (skillsCached == nullptr) return 1.0f;
+	return skillsCached->CooldownProgress01(std::string(GameplaySceneIds::Player), "heavy_slash");
 }
 
 SceneObject* PlayerController::FindPlayer(Scene& scene) noexcept

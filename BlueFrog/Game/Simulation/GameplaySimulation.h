@@ -95,6 +95,10 @@ public:
 	// reference points at live system state — do not stash it past a
 	// ReloadScene call, which swaps the underlying object.
 	[[nodiscard]] const ObjectiveState& GetObjectiveState() const noexcept;
+
+	// Mount controller access (FLApp routes the E key into this on mount
+	// pickup, and queries IsMounted to gate dialog).
+	[[nodiscard]] PlayerController& GetPlayerController() noexcept { return playerSystem.GetController(); }
 private:
 	GameplayCameraSystem         cameraSystem;
 	PlayerGameplaySystem         playerSystem;

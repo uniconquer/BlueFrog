@@ -55,7 +55,8 @@ public:
 			}
 		}
 
-		hudState.attackCooldown01 = playerController.GetAttackCooldownProgress01();
+		hudState.attackCooldown01      = playerController.GetAttackCooldownProgress01();
+		hudState.heavyAttackCooldown01 = playerController.GetHeavyAttackCooldownProgress01();
 		// objectiveText is injected by GameplaySimulation after BuildHudState so
 		// the HUD stays data-driven off ObjectiveSystem rather than deriving
 		// text from the scene's enemy roster.

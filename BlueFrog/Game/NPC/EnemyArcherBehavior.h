@@ -5,8 +5,10 @@
 #include "../../Engine/Scene/SceneObject.h"
 #include "../../Engine/UI/DamagePopup.h"
 #include "../Combat/CombatSystem.h"
+#include "../Skill/SkillSystem.h"
 #include <algorithm>
 #include <cmath>
+#include <string>
 #include <vector>
 
 class AudioEngine;
@@ -22,8 +24,9 @@ class AudioEngine;
 class EnemyArcherBehavior final
 {
 public:
-	void Update(Scene& /*scene*/, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) const noexcept
+	void Update(Scene& scene, SceneObject& player, SceneObject& enemy, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups, SkillSystem* skills) const noexcept
 	{
+		(void)bus; (void)audio; (void)popups; // SkillSystem owns damage routing now
 		if (!enemy.combatComponent.has_value() || !player.combatComponent.has_value())
 		{
 			return;
@@ -84,9 +87,10 @@ public:
 
 			if (cc.attackWindupRemaining <= 0.0f)
 			{
-				// Loose the arrow. Same hitscan path as before; cooldown
-				// kicks now so the next windup waits a full fireInterval.
-				CombatSystem::TryMeleeAttack(enemy, player, attackDamage, fireRange + 0.5f, &bus, audio, popups);
+				// Damage now routes through SkillSystem (started below at
+				// windup commit). The windup timer still gates re-commits
+				// + early-abort if the player escapes; the actual hit fires
+				// from the skill's damage event at the authored clip time.
 				cc.attackCooldownRemaining = fireInterval;
 			}
 			return;
@@ -95,6 +99,15 @@ public:
 		if (inRange && cc.attackCooldownRemaining <= 0.0f)
 		{
 			cc.attackWindupRemaining = windupDuration;
+			if (skills != nullptr)
+			{
+				// "enemy_arrow" is currently the Slash clip + a ranged
+				// damage event — no projectile mesh yet. The visual is
+				// "enemy swings sword and you get hit from 9m away";
+				// goofy but readable until we wire a real bow clip /
+				// arrow particle entity.
+				skills->Start(enemy.name, std::string("enemy_arrow"), &scene);
+			}
 		}
 
 		const float fireFlashRatio = (fireInterval > 0.0f)

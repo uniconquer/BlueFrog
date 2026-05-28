@@ -224,13 +224,67 @@ void FLApp::OnUpdate(float dt)
 			dialogText.clear();
 			dialogFade = 0.0f;
 		}
-		else if (const SceneObject* npc = gameplaySimulation.GetInteractTarget())
+		else if (gameplaySimulation.GetPlayerController().IsMounted())
 		{
-			if (npc->npcComponent.has_value())
+			// E dismounts. Two things have to happen for the player to
+			// not be stuck inside the horse's collision box:
+			//   1. clear `occupied` so the mount re-advertises itself
+			//      for the next E-press.
+			//   2. snap the rider to the mount's side, on the ground.
+			//      Without (2) the player stays at the rider sync
+			//      position (XZ same as horse, Y elevated) and the very
+			//      next on-foot tick MoveAndSlide bounces them against
+			//      the horse's collision box from the inside.
+			const std::string mountName = gameplaySimulation.GetPlayerController().MountedOn();
+			if (SceneObject* m = scene.FindObject(mountName))
+			{
+				if (m->mountComponent.has_value()) m->mountComponent->occupied = false;
+				// Snap the mount back to Idle — otherwise the rider gets
+				// off and the riderless horse keeps cycling Gallop in
+				// place because nothing else owns the mount's clipName.
+				if (m->animationStateComponent.has_value())
+				{
+					m->animationStateComponent->clipName = "Idle";
+				}
+				if (SceneObject* p = scene.FindObject(GameplaySceneIds::Player))
+				{
+					// Right-side dismount in the mount's local frame.
+					// yaw convention: forward = (sin yaw, 0, cos yaw),
+					// so right vector = (cos yaw, 0, -sin yaw). 1.5m
+					// clears the horse's halfExtents (0.9, 1.1) plus a
+					// comfortable buffer.
+					const float yaw   = m->transform.rotation.y;
+					const float sideX =  std::cos(yaw);
+					const float sideZ = -std::sin(yaw);
+					// Mount halfExtents (X 0.55, Z 0.85) + player halfExtents
+				// (~0.45) + buffer. 2.0m leaves comfortable air so the
+				// player isn't immediately re-snagged by collision on the
+				// first on-foot tick.
+				constexpr float kDismountDist = 2.0f;
+					p->transform.position.x = m->transform.position.x + sideX * kDismountDist;
+					p->transform.position.z = m->transform.position.z + sideZ * kDismountDist;
+					p->transform.position.y = 0.0f; // back on the ground
+				}
+			}
+			gameplaySimulation.GetPlayerController().ClearMount();
+		}
+		else if (const SceneObject* target = gameplaySimulation.GetInteractTarget())
+		{
+			if (target->mountComponent.has_value() && !target->mountComponent->occupied)
+			{
+				// Mount it. The InteractionSystem already filtered out
+				// already-occupied mounts, so we won't double-mount.
+				if (SceneObject* m = scene.FindObject(target->name))
+				{
+					if (m->mountComponent.has_value()) m->mountComponent->occupied = true;
+				}
+				gameplaySimulation.GetPlayerController().SetMount(target->name);
+			}
+			else if (target->npcComponent.has_value())
 			{
 				dialogActive = true;
-				const auto& nc = npc->npcComponent.value();
-				dialogNpcName = Widen(nc.displayName.empty() ? npc->name : nc.displayName);
+				const auto& nc = target->npcComponent.value();
+				dialogNpcName = Widen(nc.displayName.empty() ? target->name : nc.displayName);
 
 				// Quest-aware dialog branch (Phase I-2A). If the NPC
 				// references a quest, the spoken line depends on the
@@ -432,7 +486,7 @@ void FLApp::OnUpdate(float dt)
 	// visibly freeze (no walk-in-place) while dialog or inventory is up.
 	if (!worldPaused)
 	{
-		AnimationControllerSystem::Tick(scene, input, dt, &skillSystem);
+		AnimationControllerSystem::Tick(scene, input, dt, &skillSystem, gameplaySimulation.GetPlayerController().IsMounted());
 		AnimationSystem::Tick(scene, dt);
 	}
 }
@@ -469,6 +523,12 @@ void FLApp::PollDebugToggles() noexcept
 			// "healing_potion" as the target; a future hotbar system
 			// will map slot indices to item ids.
 			consumeHotkeyPressedThisFrame = true;
+			break;
+		case 'F':
+			// Second skill slot. PlayerController routes this through
+			// SkillSystem.Start("heavy_slash"); cooldown gating lives in
+			// the skill system so a spam-press during cooldown no-ops.
+			heavyAttackPressedThisFrame = true;
 			break;
 		case VK_F1:
 			debugGizmosEnabled = !debugGizmosEnabled;
@@ -754,6 +814,8 @@ GameplayInput FLApp::CollectGameplayInput(float dt) noexcept
 	// next tick starts with a fresh flag.
 	input.interactPressed = interactPressedThisFrame;
 	interactPressedThisFrame = false;
+	input.heavyAttackQueued = heavyAttackPressedThisFrame;
+	heavyAttackPressedThisFrame = false;
 
 	if (GetMouse().IsInWindow())
 	{

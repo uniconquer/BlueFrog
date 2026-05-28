@@ -8,6 +8,7 @@
 #include <vector>
 
 class AudioEngine;
+class SkillSystem;
 
 // Drives every enemy-faction combatant in the scene each tick, dispatching to
 // the behavior class that matches the object's EnemyBehaviorComponent::type.
@@ -17,7 +18,7 @@ class AudioEngine;
 class SimpleEnemyController
 {
 public:
-	void Update(Scene& scene, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept;
+	void Update(Scene& scene, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups, SkillSystem* skills) noexcept;
 private:
 	EnemyScoutBehavior  scoutBehavior;
 	EnemyArcherBehavior archerBehavior;

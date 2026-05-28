@@ -30,7 +30,7 @@
 // chase/attack ranges so the visible clip matches the AI behavior.
 namespace AnimationControllerSystem
 {
-	inline void Tick(Scene& scene, const GameplayInput& input, float /*dt*/, const SkillSystem* skills = nullptr) noexcept
+	inline void Tick(Scene& scene, const GameplayInput& input, float /*dt*/, const SkillSystem* skills = nullptr, bool playerMounted = false) noexcept
 	{
 		const SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 		if (player == nullptr) return;
@@ -48,6 +48,27 @@ namespace AnimationControllerSystem
 			if (!obj.animationStateComponent.has_value()) continue;
 			auto& asc = obj.animationStateComponent.value();
 
+			// Death check goes BEFORE the SkillSystem yield so a kill that
+			// lands mid-swing still flips us to Die (rather than letting
+			// the swing keep playing because IsExecuting is still true on
+			// a now-dead caster). Set looping=false + reset clipTime once
+			// on entry; AnimationSystem then plays Die through and the
+			// sampler pins to the last keyframe.
+			const bool isDead = obj.combatComponent.has_value() && !obj.combatComponent->IsAlive();
+			if (isDead)
+			{
+				if (asc.clipName != "Die")
+				{
+					asc.clipName  = "Die";
+					asc.clipTime  = 0.0f;
+					asc.playSpeed = 1.0f;
+					asc.looping   = false;
+				}
+				// Already in Die clip — leave clipTime advancing; sampler
+				// holds the last frame past duration so the body stays down.
+				continue;
+			}
+
 			// Yield to SkillSystem while the actor is mid-skill — the
 			// skill installed its own clipName/clipTime/playSpeed in
 			// Start(), and overriding it here would crush the swing
@@ -60,42 +81,48 @@ namespace AnimationControllerSystem
 
 			if (isPlayer)
 			{
-				const bool dead = obj.combatComponent.has_value() && !obj.combatComponent->IsAlive();
-				if (dead)
+				asc.playSpeed = 1.0f;
+				asc.looping = true;
+				if (playerMounted)
 				{
-					// Freeze on whatever clip was playing — playSpeed 0
-					// stops AnimationSystem::Tick from advancing clipTime.
-					asc.playSpeed = 0.0f;
+					// While mounted, the rider sits on the horse — Walk
+					// input drives the MOUNT, not the rider's legs. The
+					// "Ride" clip is a Mixamo Male Sitting Pose retargeted
+					// into Knight.glb (see _tmp_fbximport/run_convert.bat);
+					// it's not a true "hands on reins" ride but it bends
+					// the knees / lowers the torso enough to read as
+					// "sitting on something" rather than "standing on
+					// horse like a stick".
+					asc.clipName = std::string("Ride");
 				}
 				else
 				{
-					asc.playSpeed = 1.0f;
 					const float move = std::hypot(input.movementIntent.x, input.movementIntent.y);
-					// CesiumMan has a single unnamed clip; FindClip falls
-					// back to clip[0] regardless of name. The named state
-					// strings are still useful for debugging via the
-					// inspector and for the day a multi-clip player asset
-					// arrives.
+					// Clip names match the NLA tracks baked into Knight.glb by
+					// _tmp_fbximport/mixamo_to_gltf.py: Idle, Walk, Slash,
+					// SlashDown, Hit, Die.
 					asc.clipName = (move > kPlayerMoveThreshold) ? std::string("Walk") : std::string("Idle");
 				}
 			}
 			else if (isEnemy)
 			{
-				const bool dead = obj.combatComponent.has_value() && !obj.combatComponent->IsAlive();
-				if (dead)
-				{
-					asc.playSpeed = 0.0f;
-					continue; // keep whatever clipName was last set
-				}
-
+				// Dead enemies were handled by the early isDead branch above.
 				asc.playSpeed = 1.0f;
+				asc.looping = true;
 				const float dx = obj.transform.position.x - player->transform.position.x;
 				const float dz = obj.transform.position.z - player->transform.position.z;
 				const float dist = std::sqrt(dx * dx + dz * dz);
 
+				// Clip names match Knight.glb (Idle / Walk / Slash / Hit / Die).
+				// "Run" and "Survey" were holdovers from the old Fox rig; the
+				// new humanoid rig has no Run clip, so we collapse the
+				// in-range cases to Idle. Actual attack animation is left for
+				// enemy behaviors to trigger via SkillSystem (just like the
+				// player does), keeping animation a consequence of intent
+				// rather than a function of distance.
 				if (dist < kEnemyAttackDist)
 				{
-					asc.clipName = "Run";
+					asc.clipName = "Idle"; // hold position, attack anim driven by behavior
 				}
 				else if (dist < kEnemyChaseDist)
 				{
@@ -103,7 +130,7 @@ namespace AnimationControllerSystem
 				}
 				else
 				{
-					asc.clipName = "Survey";
+					asc.clipName = "Idle";
 				}
 			}
 		}

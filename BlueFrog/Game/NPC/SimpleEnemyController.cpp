@@ -3,7 +3,7 @@
 #include "../../Engine/Scene/CombatComponent.h"
 #include "../Simulation/GameplaySceneIds.h"
 
-void SimpleEnemyController::Update(Scene& scene, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups) noexcept
+void SimpleEnemyController::Update(Scene& scene, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups, SkillSystem* skills) noexcept
 {
 	SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 	if (player == nullptr)
@@ -37,11 +37,11 @@ void SimpleEnemyController::Update(Scene& scene, float dt, EventBus& bus, AudioE
 
 		if (type == "archer")
 		{
-			archerBehavior.Update(scene, *player, obj, dt, bus, audio, popups);
+			archerBehavior.Update(scene, *player, obj, dt, bus, audio, popups, skills);
 		}
 		else
 		{
-			scoutBehavior.Update(scene, *player, obj, dt, bus, audio, popups);
+			scoutBehavior.Update(scene, *player, obj, dt, bus, audio, popups, skills);
 		}
 	}
 }

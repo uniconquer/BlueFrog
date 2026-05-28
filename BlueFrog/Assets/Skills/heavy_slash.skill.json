@@ -1,0 +1,11 @@
+{
+  "id": "heavy_slash",
+  "name": "Heavy Slash",
+  "animationClip": "SlashDown",
+  "duration": 1.4,
+  "cooldown": 1.6,
+  "events": [
+    { "type": "damage",   "time": 0.65, "amount": 3, "range": 2.8 },
+    { "type": "particle", "time": 0.67 }
+  ]
+}

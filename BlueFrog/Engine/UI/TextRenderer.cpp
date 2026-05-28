@@ -450,10 +450,13 @@ void TextRenderer::RenderInteractPrompt(const HudState& hud, int viewportW, int 
     if (target == nullptr || !promptFormat || !whiteBrush) return;
     if (!hud.hasInteractPrompt || hud.interactPromptName.empty()) return;
 
-    // Compose "[E] Talk to <name>" — kept literal for v1. A future
-    // commit can swap in a context-specific verb (Buy, Read, Open) once
-    // we have multiple interactable kinds.
-    std::wstring text = L"[E] Talk to ";
+    // "[E] <verb> <name>". `interactPromptVerb` is populated by
+    // InteractionSystem ("Talk to" for NPCs, "Mount" for mounts, …).
+    // Empty verb falls back to "Talk to" so older NPC-only scenes keep
+    // their original wording without needing a HudState migration.
+    std::wstring text = L"[E] ";
+    text += hud.interactPromptVerb.empty() ? std::wstring(L"Talk to") : hud.interactPromptVerb;
+    text += L" ";
     text += hud.interactPromptName;
 
     const float w = static_cast<float>(viewportW);

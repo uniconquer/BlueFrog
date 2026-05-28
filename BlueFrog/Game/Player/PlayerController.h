@@ -4,6 +4,7 @@
 #include "../../Engine/UI/DamagePopup.h"
 #include "PlayerMovementSystem.h"
 #include "../Simulation/GameplayInput.h"
+#include <string>
 #include <vector>
 
 class EventBus;
@@ -15,6 +16,18 @@ class PlayerController
 public:
 	bool Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt, EventBus& bus, AudioEngine* audio, std::vector<DamagePopup>* popups, SkillSystem* skills) noexcept;
 	float GetAttackCooldownProgress01() const noexcept;
+	float GetHeavyAttackCooldownProgress01() const noexcept;
+
+	// Mount lifecycle (Phase Mount).
+	// Mount(name) attaches the player to the named SceneObject (its
+	// MountComponent.occupied flag is also flipped by the caller). While
+	// mounted, the player rides on top of the mount: movement input drives
+	// the mount's transform, the player follows along, and attacks/dash
+	// are disabled. Empty mountedOnName == not mounted.
+	void SetMount(const std::string& mountObjectName) noexcept { mountedOnName = mountObjectName; mountSpeed = 0.0f; }
+	void ClearMount() noexcept { mountedOnName.clear(); mountSpeed = 0.0f; }
+	[[nodiscard]] bool IsMounted() const noexcept { return !mountedOnName.empty(); }
+	[[nodiscard]] const std::string& MountedOn() const noexcept { return mountedOnName; }
 private:
 	SceneObject* FindPlayer(Scene& scene) noexcept;
 	void UpdateTint(SceneObject& player) const noexcept;
@@ -41,4 +54,27 @@ private:
 	float dashCooldownRemaining = 0.0f;
 	float dashDirX              = 0.0f;
 	float dashDirZ              = 0.0f;
+
+	// Mount state — name of the SceneObject the player is currently
+	// riding. Empty when not mounted. PlayerController.Update branches on
+	// this: mounted updates drive the mount's transform and sync the
+	// player on top, dismounted updates are the legacy walk path.
+	std::string mountedOnName;
+	// Vertical offset (meters) applied to player.position.y while mounted
+	// so the rider visually sits ON the mount rather than inside it. The
+	// Quaternius horse at importScale 0.5 has the saddle ridge ~1.0m off
+	// the ground; the Ride clip's bent-knee pose lifts the feet ~0.2m
+	// above the player root, so 1.2m parks the feet just above the
+	// saddle without floating.
+	static constexpr float mountRiderYOffset = 1.2f;
+
+	// Mount "vehicle" dynamics — gives the horse a GTA-style weighty feel
+	// instead of instant start/stop. mountSpeed is the current scalar
+	// speed (m/s) along the mount's forward axis; it ramps up under input
+	// and coasts down by friction when input releases, so the horse
+	// glides to a halt rather than freezing mid-stride. Reset to 0 on
+	// mount/dismount (see SetMount/ClearMount).
+	float mountSpeed = 0.0f;
+	static constexpr float mountAccel = 9.0f;  // m/s^2 ramp-up under input
+	static constexpr float mountDecel = 7.0f;  // m/s^2 coast-down (friction)
 };

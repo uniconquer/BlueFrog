@@ -1,0 +1,11 @@
+{
+  "id": "enemy_slash",
+  "name": "Enemy Slash",
+  "animationClip": "Slash",
+  "duration": 1.0,
+  "cooldown": 0.0,
+  "events": [
+    { "type": "damage",   "time": 0.40, "amount": 1, "range": 2.0 },
+    { "type": "particle", "time": 0.42 }
+  ]
+}

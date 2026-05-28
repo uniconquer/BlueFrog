@@ -159,4 +159,6 @@ private:
 	// queue and sets this flag for the current frame; CollectGameplayInput
 	// reads it into the GameplayInput, then we clear it.
 	bool          interactPressedThisFrame = false;
+	// F-key edge for the second skill slot (heavy_slash).
+	bool          heavyAttackPressedThisFrame = false;
 };

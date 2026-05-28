@@ -23,7 +23,12 @@ struct HudState
 {
 	HudMeter playerHealth;
 	HudMeter targetHealth;
-	float attackCooldown01 = 1.0f;
+	// Skill bar — two slots wired to LMB (slash) and F (heavy_slash).
+	// Each is a 0..1 progress: 1.0 = ready, < 1.0 = filling back up from
+	// cooldown. TextRenderer draws square slots at the bottom-center with
+	// a dim overlay sized to (1 - value).
+	float attackCooldown01      = 1.0f; // slot 0: slash (LMB)
+	float heavyAttackCooldown01 = 1.0f; // slot 1: heavy_slash (F)
 	bool hasTarget = false;
 	bool playerDefeated = false;
 	std::wstring objectiveText;
@@ -34,5 +39,9 @@ struct HudState
 	// is non-empty ("[E] Talk to <name>"). The string is the NPC's
 	// display name (already widened).
 	std::wstring interactPromptName;
+	// Verb shown before the target name in the prompt: "Talk to", "Mount",
+	// "Open" etc. Renderer formats as "[E] <verb> <name>". Defaults to
+	// "Talk to" (the original NPC-only behavior) when not set.
+	std::wstring interactPromptVerb;
 	bool         hasInteractPrompt = false;
 };

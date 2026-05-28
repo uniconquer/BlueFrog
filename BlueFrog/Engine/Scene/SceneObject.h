@@ -3,6 +3,7 @@
 #include "CollisionComponent.h"
 #include "CombatComponent.h"
 #include "EnemyBehaviorComponent.h"
+#include "MountComponent.h"
 #include "NpcComponent.h"
 #include "RenderComponent.h"
 #include "Transform.h"
@@ -22,6 +23,7 @@ struct SceneObject
 	std::optional<EnemyBehaviorComponent> enemyBehaviorComponent;
 	std::optional<AnimationStateComponent> animationStateComponent;
 	std::optional<NpcComponent>      npcComponent;
+	std::optional<MountComponent>    mountComponent;
 
 	bool CanRender() const noexcept
 	{

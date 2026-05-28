@@ -18,6 +18,13 @@ public:
 	{
 		return HudPresenter::Build(scene, playerController);
 	}
+
+	// FLApp uses this to hand the controller a mount on E-press, and to
+	// query mounted state when routing input. Exposed via a getter rather
+	// than making the controller a public member so external callers
+	// can't reach into the rest of its state.
+	[[nodiscard]] PlayerController& GetController() noexcept { return playerController; }
+	[[nodiscard]] const PlayerController& GetController() const noexcept { return playerController; }
 private:
 	PlayerController playerController;
 };
