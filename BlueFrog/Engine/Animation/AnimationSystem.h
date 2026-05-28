@@ -3,6 +3,8 @@
 #include "../Scene/Scene.h"
 #include "../Scene/SceneObject.h"
 
+#include <algorithm>
+
 // Advances per-instance animation clipTime once per tick. Header-only:
 // implementation is small, has no out-of-line state, and being inline makes
 // the loop trivially auto-vectorize when scenes start carrying many animated
@@ -33,12 +35,32 @@ namespace AnimationSystem
 		{
 			if (!obj.animationStateComponent.has_value()) continue;
 			auto& a = obj.animationStateComponent.value();
+
+			// Clip switch detection: gameplay set a new clipName. Snapshot
+			// the outgoing clip + its current time and start a crossfade,
+			// then restart the new clip at 0. The very first assignment
+			// (activeClip empty) blends from nothing, so skip the fade.
+			if (a.clipName != a.activeClip)
+			{
+				a.blendFromClip  = a.activeClip;
+				a.blendFromTime  = a.clipTime;
+				a.blendRemaining = a.activeClip.empty() ? 0.0f : a.blendDuration;
+				a.activeClip     = a.clipName;
+				a.clipTime       = 0.0f;
+			}
+
 			a.clipTime += dt * a.playSpeed;
 			if (!a.looping)
 			{
 				constexpr float kMaxClipTime = 1.0e6f;
 				if (a.clipTime > kMaxClipTime) a.clipTime = kMaxClipTime;
 				if (a.clipTime < 0.0f) a.clipTime = 0.0f;
+			}
+
+			// Advance the crossfade timer toward completion.
+			if (a.blendRemaining > 0.0f)
+			{
+				a.blendRemaining = std::max(0.0f, a.blendRemaining - dt);
 			}
 		}
 	}

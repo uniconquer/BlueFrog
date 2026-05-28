@@ -142,6 +142,12 @@ private:
 	// the cast shadow would lag the visible model by a frame or pose
 	// differently). No GPU/gfx access — just CPU joint math.
 	SkinningData ComputeSkinningData(const SkinnedMeshBuffers& mesh, const AnimationStateComponent* animState) const noexcept;
+	// Samples one clip at one time into per-joint local TRS arrays (bind
+	// pose for joints the clip doesn't touch). ComputeSkinningData calls it
+	// once for the active clip and, during a crossfade, a second time for
+	// the outgoing clip before lerping/slerping the two poses together.
+	void SamplePose(const SkinnedMeshBuffers& mesh, const std::string& clipName, float clipTime, bool looping,
+		std::vector<DirectX::XMVECTOR>& outT, std::vector<DirectX::XMVECTOR>& outR, std::vector<DirectX::XMVECTOR>& outS) const noexcept;
 	Texture2D& ResolveTexture(const std::string& path);
 	const Sampler& ResolveSampler(SamplerPreset preset) const noexcept;
 	static const std::array<LitVertex, 24>& GetCubeVertices() noexcept;

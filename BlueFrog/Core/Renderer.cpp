@@ -703,111 +703,121 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
 }
 
+void Renderer::SamplePose(const SkinnedMeshBuffers& mesh, const std::string& clipName, float clipTime, bool looping,
+	std::vector<DirectX::XMVECTOR>& outT, std::vector<DirectX::XMVECTOR>& outR, std::vector<DirectX::XMVECTOR>& outS) const noexcept
+{
+	using namespace DirectX;
+
+	const std::uint32_t jointCount = static_cast<std::uint32_t>(mesh.inverseBindMatrices.size());
+
+	// Pick the clip: named lookup, falling back to clip[0]; nullptr when the
+	// mesh has no clips (=> pure bind pose).
+	const ImportedAnimation* clip = nullptr;
+	if (!mesh.animations.empty())
+	{
+		if (!clipName.empty())
+		{
+			for (const auto& a : mesh.animations)
+			{
+				if (a.name == clipName) { clip = &a; break; }
+			}
+		}
+		if (clip == nullptr) clip = &mesh.animations[0];
+	}
+	const bool hasClip = (clip != nullptr) && !clip->channels.empty() && clip->duration > 0.0f;
+	// Looping clips wrap with fmod; non-looping (Die, one-shots) clamp to
+	// the last frame. The blend-from clip is always sampled clamped so its
+	// frozen snapshot pose doesn't wrap back to frame 0 mid-fade.
+	const float t = hasClip
+		? (looping ? std::fmod(clipTime, clip->duration) : std::min(clipTime, clip->duration))
+		: 0.0f;
+
+	// Initialize every joint to its bind-pose local TRS; channels override.
+	outT.resize(jointCount);
+	outR.resize(jointCount);
+	outS.resize(jointCount);
+	for (std::uint32_t i = 0; i < jointCount; ++i)
+	{
+		outT[i] = XMLoadFloat3(&mesh.bindTranslation[i]);
+		outR[i] = XMLoadFloat4(&mesh.bindRotation[i]);
+		outS[i] = XMLoadFloat3(&mesh.bindScale[i]);
+	}
+
+	if (!hasClip) return;
+
+	for (const auto& ch : clip->channels)
+	{
+		if (ch.targetJoint < 0 || static_cast<std::uint32_t>(ch.targetJoint) >= jointCount) continue;
+		if (ch.times.empty()) continue;
+
+		std::size_t k = 0;
+		float alpha = 0.0f;
+		FindSegment(ch.times, t, k, alpha);
+		const std::size_t k1 = (k + 1 < ch.times.size()) ? (k + 1) : k;
+
+		const bool useStep = (ch.interpolation == ImportedAnimationChannel::Interpolation::Step);
+
+		switch (ch.path)
+		{
+		case ImportedAnimationChannel::Path::Translation:
+		{
+			const XMVECTOR v0 = XMVectorSet(ch.values[k *3+0], ch.values[k *3+1], ch.values[k *3+2], 0.0f);
+			const XMVECTOR v1 = XMVectorSet(ch.values[k1*3+0], ch.values[k1*3+1], ch.values[k1*3+2], 0.0f);
+			outT[ch.targetJoint] = useStep ? v0 : XMVectorLerp(v0, v1, alpha);
+			break;
+		}
+		case ImportedAnimationChannel::Path::Scale:
+		{
+			const XMVECTOR v0 = XMVectorSet(ch.values[k *3+0], ch.values[k *3+1], ch.values[k *3+2], 0.0f);
+			const XMVECTOR v1 = XMVectorSet(ch.values[k1*3+0], ch.values[k1*3+1], ch.values[k1*3+2], 0.0f);
+			outS[ch.targetJoint] = useStep ? v0 : XMVectorLerp(v0, v1, alpha);
+			break;
+		}
+		case ImportedAnimationChannel::Path::Rotation:
+		{
+			const XMVECTOR q0 = XMVectorSet(ch.values[k *4+0], ch.values[k *4+1], ch.values[k *4+2], ch.values[k *4+3]);
+			const XMVECTOR q1 = XMVectorSet(ch.values[k1*4+0], ch.values[k1*4+1], ch.values[k1*4+2], ch.values[k1*4+3]);
+			outR[ch.targetJoint] = useStep ? q0 : XMQuaternionSlerp(q0, q1, alpha);
+			break;
+		}
+		}
+	}
+}
+
 Renderer::SkinningData Renderer::ComputeSkinningData(const SkinnedMeshBuffers& mesh, const AnimationStateComponent* animState) const noexcept
 {
 	using namespace DirectX;
 
 	// === Per-frame pose computation ===========================================
-	// 1. Start each joint at its bind-pose local TRS.
-	// 2. For every animation channel targeting this joint, sample at
-	//    `animState->clipTime mod clipDuration` and override the matching
-	//    component.
-	// 3. Compose local matrix = scale * rotation * translation (row-vector
-	//    order: vec * (S*R*T) = scale-then-rotate-then-translate).
-	// 4. Walk the joint hierarchy (parents already topologically before
-	//    children in glTF skin->joints) computing world = local * parentWorld.
-	// 5. jointMatrix[i] = inverseBindMatrix[i] * jointWorld[i]   (row-vector
-	//    convention; in column-vector spec terms: jointMatrix = jointWorld * IBM).
-	// 6. Transpose before upload so HLSL's column-major default reads
-	//    consistently with the lit pipeline's transform/model upload.
+	// 1. Sample the active clip into per-joint local TRS (SamplePose).
+	// 2. If a crossfade is in flight, sample the outgoing clip too and
+	//    lerp(T/S) / slerp(R) the two poses by the fade weight.
+	// 3. Compose local matrix = S*R*T, walk the hierarchy to world.
+	// 4. jointMatrix[i] = inverseBindMatrix[i] * jointWorld[i], transposed
+	//    for HLSL's column-major default.
 	const std::uint32_t jointCount = static_cast<std::uint32_t>(mesh.inverseBindMatrices.size());
 
-	// Pick the clip:
-	//   - no AnimationStateComponent on the SceneObject => bind pose
-	//   - component but mesh has no clips => bind pose
-	//   - component with clipName => named lookup, falling back to clip[0]
-	//   - component with empty clipName => clip[0]
-	const ImportedAnimation* clip = nullptr;
-	float clipTime = 0.0f;
-	if (animState != nullptr && !mesh.animations.empty())
+	const std::string clipName = (animState != nullptr) ? animState->clipName : std::string();
+	const float clipTime       = (animState != nullptr) ? animState->clipTime : 0.0f;
+	const bool  looping        = (animState != nullptr) ? animState->looping  : true;
+
+	std::vector<XMVECTOR> Tvec, Rvec, Svec;
+	SamplePose(mesh, clipName, clipTime, looping, Tvec, Rvec, Svec);
+
+	// Crossfade: blend the previous clip's frozen pose into the active one.
+	// weight goes 0 -> 1 as blendRemaining drains, so we end on the target.
+	if (animState != nullptr && animState->blendRemaining > 0.0f &&
+		animState->blendDuration > 0.0f && !animState->blendFromClip.empty())
 	{
-		// Inline FindClip equivalent — header lives in MeshImporter.h but
-		// the renderer holds its own copy of the clip list now.
-		clip = nullptr;
-		if (!animState->clipName.empty())
+		std::vector<XMVECTOR> Tb, Rb, Sb;
+		SamplePose(mesh, animState->blendFromClip, animState->blendFromTime, /*looping=*/false, Tb, Rb, Sb);
+		const float w = 1.0f - (animState->blendRemaining / animState->blendDuration);
+		const std::uint32_t n = std::min<std::uint32_t>(jointCount, static_cast<std::uint32_t>(Tb.size()));
+		for (std::uint32_t i = 0; i < n; ++i)
 		{
-			for (const auto& a : mesh.animations)
-			{
-				if (a.name == animState->clipName) { clip = &a; break; }
-			}
-		}
-		if (clip == nullptr) clip = &mesh.animations[0];
-		clipTime = animState->clipTime;
-	}
-	const bool hasClip = (clip != nullptr) && !clip->channels.empty() && clip->duration > 0.0f;
-	// Looping clips wrap around with fmod so a long-running session
-	// doesn't accumulate float error. Non-looping clips (Die, one-shot
-	// hit reactions) clamp to the last frame instead — without this the
-	// corpse would spring back to frame 0 and the whole death animation
-	// would replay forever.
-	const float t = hasClip
-		? (animState->looping
-			? std::fmod(clipTime, clip->duration)
-			: std::min(clipTime, clip->duration))
-		: 0.0f;
-
-	// Per-joint TRS, initialized to bind. Channel sampling overrides
-	// individual components; joints not addressed by any channel keep
-	// their full bind TRS.
-	std::vector<XMVECTOR> Tvec(jointCount);
-	std::vector<XMVECTOR> Rvec(jointCount);
-	std::vector<XMVECTOR> Svec(jointCount);
-	for (std::uint32_t i = 0; i < jointCount; ++i)
-	{
-		Tvec[i] = XMLoadFloat3(&mesh.bindTranslation[i]);
-		Rvec[i] = XMLoadFloat4(&mesh.bindRotation[i]);
-		Svec[i] = XMLoadFloat3(&mesh.bindScale[i]);
-	}
-
-	if (hasClip)
-	{
-		for (const auto& ch : clip->channels)
-		{
-			if (ch.targetJoint < 0 || static_cast<std::uint32_t>(ch.targetJoint) >= jointCount) continue;
-			if (ch.times.empty()) continue;
-
-			std::size_t k = 0;
-			float alpha = 0.0f;
-			FindSegment(ch.times, t, k, alpha);
-			const std::size_t k1 = (k + 1 < ch.times.size()) ? (k + 1) : k;
-
-			const bool useStep = (ch.interpolation == ImportedAnimationChannel::Interpolation::Step);
-
-			switch (ch.path)
-			{
-			case ImportedAnimationChannel::Path::Translation:
-			{
-				const XMVECTOR v0 = XMVectorSet(ch.values[k *3+0], ch.values[k *3+1], ch.values[k *3+2], 0.0f);
-				const XMVECTOR v1 = XMVectorSet(ch.values[k1*3+0], ch.values[k1*3+1], ch.values[k1*3+2], 0.0f);
-				Tvec[ch.targetJoint] = useStep ? v0 : XMVectorLerp(v0, v1, alpha);
-				break;
-			}
-			case ImportedAnimationChannel::Path::Scale:
-			{
-				const XMVECTOR v0 = XMVectorSet(ch.values[k *3+0], ch.values[k *3+1], ch.values[k *3+2], 0.0f);
-				const XMVECTOR v1 = XMVectorSet(ch.values[k1*3+0], ch.values[k1*3+1], ch.values[k1*3+2], 0.0f);
-				Svec[ch.targetJoint] = useStep ? v0 : XMVectorLerp(v0, v1, alpha);
-				break;
-			}
-			case ImportedAnimationChannel::Path::Rotation:
-			{
-				// Quaternion: slerp for smoothness, step on STEP interp.
-				const XMVECTOR q0 = XMVectorSet(ch.values[k *4+0], ch.values[k *4+1], ch.values[k *4+2], ch.values[k *4+3]);
-				const XMVECTOR q1 = XMVectorSet(ch.values[k1*4+0], ch.values[k1*4+1], ch.values[k1*4+2], ch.values[k1*4+3]);
-				Rvec[ch.targetJoint] = useStep ? q0 : XMQuaternionSlerp(q0, q1, alpha);
-				break;
-			}
-			}
+			Tvec[i] = XMVectorLerp(Tb[i], Tvec[i], w);
+			Rvec[i] = XMQuaternionSlerp(Rb[i], Rvec[i], w);
+			Svec[i] = XMVectorLerp(Sb[i], Svec[i], w);
 		}
 	}
 

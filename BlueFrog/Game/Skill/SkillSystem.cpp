@@ -34,8 +34,10 @@ bool SkillSystem::Start(const std::string& casterObjectName, const std::string& 
 			if (obj->animationStateComponent.has_value())
 			{
 				auto& asc = obj->animationStateComponent.value();
+				// clipTime reset + crossfade start are handled by
+				// AnimationSystem when it sees clipName change — we only
+				// set the target clip + playback flags here.
 				asc.clipName  = def->animationClip;
-				asc.clipTime  = 0.0f;
 				asc.playSpeed = 1.0f;
 				asc.looping   = false; // attacks play once, not loop
 			}

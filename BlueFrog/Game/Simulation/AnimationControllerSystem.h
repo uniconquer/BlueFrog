@@ -59,8 +59,10 @@ namespace AnimationControllerSystem
 			{
 				if (asc.clipName != "Die")
 				{
+					// clipTime reset handled by AnimationSystem on the
+					// clipName change; it also crossfades from whatever
+					// pose the actor was in into the death fall.
 					asc.clipName  = "Die";
-					asc.clipTime  = 0.0f;
 					asc.playSpeed = 1.0f;
 					asc.looping   = false;
 				}
