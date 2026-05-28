@@ -160,6 +160,7 @@
     <ClCompile Include="Engine\Render\ParticleRenderer.cpp" />
     <ClCompile Include="Engine\Render\ParticleSystem.cpp" />
     <ClCompile Include="Engine\Render\PixelShader.cpp" />
+    <ClCompile Include="Engine\Render\ShadowMapPass.cpp" />
     <ClCompile Include="Engine\Render\ShadowRenderer.cpp" />
     <ClCompile Include="Engine\Render\Topology.cpp" />
     <ClCompile Include="Engine\Render\VertexBuffer.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="Engine\Render\ParticleRenderer.h" />
     <ClInclude Include="Engine\Render\ParticleSystem.h" />
     <ClInclude Include="Engine\Render\Sampler.h" />
+    <ClInclude Include="Engine\Render\ShadowMapPass.h" />
     <ClInclude Include="Engine\Render\ShadowPipeline.h" />
     <ClInclude Include="Engine\Render\ShadowRenderer.h" />
     <ClInclude Include="Engine\Render\SkinnedPipeline.h" />

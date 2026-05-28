@@ -334,3 +334,9 @@ ASALocalRun/
 
 # Player profile saves (user-specific runtime state)
 BlueFrog/Save/
+
+# Temporary FBX→glTF conversion scripts (Blender headless tooling)
+_tmp_fbximport/
+
+# StarBit asset — FBX import produced an empty glb; excluded until re-sourced
+BlueFrog/Assets/Models/StarBit/

@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "../Engine/Render/ImageLoader.h"
 #include "../Engine/Render/MeshImporter.h"
+#include "../Engine/Render/ShadowDepthPipeline.h"
 #include <DirectXMath.h>
 #include <cmath>
 #include <filesystem>
@@ -56,10 +57,16 @@ Renderer::Renderer(Graphics& gfx)
 	skinnedVertexShader(gfx, SkinnedPipeline::GetShaderSource(), "VSMain"),
 	skinnedPixelShader(gfx, SkinnedPipeline::GetShaderSource(), "PSMain"),
 	skinnedInputLayout(gfx, SkinnedPipeline::GetInputLayoutDesc().data(), static_cast<UINT>(SkinnedPipeline::GetInputLayoutDesc().size()), skinnedVertexShader),
+	shadowPass(gfx),
+	depthStaticVertexShader(gfx, ShadowDepthPipeline::GetStaticShaderSource(), "VSMain"),
+	depthStaticInputLayout(gfx, LitPipeline::GetInputLayoutDesc().data(), static_cast<UINT>(LitPipeline::GetInputLayoutDesc().size()), depthStaticVertexShader),
+	depthSkinnedVertexShader(gfx, ShadowDepthPipeline::GetSkinnedShaderSource(), "VSMain"),
+	depthSkinnedInputLayout(gfx, SkinnedPipeline::GetInputLayoutDesc().data(), static_cast<UINT>(SkinnedPipeline::GetInputLayoutDesc().size()), depthSkinnedVertexShader),
 	transformBuffer(gfx),
 	materialBuffer(gfx),
 	lightBuffer(gfx),
 	skinningBuffer(gfx),
+	shadowBuffer(gfx),
 	defaultWhiteTexture(gfx, MakeWhiteSurface()),
 	samplerWrapLinear(gfx),
 	samplerClampLinear(gfx, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP),
@@ -162,6 +169,7 @@ void Renderer::BindLitState() noexcept
 	transformBuffer.Bind(gfx);
 	materialBuffer.Bind(gfx, 1u);
 	lightBuffer.Bind(gfx, 2u);
+	shadowBuffer.Bind(gfx, 4u); // b4 = light view-proj for shadow sampling
 	litPixelShader.Bind(gfx);
 }
 
@@ -177,6 +185,7 @@ void Renderer::BindSkinnedState() noexcept
 	// leaving the skinning cbuffer bound between draws is safe — the lit VS
 	// does not reference it.
 	skinningBuffer.Bind(gfx, 3u);
+	shadowBuffer.Bind(gfx, 4u); // b4 = light view-proj for shadow sampling
 	skinnedPixelShader.Bind(gfx);
 }
 
@@ -335,6 +344,91 @@ const Sampler& Renderer::ResolveSampler(SamplerPreset preset) const noexcept
 	}
 }
 
+DirectX::XMMATRIX Renderer::ComputeLightViewProj(const TopDownCamera& camera, DirectX::FXMVECTOR lightDir) const noexcept
+{
+	using namespace DirectX;
+
+	// Center the light frustum on what the camera is looking at, so the
+	// limited top-down view always falls inside the shadow map. Back the
+	// light off along -lightDir and look at the target.
+	const XMFLOAT3 tgt = camera.GetTarget();
+	const XMVECTOR center = XMLoadFloat3(&tgt);
+	const XMVECTOR dir = XMVector3Normalize(lightDir);
+
+	constexpr float kLightDistance = 40.0f; // how far "up" the sun sits
+	const XMVECTOR lightPos = XMVectorSubtract(center, XMVectorScale(dir, kLightDistance));
+	const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // dir has X/Z tilt so never parallel
+	const XMMATRIX view = XMMatrixLookAtLH(lightPos, center, up);
+
+	// Orthographic (parallel sun rays). Width/height cover the visible
+	// play area around the camera target; near/far bracket the 40-unit
+	// stand-off plus scene depth.
+	constexpr float kOrthoSize = 34.0f;
+	const XMMATRIX proj = XMMatrixOrthographicLH(kOrthoSize, kOrthoSize, 1.0f, 90.0f);
+	return view * proj;
+}
+
+void Renderer::RenderShadowDepth(const Scene& scene, DirectX::FXMMATRIX lightViewProj) noexcept
+{
+	using namespace DirectX;
+
+	shadowPass.Begin(gfx);
+
+	auto* ctx = gfx.GetContext();
+	// Depth-only: no pixel shader bound. Rasterizer fills the depth buffer
+	// directly from SV_Position.
+	ctx->PSSetShader(nullptr, nullptr, 0u);
+	topology.Bind(gfx);
+	transformBuffer.Bind(gfx, 0u);
+
+	// --- Static casters ---
+	depthStaticVertexShader.Bind(gfx);
+	depthStaticInputLayout.Bind(gfx);
+	for (const auto& object : scene.GetObjects())
+	{
+		if (!object.CanRender()) continue;
+		if (ResolveSkinnedMesh(*object.renderComponent) != nullptr) continue;
+		const MeshBuffers& mesh = ResolveMesh(*object.renderComponent);
+		const float is = object.renderComponent->importScale;
+		const XMMATRIX model = XMMatrixScaling(is, is, is) * object.transform.GetMatrix();
+		TransformData td = {};
+		XMStoreFloat4x4(&td.mvp,   XMMatrixTranspose(model * lightViewProj));
+		XMStoreFloat4x4(&td.model, XMMatrixTranspose(model));
+		transformBuffer.Update(gfx, td);
+		mesh.vertexBuffer.Bind(gfx);
+		mesh.indexBuffer.Bind(gfx);
+		gfx.DrawIndexed(mesh.indexBuffer.GetCount());
+	}
+
+	// --- Skinned casters ---
+	depthSkinnedVertexShader.Bind(gfx);
+	depthSkinnedInputLayout.Bind(gfx);
+	skinningBuffer.Bind(gfx, 3u);
+	for (const auto& object : scene.GetObjects())
+	{
+		if (!object.CanRender()) continue;
+		const SkinnedMeshBuffers* skinned = ResolveSkinnedMesh(*object.renderComponent);
+		if (skinned == nullptr) continue;
+		const AnimationStateComponent* animState = object.animationStateComponent.has_value()
+			? &object.animationStateComponent.value()
+			: nullptr;
+		const float is = object.renderComponent->importScale;
+		const XMMATRIX model = XMMatrixScaling(is, is, is) * object.transform.GetMatrix();
+		TransformData td = {};
+		XMStoreFloat4x4(&td.mvp,   XMMatrixTranspose(model * lightViewProj));
+		XMStoreFloat4x4(&td.model, XMMatrixTranspose(model));
+		transformBuffer.Update(gfx, td);
+		const SkinningData skinData = ComputeSkinningData(*skinned, animState);
+		skinningBuffer.Update(gfx, skinData);
+		skinned->vertexBuffer.Bind(gfx);
+		skinned->indexBuffer.Bind(gfx);
+		gfx.DrawIndexed(skinned->indexBuffer.GetCount());
+	}
+
+	shadowPass.End(gfx);
+	gfx.RestoreBackBuffer();
+}
+
 void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 {
 	using namespace DirectX;
@@ -354,6 +448,19 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	lightData.ambient    = 0.18f;
 	lightData.lightColor = { 0.86f, 0.83f, 0.78f };
 	lightBuffer.Update(gfx, lightData);
+
+	// Shadow depth pass (Shadow S2): render all casters from the sun's POV
+	// into the shadow map, then restore the back buffer for the main pass.
+	const XMMATRIX lightViewProj = ComputeLightViewProj(camera, rawDir);
+	RenderShadowDepth(scene, lightViewProj);
+
+	// Upload the same light VP for the main pass to project each pixel into
+	// shadow-map space, and bind the shadow map (t1) + comparison sampler
+	// (s1) for the lit/skinned pixel shaders to sample.
+	ShadowData shadowData = {};
+	XMStoreFloat4x4(&shadowData.lightViewProj, XMMatrixTranspose(lightViewProj));
+	shadowBuffer.Update(gfx, shadowData);
+	shadowPass.BindForRead(gfx, 1u, 1u);
 
 	// Two-pass split: lit (static) first, skinned second. Each pass binds
 	// its own pipeline state once. ResolveSkinnedMesh returns nullptr when
@@ -379,6 +486,11 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 			: nullptr;
 		DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera, animState);
 	}
+
+	// Release the shadow map SRV so next frame's depth pass can bind it as
+	// a depth-stencil target again (D3D warns if a resource is bound as
+	// both input and output).
+	shadowPass.UnbindForRead(gfx, 1u);
 }
 
 const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderComponent& renderComponent)
@@ -573,6 +685,28 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	const MaterialData materialData = { mat.tint, 0.0f };
 	materialBuffer.Update(gfx, materialData);
 
+	const SkinningData skinData = ComputeSkinningData(mesh, animState);
+	skinningBuffer.Update(gfx, skinData);
+
+	if (mesh.diffuseTexture)
+	{
+		mesh.diffuseTexture->Bind(gfx);
+	}
+	else
+	{
+		ResolveTexture(mat.texturePath).Bind(gfx);
+	}
+	ResolveSampler(mat.sampler).Bind(gfx);
+
+	mesh.vertexBuffer.Bind(gfx);
+	mesh.indexBuffer.Bind(gfx);
+	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
+}
+
+Renderer::SkinningData Renderer::ComputeSkinningData(const SkinnedMeshBuffers& mesh, const AnimationStateComponent* animState) const noexcept
+{
+	using namespace DirectX;
+
 	// === Per-frame pose computation ===========================================
 	// 1. Start each joint at its bind-pose local TRS.
 	// 2. For every animation channel targeting this joint, sample at
@@ -611,7 +745,16 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 		clipTime = animState->clipTime;
 	}
 	const bool hasClip = (clip != nullptr) && !clip->channels.empty() && clip->duration > 0.0f;
-	const float t = hasClip ? std::fmod(clipTime, clip->duration) : 0.0f;
+	// Looping clips wrap around with fmod so a long-running session
+	// doesn't accumulate float error. Non-looping clips (Die, one-shot
+	// hit reactions) clamp to the last frame instead — without this the
+	// corpse would spring back to frame 0 and the whole death animation
+	// would replay forever.
+	const float t = hasClip
+		? (animState->looping
+			? std::fmod(clipTime, clip->duration)
+			: std::min(clipTime, clip->duration))
+		: 0.0f;
 
 	// Per-joint TRS, initialized to bind. Channel sampling overrides
 	// individual components; joints not addressed by any channel keep
@@ -715,19 +858,5 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 		const XMMATRIX jm = ibm * jointWorld[i];
 		XMStoreFloat4x4(&skinData.jointMatrices[i], XMMatrixTranspose(jm));
 	}
-	skinningBuffer.Update(gfx, skinData);
-
-	if (mesh.diffuseTexture)
-	{
-		mesh.diffuseTexture->Bind(gfx);
-	}
-	else
-	{
-		ResolveTexture(mat.texturePath).Bind(gfx);
-	}
-	ResolveSampler(mat.sampler).Bind(gfx);
-
-	mesh.vertexBuffer.Bind(gfx);
-	mesh.indexBuffer.Bind(gfx);
-	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
+	return skinData;
 }

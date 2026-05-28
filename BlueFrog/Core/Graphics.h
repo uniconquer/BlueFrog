@@ -31,6 +31,14 @@ public:
 	void DrawIndexed(UINT count) noexcept;
 	ID3D11Device* GetDevice() noexcept;
 	ID3D11DeviceContext* GetContext() noexcept;
+
+	// Re-bind the swap-chain back buffer + main depth buffer and reset the
+	// viewport to the full window. Used by multi-pass renderers (e.g.
+	// shadow mapping) that bind their own off-screen render target /
+	// viewport and need to hand the pipeline back to the main scene pass.
+	void RestoreBackBuffer() noexcept;
+	[[nodiscard]] UINT GetBackBufferWidth() const noexcept { return backBufferWidth; }
+	[[nodiscard]] UINT GetBackBufferHeight() const noexcept { return backBufferHeight; }
 	ID2D1RenderTarget* GetD2DTarget() noexcept;
 	IDWriteFactory* GetDWriteFactory() noexcept;
 	void BeginTextDraw() noexcept;
@@ -47,6 +55,8 @@ private:
 	Microsoft::WRL::ComPtr<IDWriteFactory> pDWriteFactory;
 	Microsoft::WRL::ComPtr<ID2D1RenderTarget> pD2DTarget;
 	bool d2dTargetNeedsRecreate = false;
+	UINT backBufferWidth = 0;
+	UINT backBufferHeight = 0;
 };
 
 #define BFGFX_EXCEPT(hr) Graphics::Exception(__LINE__, __FILE__, hr)

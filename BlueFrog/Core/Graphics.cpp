@@ -119,6 +119,8 @@ Graphics::Graphics(HWND hWnd)
 	GetClientRect(hWnd, &rect);
 	const UINT width = static_cast<UINT>(rect.right - rect.left);
 	const UINT height = static_cast<UINT>(rect.bottom - rect.top);
+	backBufferWidth = width;
+	backBufferHeight = height;
 
 	D3D11_TEXTURE2D_DESC depthDesc = {};
 	depthDesc.Width = width;
@@ -176,6 +178,21 @@ Graphics::Graphics(HWND hWnd)
 }
 
 Graphics::~Graphics() = default;
+
+void Graphics::RestoreBackBuffer() noexcept
+{
+	ID3D11RenderTargetView* const renderTargets[] = { pRenderTarget.Get() };
+	pContext->OMSetRenderTargets(1u, renderTargets, pDepthStencilView.Get());
+
+	const D3D11_VIEWPORT viewport =
+	{
+		0.0f, 0.0f,
+		static_cast<float>(backBufferWidth),
+		static_cast<float>(backBufferHeight),
+		0.0f, 1.0f
+	};
+	pContext->RSSetViewports(1u, &viewport);
+}
 
 void Graphics::BeginFrame(float red, float green, float blue) noexcept
 {

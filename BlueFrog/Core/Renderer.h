@@ -8,6 +8,7 @@
 #include "../Engine/Render/PixelShader.h"
 #include "../Engine/Render/MeshImporter.h"
 #include "../Engine/Render/SkinnedPipeline.h"
+#include "../Engine/Render/ShadowMapPass.h"
 #include "../Engine/Scene/AnimationStateComponent.h"
 #include "../Engine/Render/Sampler.h"
 #include "../Engine/Render/Texture2D.h"
@@ -106,6 +107,12 @@ private:
 		DirectX::XMFLOAT4X4 jointMatrices[SkinnedPipeline::MaxJoints];
 	};
 
+	// Light view-projection for shadow sampling in the main pass (b4).
+	struct ShadowData
+	{
+		DirectX::XMFLOAT4X4 lightViewProj;
+	};
+
 public:
 	explicit Renderer(Graphics& gfx);
 	Renderer(const Renderer&) = delete;
@@ -120,10 +127,21 @@ public:
 private:
 	void BindLitState() noexcept;
 	void BindSkinnedState() noexcept;
+	// Shadow depth pass: render all casters from the sun's POV into the
+	// shadow map. ComputeLightViewProj builds an orthographic light frustum
+	// centered on the camera target so the limited top-down view always
+	// has crisp shadows.
+	[[nodiscard]] DirectX::XMMATRIX ComputeLightViewProj(const TopDownCamera& camera, DirectX::FXMVECTOR lightDir) const noexcept;
+	void RenderShadowDepth(const Scene& scene, DirectX::FXMMATRIX lightViewProj) noexcept;
 	const MeshBuffers& ResolveMesh(const RenderComponent& renderComponent);
 	const SkinnedMeshBuffers* ResolveSkinnedMesh(const RenderComponent& renderComponent);
 	void DrawMesh(const MeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera) noexcept;
 	void DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& transform, const RenderComponent& renderComponent, const TopDownCamera& camera, const AnimationStateComponent* animState) noexcept;
+	// Pure pose computation extracted from DrawSkinnedMesh so the shadow
+	// depth pass and the main pass can share an identical skin (otherwise
+	// the cast shadow would lag the visible model by a frame or pose
+	// differently). No GPU/gfx access — just CPU joint math.
+	SkinningData ComputeSkinningData(const SkinnedMeshBuffers& mesh, const AnimationStateComponent* animState) const noexcept;
 	Texture2D& ResolveTexture(const std::string& path);
 	const Sampler& ResolveSampler(SamplerPreset preset) const noexcept;
 	static const std::array<LitVertex, 24>& GetCubeVertices() noexcept;
@@ -146,10 +164,17 @@ private:
 	VertexShader skinnedVertexShader;
 	PixelShader skinnedPixelShader;
 	InputLayout skinnedInputLayout;
+	// Shadow map depth pass resources.
+	ShadowMapPass shadowPass;
+	VertexShader depthStaticVertexShader;
+	InputLayout  depthStaticInputLayout;
+	VertexShader depthSkinnedVertexShader;
+	InputLayout  depthSkinnedInputLayout;
 	VertexConstantBuffer<TransformData> transformBuffer;
 	PixelConstantBuffer<MaterialData> materialBuffer;
 	PixelConstantBuffer<LightData> lightBuffer;
 	VertexConstantBuffer<SkinningData> skinningBuffer;
+	VertexConstantBuffer<ShadowData> shadowBuffer;
 	Texture2D defaultWhiteTexture;
 	std::unordered_map<std::string, Texture2D> textureCache;
 	Sampler samplerWrapLinear;
