@@ -9,7 +9,10 @@
 #include "Transform.h"
 #include "TriggerComponent.h"
 #include <nlohmann/json.hpp>
+#include <cmath>
 #include <fstream>
+#include <random>
+#include <vector>
 
 using json = nlohmann::json;
 
@@ -221,6 +224,198 @@ static bool ReadSceneRoot(const std::filesystem::path& path, json& root, std::st
 	return true;
 }
 
+// Build one SceneObject from a (possibly prefab-referencing) JSON blob and
+// append it to the scene. Extracted from Load's object loop so the scatter
+// directive can reuse the exact same prefab-merge + component-parse path
+// for every procedurally generated instance. `objJson` is taken by value
+// because prefab merge writes missing keys into it.
+static bool BuildObjectFromJson(Scene& scene, json objJson, const std::filesystem::path& path, PrefabLoader::Cache& prefabCache, std::string* errorOut)
+{
+	if (objJson.contains("prefab"))
+	{
+		const std::string prefabPath = objJson["prefab"].get<std::string>();
+		std::string prefabError;
+		if (!PrefabLoader::LoadAndMerge(prefabPath, objJson, prefabCache, &prefabError))
+		{
+			return SetError(errorOut, PathPrefix(path) + prefabError);
+		}
+	}
+
+	const std::string name = objJson.value("name", "");
+	auto& obj = scene.CreateObject(name);
+
+	if (objJson.contains("transform"))
+	{
+		ParseTransform(objJson["transform"], obj.transform);
+	}
+	if (objJson.contains("render"))
+	{
+		obj.renderComponent = ParseRender(objJson["render"]);
+	}
+	if (objJson.contains("collision"))
+	{
+		obj.collisionComponent = ParseCollision(objJson["collision"]);
+	}
+	if (objJson.contains("combat"))
+	{
+		obj.combatComponent = ParseCombat(objJson["combat"]);
+	}
+	if (objJson.contains("trigger"))
+	{
+		TriggerComponent tc;
+		if (!ParseTrigger(objJson["trigger"], path, tc, errorOut))
+		{
+			return false;
+		}
+		obj.triggerComponent = std::move(tc);
+	}
+	if (objJson.contains("behavior"))
+	{
+		EnemyBehaviorComponent bc;
+		if (!ParseEnemyBehavior(objJson["behavior"], path, bc, errorOut))
+		{
+			return false;
+		}
+		obj.enemyBehaviorComponent = std::move(bc);
+	}
+	if (objJson.contains("animation"))
+	{
+		// Animation block is permissive — every field optional, default
+		// values match the AnimationStateComponent struct defaults.
+		const auto& a = objJson["animation"];
+		AnimationStateComponent asc;
+		if (a.contains("clipName"))  asc.clipName  = a["clipName"].get<std::string>();
+		if (a.contains("clipTime"))  asc.clipTime  = a["clipTime"].get<float>();
+		if (a.contains("playSpeed")) asc.playSpeed = a["playSpeed"].get<float>();
+		if (a.contains("looping"))   asc.looping   = a["looping"].get<bool>();
+		obj.animationStateComponent = std::move(asc);
+	}
+	if (objJson.contains("npc"))
+	{
+		// NPC block: every field optional, defaults match struct.
+		// displayName defaults to "" (InteractionSystem falls back to
+		// the SceneObject name). dialogText defaults to "" (NPC stays
+		// approachable but has nothing to say — useful for ambient
+		// villagers that are placeholders for future dialog).
+		const auto& n = objJson["npc"];
+		NpcComponent nc;
+		if (n.contains("displayName")) nc.displayName = n["displayName"].get<std::string>();
+		if (n.contains("dialogText"))  nc.dialogText  = n["dialogText"].get<std::string>();
+		if (n.contains("questId"))     nc.questId     = n["questId"].get<std::string>();
+		obj.npcComponent = std::move(nc);
+	}
+	if (objJson.contains("mount"))
+	{
+		const auto& m = objJson["mount"];
+		MountComponent mc;
+		if (m.contains("displayName"))     mc.displayName     = m["displayName"].get<std::string>();
+		if (m.contains("speedMultiplier")) mc.speedMultiplier = m["speedMultiplier"].get<float>();
+		obj.mountComponent = std::move(mc);
+	}
+	return true;
+}
+
+// Expand one "scatter" directive into N procedurally placed prefab
+// instances. The directive is the level-design tool that lets a few lines
+// of JSON stand in for hundreds of hand-placed objects:
+//
+//   { "prefab": "Assets/Prefabs/Tree.prefab.json",
+//     "area": [x0, z0, x1, z1],   // rectangle on the ground plane
+//     "count": 80,
+//     "seed": 42,                  // deterministic: same seed -> same layout
+//     "y": 0.0,                    // optional ground height (default 0)
+//     "avoidRadius": 1.5,          // optional min spacing between instances
+//     "scaleRange": [0.8, 1.3],    // optional uniform scale jitter
+//     "randomYaw": true,           // optional random Y rotation
+//     "namePrefix": "Tree" }       // optional; defaults to "scatter"
+//
+// Determinism matters: a fixed seed means the same forest every launch, so
+// saves / collisions / quests can rely on stable object positions.
+static bool BuildScatterEntry(Scene& scene, const json& entry, const std::filesystem::path& path, PrefabLoader::Cache& prefabCache, std::string* errorOut)
+{
+	if (!entry.contains("prefab"))
+	{
+		return SetError(errorOut, PathPrefix(path) + "scatter entry missing 'prefab'");
+	}
+	if (!entry.contains("area") || !entry["area"].is_array() || entry["area"].size() != 4)
+	{
+		return SetError(errorOut, PathPrefix(path) + "scatter entry needs 'area':[x0,z0,x1,z1]");
+	}
+
+	const std::string prefab = entry["prefab"].get<std::string>();
+	const float x0 = entry["area"][0].get<float>();
+	const float z0 = entry["area"][1].get<float>();
+	const float x1 = entry["area"][2].get<float>();
+	const float z1 = entry["area"][3].get<float>();
+	const int   count = entry.value("count", 0);
+	const unsigned seed = entry.value("seed", 1337u);
+	const float y = entry.value("y", 0.0f);
+	const float avoidRadius = entry.value("avoidRadius", 0.0f);
+	const bool  randomYaw = entry.value("randomYaw", false);
+	const std::string namePrefix = entry.value("namePrefix", std::string("scatter"));
+
+	float scaleMin = 1.0f, scaleMax = 1.0f;
+	if (entry.contains("scaleRange") && entry["scaleRange"].is_array() && entry["scaleRange"].size() == 2)
+	{
+		scaleMin = entry["scaleRange"][0].get<float>();
+		scaleMax = entry["scaleRange"][1].get<float>();
+	}
+
+	std::mt19937 rng(seed);
+	std::uniform_real_distribution<float> distX(std::min(x0, x1), std::max(x0, x1));
+	std::uniform_real_distribution<float> distZ(std::min(z0, z1), std::max(z0, z1));
+	std::uniform_real_distribution<float> distYaw(0.0f, 6.2831853f);
+	std::uniform_real_distribution<float> distScale(scaleMin, scaleMax);
+
+	// Placed positions for the avoid-overlap check. A simple O(n^2) reject
+	// is fine for the few-hundred-instance scale these directives target.
+	std::vector<std::pair<float, float>> placed;
+	placed.reserve(static_cast<size_t>(std::max(0, count)));
+	const float avoidSq = avoidRadius * avoidRadius;
+
+	for (int i = 0; i < count; ++i)
+	{
+		float px = 0.0f, pz = 0.0f;
+		bool ok = true;
+		// Up to 16 tries to satisfy spacing; give up gracefully (place
+		// anyway) rather than looping forever on an over-dense request.
+		for (int attempt = 0; attempt < 16; ++attempt)
+		{
+			px = distX(rng);
+			pz = distZ(rng);
+			ok = true;
+			if (avoidSq > 0.0f)
+			{
+				for (const auto& p : placed)
+				{
+					const float dx = p.first - px;
+					const float dz = p.second - pz;
+					if (dx * dx + dz * dz < avoidSq) { ok = false; break; }
+				}
+			}
+			if (ok) break;
+		}
+		placed.emplace_back(px, pz);
+
+		const float s = distScale(rng);
+		const float yaw = randomYaw ? distYaw(rng) : 0.0f;
+
+		json instance;
+		instance["prefab"] = prefab;
+		instance["name"] = namePrefix + "_" + std::to_string(i);
+		instance["transform"] = {
+			{ "position", { px, y, pz } },
+			{ "rotation", { 0.0f, yaw, 0.0f } },
+			{ "scale",    { s, s, s } }
+		};
+		if (!BuildObjectFromJson(scene, instance, path, prefabCache, errorOut))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut, std::string* objectiveBlockJsonOut)
 {
 	json root;
@@ -267,89 +462,21 @@ bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownC
 	// Objects
 	for (const auto& objJsonRef : sceneNode.value("objects", json::array()))
 	{
-		// Copy so prefab merge can write missing top-level keys into it.
-		json objJson = objJsonRef;
+		if (!BuildObjectFromJson(scene, objJsonRef, path, prefabCache, errorOut))
+		{
+			return false;
+		}
+	}
 
-		if (objJson.contains("prefab"))
+	// Scatter directives: procedurally expand each into many prefab
+	// instances. Runs after hand-placed objects so explicit objects keep
+	// their authored names / positions and scatter fills the space around
+	// them.
+	for (const auto& scatterEntry : sceneNode.value("scatter", json::array()))
+	{
+		if (!BuildScatterEntry(scene, scatterEntry, path, prefabCache, errorOut))
 		{
-			const std::string prefabPath = objJson["prefab"].get<std::string>();
-			std::string prefabError;
-			if (!PrefabLoader::LoadAndMerge(prefabPath, objJson, prefabCache, &prefabError))
-			{
-				return SetError(errorOut, PathPrefix(path) + prefabError);
-			}
-		}
-
-		const std::string name = objJson.value("name", "");
-		auto& obj = scene.CreateObject(name);
-
-		if (objJson.contains("transform"))
-		{
-			ParseTransform(objJson["transform"], obj.transform);
-		}
-		if (objJson.contains("render"))
-		{
-			obj.renderComponent = ParseRender(objJson["render"]);
-		}
-		if (objJson.contains("collision"))
-		{
-			obj.collisionComponent = ParseCollision(objJson["collision"]);
-		}
-		if (objJson.contains("combat"))
-		{
-			obj.combatComponent = ParseCombat(objJson["combat"]);
-		}
-		if (objJson.contains("trigger"))
-		{
-			TriggerComponent tc;
-			if (!ParseTrigger(objJson["trigger"], path, tc, errorOut))
-			{
-				return false;
-			}
-			obj.triggerComponent = std::move(tc);
-		}
-		if (objJson.contains("behavior"))
-		{
-			EnemyBehaviorComponent bc;
-			if (!ParseEnemyBehavior(objJson["behavior"], path, bc, errorOut))
-			{
-				return false;
-			}
-			obj.enemyBehaviorComponent = std::move(bc);
-		}
-		if (objJson.contains("animation"))
-		{
-			// Animation block is permissive — every field optional, default
-			// values match the AnimationStateComponent struct defaults.
-			const auto& a = objJson["animation"];
-			AnimationStateComponent asc;
-			if (a.contains("clipName"))  asc.clipName  = a["clipName"].get<std::string>();
-			if (a.contains("clipTime"))  asc.clipTime  = a["clipTime"].get<float>();
-			if (a.contains("playSpeed")) asc.playSpeed = a["playSpeed"].get<float>();
-			if (a.contains("looping"))   asc.looping   = a["looping"].get<bool>();
-			obj.animationStateComponent = std::move(asc);
-		}
-		if (objJson.contains("npc"))
-		{
-			// NPC block: every field optional, defaults match struct.
-			// displayName defaults to "" (InteractionSystem falls back to
-			// the SceneObject name). dialogText defaults to "" (NPC stays
-			// approachable but has nothing to say — useful for ambient
-			// villagers that are placeholders for future dialog).
-			const auto& n = objJson["npc"];
-			NpcComponent nc;
-			if (n.contains("displayName")) nc.displayName = n["displayName"].get<std::string>();
-			if (n.contains("dialogText"))  nc.dialogText  = n["dialogText"].get<std::string>();
-			if (n.contains("questId"))     nc.questId     = n["questId"].get<std::string>();
-			obj.npcComponent = std::move(nc);
-		}
-		if (objJson.contains("mount"))
-		{
-			const auto& m = objJson["mount"];
-			MountComponent mc;
-			if (m.contains("displayName"))     mc.displayName     = m["displayName"].get<std::string>();
-			if (m.contains("speedMultiplier")) mc.speedMultiplier = m["speedMultiplier"].get<float>();
-			obj.mountComponent = std::move(mc);
+			return false;
 		}
 	}
 
@@ -409,6 +536,32 @@ bool SceneLoader::Validate(const std::filesystem::path& path, std::string* error
 			{
 				return false;
 			}
+		}
+	}
+
+	// Scatter directives: verify each referenced prefab exists + parses,
+	// same as hand-placed prefab objects above. Catches a typo'd forest
+	// prefab path before the window opens rather than mid-load.
+	for (const auto& entry : sceneNode.value("scatter", json::array()))
+	{
+		if (!entry.contains("prefab"))
+		{
+			return SetError(errorOut, PathPrefix(path) + "scatter entry missing 'prefab'");
+		}
+		const std::string prefabPath = entry["prefab"].get<std::string>();
+		std::ifstream prefabFile(prefabPath);
+		if (!prefabFile.is_open())
+		{
+			return SetError(errorOut, PathPrefix(path) + "scatter prefab not found: " + prefabPath);
+		}
+		try
+		{
+			json dummy = json::parse(prefabFile);
+			(void)dummy;
+		}
+		catch (const json::parse_error& e)
+		{
+			return SetError(errorOut, PathPrefix(path) + "scatter prefab '" + prefabPath + "' JSON parse error: " + e.what());
 		}
 	}
 

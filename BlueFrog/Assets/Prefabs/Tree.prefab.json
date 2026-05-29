@@ -1,0 +1,4 @@
+{
+  "render":    { "mesh": "cube", "importScale": 1.0, "material": { "tint": [0.20, 0.45, 0.18] } },
+  "collision": { "halfExtents": [0.4, 0.4], "blocking": true }
+}
