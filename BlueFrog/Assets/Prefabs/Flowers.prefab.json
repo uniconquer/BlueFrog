@@ -1,0 +1,3 @@
+{
+  "render": { "meshPath": "Assets/Models/Nature/Flowers.glb", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } }
+}

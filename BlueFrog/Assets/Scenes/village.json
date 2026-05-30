@@ -100,35 +100,90 @@
     "scatter": [
       {
         "prefab": "Assets/Prefabs/Tree.prefab.json",
-        "area": [-9.0, 5.5, 9.0, 8.8],
-        "count": 14,
+        "area": [-9.0, 6.0, -1.0, 8.8],
+        "count": 6,
         "seed": 7,
-        "y": 1.1,
-        "avoidRadius": 1.6,
-        "scaleRange": [0.8, 1.4],
+        "avoidRadius": 1.8,
+        "scaleRange": [0.7, 1.1],
         "randomYaw": true,
-        "namePrefix": "Tree"
+        "namePrefix": "CommonTree"
+      },
+      {
+        "prefab": "Assets/Prefabs/PineTree.prefab.json",
+        "area": [1.0, 6.0, 9.0, 8.8],
+        "count": 6,
+        "seed": 13,
+        "avoidRadius": 1.8,
+        "scaleRange": [0.7, 1.1],
+        "randomYaw": true,
+        "namePrefix": "PineTree"
+      },
+      {
+        "prefab": "Assets/Prefabs/BirchTree.prefab.json",
+        "area": [-9.0, 5.2, 9.0, 6.2],
+        "count": 5,
+        "seed": 31,
+        "avoidRadius": 1.5,
+        "scaleRange": [0.8, 1.1],
+        "randomYaw": true,
+        "namePrefix": "BirchTree"
       },
       {
         "prefab": "Assets/Prefabs/Rock.prefab.json",
-        "area": [-9.0, 5.5, 9.0, 8.8],
-        "count": 6,
+        "area": [-9.0, 5.0, 9.0, 8.8],
+        "count": 7,
         "seed": 21,
-        "y": 0.6,
         "avoidRadius": 1.2,
-        "scaleRange": [0.5, 1.0],
+        "scaleRange": [0.5, 1.1],
         "randomYaw": true,
         "namePrefix": "Rock"
       },
       {
+        "prefab": "Assets/Prefabs/RockMoss.prefab.json",
+        "area": [-9.0, 5.0, 9.0, 8.8],
+        "count": 4,
+        "seed": 42,
+        "avoidRadius": 1.2,
+        "scaleRange": [0.5, 0.9],
+        "randomYaw": true,
+        "namePrefix": "RockMoss"
+      },
+      {
         "prefab": "Assets/Prefabs/Bush.prefab.json",
         "area": [-9.0, 5.0, 9.0, 9.0],
-        "count": 18,
+        "count": 14,
         "seed": 99,
-        "y": 0.4,
-        "scaleRange": [0.3, 0.6],
+        "scaleRange": [0.7, 1.2],
         "randomYaw": true,
         "namePrefix": "Bush"
+      },
+      {
+        "prefab": "Assets/Prefabs/Grass.prefab.json",
+        "area": [-9.2, 4.8, 9.2, 9.2],
+        "count": 30,
+        "seed": 5,
+        "scaleRange": [0.8, 1.4],
+        "randomYaw": true,
+        "namePrefix": "Grass"
+      },
+      {
+        "prefab": "Assets/Prefabs/Flowers.prefab.json",
+        "area": [-9.0, 5.0, 9.0, 9.0],
+        "count": 12,
+        "seed": 77,
+        "scaleRange": [0.8, 1.3],
+        "randomYaw": true,
+        "namePrefix": "Flowers"
+      },
+      {
+        "prefab": "Assets/Prefabs/TreeStump.prefab.json",
+        "area": [-9.0, 5.5, 9.0, 8.5],
+        "count": 3,
+        "seed": 64,
+        "avoidRadius": 2.0,
+        "scaleRange": [0.8, 1.1],
+        "randomYaw": true,
+        "namePrefix": "Stump"
       }
     ]
   }

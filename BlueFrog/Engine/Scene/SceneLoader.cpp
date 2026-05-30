@@ -331,6 +331,11 @@ static bool BuildObjectFromJson(Scene& scene, json objJson, const std::filesyste
 //
 // Determinism matters: a fixed seed means the same forest every launch, so
 // saves / collisions / quests can rely on stable object positions.
+//
+// Instances also dodge already-placed blocking geometry (houses, walls):
+// a candidate that lands on a hand-placed collider is rejected, and if no
+// clear spot is found in the attempt budget the instance is skipped rather
+// than spawned inside a building.
 static bool BuildScatterEntry(Scene& scene, const json& entry, const std::filesystem::path& path, PrefabLoader::Cache& prefabCache, std::string* errorOut)
 {
 	if (!entry.contains("prefab"))
@@ -367,6 +372,26 @@ static bool BuildScatterEntry(Scene& scene, const json& entry, const std::filesy
 	std::uniform_real_distribution<float> distYaw(0.0f, 6.2831853f);
 	std::uniform_real_distribution<float> distScale(scaleMin, scaleMax);
 
+	// Snapshot the blocking objects already in the scene (hand-placed
+	// houses, walls, etc.) so scatter instances can dodge them. Captured
+	// before the loop because each placed instance is itself appended to
+	// the scene; we only want to avoid the authored geometry, not pile-on
+	// against earlier scatter of the same kind (avoidRadius covers that).
+	struct Blocker { float x, z, hx, hz; };
+	std::vector<Blocker> blockers;
+	for (const SceneObject& o : scene.GetObjects())
+	{
+		if (!o.collisionComponent.has_value() || !o.collisionComponent->blocksMovement) continue;
+		blockers.push_back({ o.transform.position.x, o.transform.position.z,
+			o.collisionComponent->halfExtents.x, o.collisionComponent->halfExtents.y });
+	}
+	// Margin keeps props clear of a wall/house face. Because we only test a
+	// prop's center point (its mesh extent is unknown to the loader), this
+	// has to be generous enough that a wide bush/tree center sitting just
+	// outside a wall still doesn't visually overlap it. Per-entry override
+	// via "blockerMargin" for cases that need more or less breathing room.
+	const float kBlockerMargin = entry.value("blockerMargin", 1.2f);
+
 	// Placed positions for the avoid-overlap check. A simple O(n^2) reject
 	// is fine for the few-hundred-instance scale these directives target.
 	std::vector<std::pair<float, float>> placed;
@@ -377,13 +402,27 @@ static bool BuildScatterEntry(Scene& scene, const json& entry, const std::filesy
 	{
 		float px = 0.0f, pz = 0.0f;
 		bool ok = true;
-		// Up to 16 tries to satisfy spacing; give up gracefully (place
-		// anyway) rather than looping forever on an over-dense request.
-		for (int attempt = 0; attempt < 16; ++attempt)
+		// Up to 24 tries to satisfy spacing + blocker avoidance. Spacing
+		// (avoidRadius) is a soft constraint — we place anyway if it can't
+		// be met — but overlapping a house/wall is a HARD reject: if every
+		// attempt lands on blocking geometry we skip this instance rather
+		// than spawn a tree inside a building.
+		bool insideBlocker = true;
+		for (int attempt = 0; attempt < 24; ++attempt)
 		{
 			px = distX(rng);
 			pz = distZ(rng);
 			ok = true;
+			insideBlocker = false;
+			for (const Blocker& b : blockers)
+			{
+				if (std::fabs(b.x - px) < b.hx + kBlockerMargin &&
+				    std::fabs(b.z - pz) < b.hz + kBlockerMargin)
+				{
+					insideBlocker = true; break;
+				}
+			}
+			if (insideBlocker) { ok = false; continue; }
 			if (avoidSq > 0.0f)
 			{
 				for (const auto& p : placed)
@@ -395,6 +434,8 @@ static bool BuildScatterEntry(Scene& scene, const json& entry, const std::filesy
 			}
 			if (ok) break;
 		}
+		// Couldn't find a spot clear of buildings/walls — drop this one.
+		if (insideBlocker) continue;
 		placed.emplace_back(px, pz);
 
 		const float s = distScale(rng);

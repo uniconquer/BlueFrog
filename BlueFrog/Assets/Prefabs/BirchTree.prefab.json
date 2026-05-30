@@ -1,0 +1,4 @@
+{
+  "render":    { "meshPath": "Assets/Models/Nature/BirchTree_1.glb", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
+  "collision": { "halfExtents": [0.35, 0.35], "blocking": true }
+}
