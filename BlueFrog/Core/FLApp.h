@@ -56,6 +56,9 @@ private:
 	// when the inventory is empty. Phase I-3D will generalize to
 	// hotbar slot → item-id mapping.
 	void UseConsumable() noexcept;
+	// Restore the dialog NPC's authored facing (saved when the dialog
+	// opened) and clear the tracking state. No-op when no NPC was faced.
+	void RestoreDialogFacing(Scene& scene) noexcept;
 
 	Renderer renderer;
 	UIRenderer uiRenderer;
@@ -142,6 +145,11 @@ private:
 	std::wstring  dialogNpcName;
 	std::wstring  dialogText;
 	float         dialogFade   = 0.0f;
+	// While a dialog is open the engaged NPC turns to face the player, then
+	// restores its authored facing on close. Track the NPC's scene name and
+	// the yaw it had before we rotated it so the restore is exact.
+	std::string   dialogFacingNpc;
+	float         dialogFacingSavedYaw = 0.0f;
 
 	// Inventory UI mode (Phase I-3B). I key edge-toggles the panel.
 	// Mutually exclusive with dialog mode — opening one closes the

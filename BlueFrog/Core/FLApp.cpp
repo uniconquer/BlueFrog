@@ -211,6 +211,7 @@ void FLApp::OnUpdate(float dt)
 				dialogNpcName.clear();
 				dialogText.clear();
 				dialogFade = 0.0f;
+				RestoreDialogFacing(scene);
 			}
 		}
 	}
@@ -223,6 +224,7 @@ void FLApp::OnUpdate(float dt)
 			dialogNpcName.clear();
 			dialogText.clear();
 			dialogFade = 0.0f;
+			RestoreDialogFacing(scene);
 		}
 		else if (gameplaySimulation.GetPlayerController().IsMounted())
 		{
@@ -332,6 +334,26 @@ void FLApp::OnUpdate(float dt)
 					dialogText = Widen(nc.dialogText);
 				}
 				dialogFade = 0.0f;
+
+				// Turn the engaged NPC to face the player for the duration
+				// of this dialog, remembering its authored yaw so the
+				// close handlers can restore it exactly. The simulation is
+				// frozen while the dialog is open, so a one-shot facing here
+				// holds for the whole conversation.
+				if (SceneObject* npc = scene.FindObject(target->name))
+				{
+					dialogFacingNpc      = npc->name;
+					dialogFacingSavedYaw = npc->transform.rotation.y;
+					if (const SceneObject* p = scene.FindObject(GameplaySceneIds::Player))
+					{
+						const float dx = p->transform.position.x - npc->transform.position.x;
+						const float dz = p->transform.position.z - npc->transform.position.z;
+						if (dx * dx + dz * dz > 0.0001f)
+						{
+							npc->transform.rotation.y = std::atan2(dx, dz);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -750,6 +772,19 @@ void FLApp::ApplyQuestReward(const QuestReward& reward) noexcept
 	}
 	// HudPresenter will pick up the new HP next BuildHudState call —
 	// no need to refresh here.
+}
+
+void FLApp::RestoreDialogFacing(Scene& scene) noexcept
+{
+	if (dialogFacingNpc.empty())
+	{
+		return;
+	}
+	if (SceneObject* npc = scene.FindObject(dialogFacingNpc))
+	{
+		npc->transform.rotation.y = dialogFacingSavedYaw;
+	}
+	dialogFacingNpc.clear();
 }
 
 void FLApp::UseConsumable() noexcept
