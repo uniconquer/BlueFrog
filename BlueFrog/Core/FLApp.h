@@ -12,7 +12,6 @@
 #include "../Engine/Render/DebugRenderer.h"
 #include "../Engine/Render/ParticleRenderer.h"
 #include "../Engine/Render/ParticleSystem.h"
-#include "../Engine/Render/ShadowRenderer.h"
 #include "../Engine/Render/WorldGridRenderer.h"
 #include "../Engine/Audio/AudioEngine.h"
 #include "../Game/Simulation/GameplaySimulation.h"
@@ -64,7 +63,6 @@ private:
 	UIRenderer uiRenderer;
 	TextRenderer textRenderer;
 	DebugRenderer debugRenderer;
-	ShadowRenderer shadowRenderer;
 	ParticleRenderer particleRenderer;
 	WorldGridRenderer worldGridRenderer;
 	ParticleSystem particleSystem;

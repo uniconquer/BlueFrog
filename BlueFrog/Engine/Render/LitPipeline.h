@@ -71,19 +71,31 @@ namespace LitPipeline
 			"    output.color    = input.color;\n"
 			"    return output;\n"
 			"}\n"
-			"float SampleShadow(float4 lightPos)\n"
+			"float SampleShadow(float4 lightPos, float nDotL)\n"
 			"{\n"
 			"    float3 proj = lightPos.xyz / lightPos.w;\n"
 			"    float2 uv   = proj.xy * float2(0.5f, -0.5f) + 0.5f;\n"
 			"    if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f) return 1.0f;\n"
-			"    float depth = proj.z - 0.0025f;\n" // depth bias to kill acne
-			"    return shadowMap.SampleCmpLevelZero(shadowSampler, uv, depth);\n"
+			// Slope-scaled bias: grazing faces (small nDotL) self-shadow and
+			// need more bias; near-flat-lit faces need little, keeping the
+			// contact line tight instead of peter-panning.
+			"    float bias  = max(0.0015f, 0.004f * (1.0f - nDotL));\n"
+			"    float depth = proj.z - bias;\n"
+			// 3x3 PCF. Each tap is itself hardware-bilinear (comparison
+			// sampler), so this softens edges well beyond a single tap.
+			// texel must match ShadowMapPass::kSize (2048).
+			"    const float texel = 1.0f / 2048.0f;\n"
+			"    float sum = 0.0f;\n"
+			"    [unroll] for (int y = -1; y <= 1; ++y)\n"
+			"        [unroll] for (int x = -1; x <= 1; ++x)\n"
+			"            sum += shadowMap.SampleCmpLevelZero(shadowSampler, uv + float2(x, y) * texel, depth);\n"
+			"    return sum * (1.0f / 9.0f);\n"
 			"}\n"
 			"float4 PSMain(PSIn input) : SV_Target\n"
 			"{\n"
 			"    float3 n        = normalize(input.normalWS);\n"
 			"    float  nDotL    = saturate(dot(n, -lightDir));\n"
-			"    float  shadow   = SampleShadow(input.lightPos);\n"
+			"    float  shadow   = SampleShadow(input.lightPos, nDotL);\n"
 			"    float3 light    = ambient + nDotL * lightColor * shadow;\n"
 			"    float4 albedo   = surfaceTexture.Sample(surfaceSampler, input.uv);\n"
 			"    return float4(albedo.rgb * input.color.rgb * tint * light, albedo.a * input.color.a);\n"

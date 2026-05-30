@@ -39,7 +39,6 @@ FLApp::FLApp(std::string scenePath)
 	uiRenderer(GetGfx()),
 	textRenderer(GetGfx()),
 	debugRenderer(GetGfx()),
-	shadowRenderer(GetGfx()),
 	particleRenderer(GetGfx()),
 	worldGridRenderer(GetGfx()),
 	camera(static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight())),
@@ -917,11 +916,11 @@ void FLApp::OnRender()
 		::MessageBoxA(nullptr, msg, "Renderer error", MB_OK | MB_ICONEXCLAMATION);
 		std::exit(1);
 	}
-	// Blob shadows for every combat-bearing actor. Drawn after the lit
-	// pass so it composes over the ground but the lit pass's depth
-	// values prevent the shadow from painting on top of characters
-	// themselves (depth-test on, depth-write off).
-	shadowRenderer.Render(scene, camera);
+	// Blob shadows removed: every actor is now a real depth-map shadow
+	// caster (Shadow S2 skinned pass), so the old fake quad under each
+	// actor just doubled up with the real cast shadow. ShadowRenderer is
+	// kept in the engine for potential reuse (cheap contact shadow for
+	// non-casting props), just not wired into FL's frame.
 	// Particle splashes / VFX. Drawn after shadows so they pop on top
 	// of the shadow disc when both share the same y≈0 plane. Same
 	// alpha-blend / depth-read-only pattern.
