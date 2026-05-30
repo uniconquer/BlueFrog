@@ -221,6 +221,7 @@ namespace MeshImporter
 			const cgltf_accessor* accPos     = nullptr;
 			const cgltf_accessor* accNor     = nullptr;
 			const cgltf_accessor* accUv      = nullptr;
+			const cgltf_accessor* accColor   = nullptr;
 			const cgltf_accessor* accJoints  = nullptr;
 			const cgltf_accessor* accWeights = nullptr;
 			for (cgltf_size i = 0; i < prim.attributes_count; ++i)
@@ -231,6 +232,7 @@ namespace MeshImporter
 				case cgltf_attribute_type_position: accPos = a.data; break;
 				case cgltf_attribute_type_normal:   accNor = a.data; break;
 				case cgltf_attribute_type_texcoord: if (a.index == 0) accUv      = a.data; break;
+				case cgltf_attribute_type_color:    if (a.index == 0) accColor   = a.data; break;
 				case cgltf_attribute_type_joints:   if (a.index == 0) accJoints  = a.data; break;
 				case cgltf_attribute_type_weights:  if (a.index == 0) accWeights = a.data; break;
 				default: break;
@@ -243,14 +245,17 @@ namespace MeshImporter
 				return SetError(errorOut, prefix + "primitive[" + std::to_string(pi) + "] missing POSITION");
 			}
 
-			std::vector<float> tmpPos, tmpNor, tmpUv, tmpWeights;
-			if (!UnpackFloatAttribute(accPos, tmpPos, errorOut, prefix, "POSITION") ||
-				!UnpackFloatAttribute(accNor, tmpNor, errorOut, prefix, "NORMAL")   ||
-				!UnpackFloatAttribute(accUv,  tmpUv,  errorOut, prefix, "TEXCOORD_0"))
+			std::vector<float> tmpPos, tmpNor, tmpUv, tmpColor, tmpWeights;
+			if (!UnpackFloatAttribute(accPos,   tmpPos,   errorOut, prefix, "POSITION") ||
+				!UnpackFloatAttribute(accNor,   tmpNor,   errorOut, prefix, "NORMAL")   ||
+				!UnpackFloatAttribute(accUv,    tmpUv,    errorOut, prefix, "TEXCOORD_0") ||
+				!UnpackFloatAttribute(accColor, tmpColor, errorOut, prefix, "COLOR_0"))
 			{
 				cgltf_free(data);
 				return false;
 			}
+			// COLOR_0 may be vec3 or vec4. We normalize to rgba stride 4.
+			const cgltf_size colorComps = accColor ? ComponentsPerElement(accColor) : 0;
 
 			const cgltf_size primVertexCount = tmpPos.size() / 3;
 			if (primVertexCount == 0)
@@ -293,6 +298,28 @@ namespace MeshImporter
 				for (cgltf_size i = 0; i < primVertexCount; ++i)
 				{
 					out.uvs.push_back(0.0f); out.uvs.push_back(0.0f);
+				}
+			}
+
+			// Vertex color: normalize to rgba stride 4. vec3 source gets
+			// alpha=1; missing color pads white so an untextured primitive
+			// mixed with a colored one in the same mesh still renders.
+			if (colorComps >= 3 && tmpColor.size() / colorComps == primVertexCount)
+			{
+				for (cgltf_size i = 0; i < primVertexCount; ++i)
+				{
+					out.colors.push_back(tmpColor[i * colorComps + 0]);
+					out.colors.push_back(tmpColor[i * colorComps + 1]);
+					out.colors.push_back(tmpColor[i * colorComps + 2]);
+					out.colors.push_back(colorComps >= 4 ? tmpColor[i * colorComps + 3] : 1.0f);
+				}
+			}
+			else
+			{
+				for (cgltf_size i = 0; i < primVertexCount; ++i)
+				{
+					out.colors.push_back(1.0f); out.colors.push_back(1.0f);
+					out.colors.push_back(1.0f); out.colors.push_back(1.0f);
 				}
 			}
 
@@ -616,6 +643,78 @@ namespace MeshImporter
 						outAnim.duration = (iac.times.back() > outAnim.duration) ? iac.times.back() : outAnim.duration;
 					}
 					outAnim.channels.push_back(std::move(iac));
+				}
+			}
+		}
+
+		// ----------------------------------------------------------
+		// Static-mesh node transform bake. glTF puts a node's placement
+		// (including the Z-up -> Y-up rotation that exporters emit on the
+		// root node) on the node, not in the vertex data. Skinned meshes
+		// already fold their node hierarchy into joint matrices, but a
+		// plain static mesh would otherwise ignore the node transform and
+		// render in raw local space — which left exported trees lying on
+		// their side. So for the static case we resolve the mesh's node
+		// world matrix and bake it into positions (as points) and normals
+		// (as directions) here, before the handedness mirror below.
+		const bool isSkinned = (anyHasJoints && skin && skin->joints_count > 0);
+		if (!isSkinned)
+		{
+			using namespace DirectX;
+			const cgltf_node* meshNode = nullptr;
+			for (cgltf_size i = 0; i < data->nodes_count; ++i)
+			{
+				if (data->nodes[i].mesh == &mesh) { meshNode = &data->nodes[i]; break; }
+			}
+			if (meshNode != nullptr)
+			{
+				float colMajor[16];
+				cgltf_node_transform_world(meshNode, colMajor);
+				// cgltf gives column-major data. Loading those 16 floats
+				// straight into a row-major XMFLOAT4X4 already yields the
+				// transpose of the glTF matrix, which is exactly the form
+				// that left-multiplies a row vector (pos * M == M_gltf * pos).
+				// An extra XMMatrixTranspose here would invert the rotation
+				// (X+90 -> X-90) and flip the model upside-down.
+				XMFLOAT4X4 cm;
+				std::memcpy(&cm, colMajor, sizeof(cm));
+				const XMMATRIX M = XMLoadFloat4x4(&cm);
+
+				const cgltf_size vcount = out.positions.size() / 3;
+				for (cgltf_size i = 0; i < vcount; ++i)
+				{
+					XMVECTOR p = XMVectorSet(out.positions[i*3+0], out.positions[i*3+1], out.positions[i*3+2], 1.0f);
+					p = XMVector3TransformCoord(p, M); // point: applies translation
+					XMFLOAT3 fp; XMStoreFloat3(&fp, p);
+					out.positions[i*3+0] = fp.x; out.positions[i*3+1] = fp.y; out.positions[i*3+2] = fp.z;
+				}
+				const cgltf_size ncount = out.normals.size() / 3;
+				for (cgltf_size i = 0; i < ncount; ++i)
+				{
+					XMVECTOR n = XMVectorSet(out.normals[i*3+0], out.normals[i*3+1], out.normals[i*3+2], 0.0f);
+					n = XMVector3Normalize(XMVector3TransformNormal(n, M)); // direction: no translation
+					XMFLOAT3 fn; XMStoreFloat3(&fn, n);
+					out.normals[i*3+0] = fn.x; out.normals[i*3+1] = fn.y; out.normals[i*3+2] = fn.z;
+				}
+
+				// Ground the asset: after the node rotation the mesh's
+				// lowest point usually isn't at y=0 (the exporter's origin
+				// was placed in the source's own space). Shift the whole
+				// mesh up so its feet sit on the ground plane, which is what
+				// scatter / scene placement assumes for static props. This
+				// only runs for static External meshes (trees, rocks,
+				// foliage); skinned characters keep their authored pivot.
+				if (vcount > 0)
+				{
+					float minY = out.positions[1];
+					for (cgltf_size i = 1; i < vcount; ++i)
+					{
+						minY = (out.positions[i*3+1] < minY) ? out.positions[i*3+1] : minY;
+					}
+					for (cgltf_size i = 0; i < vcount; ++i)
+					{
+						out.positions[i*3+1] -= minY;
+					}
 				}
 			}
 		}

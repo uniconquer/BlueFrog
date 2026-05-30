@@ -51,6 +51,11 @@ struct ImportedMesh
 	std::vector<float>          positions; // x,y,z stride 3
 	std::vector<float>          normals;   // x,y,z stride 3 (optional; empty = generate flat per-tri)
 	std::vector<float>          uvs;       // u,v   stride 2 (optional; empty = (0,0))
+	// Vertex colors, r,g,b,a stride 4 (optional; empty = all white). Used by
+	// untextured low-poly assets (Quaternius Nature, etc.) that bake their
+	// material palette into per-vertex color instead of a texture. The lit
+	// shader multiplies albedo * vertexColor * tint.
+	std::vector<float>          colors;
 	std::vector<std::uint16_t>  indices;
 
 	// Skin data — present when both jointIndices and jointWeights are

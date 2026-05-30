@@ -238,6 +238,15 @@ const Renderer::MeshBuffers& Renderer::ResolveMesh(const RenderComponent& render
 			{
 				verts[i].u = 0.0f; verts[i].v = 0.0f;
 			}
+			// Vertex color (rgba stride 4). Absent => leave the LitVertex
+			// default white, so textured/untinted meshes are unaffected.
+			if (imported.colors.size() >= (i + 1) * 4)
+			{
+				verts[i].r = imported.colors[i * 4 + 0];
+				verts[i].g = imported.colors[i * 4 + 1];
+				verts[i].b = imported.colors[i * 4 + 2];
+				verts[i].a = imported.colors[i * 4 + 3];
+			}
 		}
 
 		auto [emplacedIt, ok] = importedMeshCache.emplace(

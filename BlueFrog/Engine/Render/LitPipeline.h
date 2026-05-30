@@ -5,13 +5,14 @@
 
 namespace LitPipeline
 {
-	inline const std::array<D3D11_INPUT_ELEMENT_DESC, 3>& GetInputLayoutDesc() noexcept
+	inline const std::array<D3D11_INPUT_ELEMENT_DESC, 4>& GetInputLayoutDesc() noexcept
 	{
-		static const std::array<D3D11_INPUT_ELEMENT_DESC, 3> inputLayoutDesc =
+		static const std::array<D3D11_INPUT_ELEMENT_DESC, 4> inputLayoutDesc =
 		{
-			D3D11_INPUT_ELEMENT_DESC{ "POSITION", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u,  0u, D3D11_INPUT_PER_VERTEX_DATA, 0u },
-			D3D11_INPUT_ELEMENT_DESC{ "NORMAL",   0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0u },
-			D3D11_INPUT_ELEMENT_DESC{ "TEXCOORD", 0u, DXGI_FORMAT_R32G32_FLOAT,    0u, 24u, D3D11_INPUT_PER_VERTEX_DATA, 0u },
+			D3D11_INPUT_ELEMENT_DESC{ "POSITION", 0u, DXGI_FORMAT_R32G32B32_FLOAT,    0u,  0u, D3D11_INPUT_PER_VERTEX_DATA, 0u },
+			D3D11_INPUT_ELEMENT_DESC{ "NORMAL",   0u, DXGI_FORMAT_R32G32B32_FLOAT,    0u, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0u },
+			D3D11_INPUT_ELEMENT_DESC{ "TEXCOORD", 0u, DXGI_FORMAT_R32G32_FLOAT,       0u, 24u, D3D11_INPUT_PER_VERTEX_DATA, 0u },
+			D3D11_INPUT_ELEMENT_DESC{ "COLOR",    0u, DXGI_FORMAT_R32G32B32A32_FLOAT, 0u, 32u, D3D11_INPUT_PER_VERTEX_DATA, 0u },
 		};
 		return inputLayoutDesc;
 	}
@@ -49,6 +50,7 @@ namespace LitPipeline
 			"    float3 pos    : POSITION;\n"
 			"    float3 normal : NORMAL;\n"
 			"    float2 uv     : TEXCOORD;\n"
+			"    float4 color  : COLOR;\n"
 			"};\n"
 			"struct PSIn\n"
 			"{\n"
@@ -56,6 +58,7 @@ namespace LitPipeline
 			"    float3 normalWS : NORMAL;\n"
 			"    float2 uv       : TEXCOORD0;\n"
 			"    float4 lightPos : TEXCOORD1;\n"
+			"    float4 color    : COLOR;\n"
 			"};\n"
 			"PSIn VSMain(VSIn input)\n"
 			"{\n"
@@ -65,6 +68,7 @@ namespace LitPipeline
 			"    output.normalWS = mul(input.normal, (float3x3)model);\n"
 			"    output.uv       = input.uv;\n"
 			"    output.lightPos = mul(worldPos, lightViewProj);\n"
+			"    output.color    = input.color;\n"
 			"    return output;\n"
 			"}\n"
 			"float SampleShadow(float4 lightPos)\n"
@@ -82,7 +86,7 @@ namespace LitPipeline
 			"    float  shadow   = SampleShadow(input.lightPos);\n"
 			"    float3 light    = ambient + nDotL * lightColor * shadow;\n"
 			"    float4 albedo   = surfaceTexture.Sample(surfaceSampler, input.uv);\n"
-			"    return float4(albedo.rgb * tint * light, albedo.a);\n"
+			"    return float4(albedo.rgb * input.color.rgb * tint * light, albedo.a * input.color.a);\n"
 			"}\n";
 	}
 }

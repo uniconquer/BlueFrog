@@ -33,6 +33,11 @@ private:
 		float x, y, z;
 		float nx, ny, nz;
 		float u, v;
+		// Vertex color (rgba). Default white so the cube/plane primitives'
+		// aggregate initializers (which only list pos/normal/uv) and any
+		// untextured mesh fall back to "albedo * tint" unchanged. Colored
+		// low-poly imports overwrite these per vertex.
+		float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
 	};
 
 	struct TransformData
