@@ -61,6 +61,11 @@ namespace
 				static_cast<float>(i),  static_cast<float>(kHalfExtent),
 				r, g, b);
 		}
+		// Vertical Y axis at the origin (green), so all three axes read as
+		// the standard R=X / G=Y / B=Z gizmo. Drawn from the ground up a
+		// few metres — tall enough to gauge wall/roof heights against.
+		verts.push_back({ 0.0f, 0.0f, 0.0f, 0.18f, 0.85f, 0.18f });
+		verts.push_back({ 0.0f, 8.0f, 0.0f, 0.18f, 0.85f, 0.18f });
 		return verts;
 	}
 }

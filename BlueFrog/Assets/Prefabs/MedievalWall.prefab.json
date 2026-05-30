@@ -1,4 +1,0 @@
-{
-  "render":    { "meshPath": "Assets/Models/Medieval/Wall_Plaster_Door_Flat.gltf", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
-  "collision": { "halfExtents": [1.2, 0.4], "blocking": true }
-}
