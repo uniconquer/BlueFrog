@@ -46,10 +46,25 @@ private:
 		DirectX::XMFLOAT4X4 model;
 	};
 
+	// b1, shared by the lit (PBR) and skinned pixel shaders. tint stays the
+	// first field so the skinned shader, which only declares { float3 tint;
+	// float pad; }, still reads it correctly from the larger bound buffer.
+	// The remaining fields drive the PBR lit shader; has* are 0/1 flags
+	// telling it which maps are bound (absent maps fall back to factors).
 	struct MaterialData
 	{
 		DirectX::XMFLOAT3 tint;
 		float pad0 = 0.0f;
+		DirectX::XMFLOAT4 baseColorFactor = { 1.0f, 1.0f, 1.0f, 1.0f };
+		DirectX::XMFLOAT4 emissiveFactor  = { 0.0f, 0.0f, 0.0f, 0.0f }; // xyz
+		float metallicFactor  = 0.0f;
+		float roughnessFactor = 1.0f;
+		float hasMetalRough   = 0.0f;
+		float hasNormal       = 0.0f;
+		float hasEmissive     = 0.0f;
+		float hasOcclusion    = 0.0f;
+		float hasAlbedo       = 0.0f;
+		float pbrPad          = 0.0f;
 	};
 
 	struct LightData
@@ -58,6 +73,11 @@ private:
 		float ambient = 0.0f;
 		DirectX::XMFLOAT3 lightColor;
 		float pad1 = 0.0f;
+		// Camera world position for the PBR specular view vector. Appended
+		// after the original 32B block so the skinned shader (which declares
+		// only up to pad1) still reads a valid prefix.
+		DirectX::XMFLOAT3 camPos;
+		float pad2 = 0.0f;
 	};
 
 	struct MeshBuffers

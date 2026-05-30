@@ -269,7 +269,7 @@ const Renderer::MeshBuffers& Renderer::ResolveMesh(const RenderComponent& render
 				try
 				{
 					Surface surf = ImageLoader::LoadSurfaceFromMemory(it.bytes.data(), it.bytes.size());
-					tex = std::make_unique<Texture2D>(gfx, surf);
+					tex = std::make_unique<Texture2D>(gfx, surf, it.isSRGB);
 				}
 				catch (const std::exception&) {}
 			}
@@ -305,7 +305,8 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 	transformBuffer.Update(gfx, transformData);
 
 	const Material mat = renderComponent.material.value_or(Material{});
-	const MaterialData materialData = { mat.tint, 0.0f };
+	MaterialData materialData = {};
+	materialData.tint = mat.tint; // primitives + fallback: diffuse, no PBR maps
 	materialBuffer.Update(gfx, materialData);
 
 	ResolveSampler(mat.sampler).Bind(gfx);
@@ -322,18 +323,38 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 	}
 	else
 	{
-		// Imported mesh: draw each material run with its own texture.
-		// textureIndex -1 (or a null/failed decode) binds white, so an
-		// untextured / vertex-colored run shows albedo*vertexColor*tint.
+		// Imported mesh: draw each material run with its own PBR maps.
 		for (const auto& sub : mesh.submeshes)
 		{
-			Texture2D* tex = nullptr;
-			if (sub.textureIndex >= 0 && sub.textureIndex < static_cast<int>(mesh.textures.size()))
+			// Bind one PBR map per slot, falling back to white when the
+			// material lacks that channel (the shader's has* flags gate
+			// whether the sample is actually used). t1 is the shadow map,
+			// bound once for the whole pass, so PBR maps start at t2.
+			auto bindSlot = [&](int idx, UINT slot)
 			{
-				tex = mesh.textures[sub.textureIndex].get();
-			}
-			if (tex) tex->Bind(gfx);
-			else     defaultWhiteTexture.Bind(gfx);
+				Texture2D* t = (idx >= 0 && idx < static_cast<int>(mesh.textures.size()))
+					? mesh.textures[idx].get() : nullptr;
+				if (t) t->Bind(gfx, slot); else defaultWhiteTexture.Bind(gfx, slot);
+			};
+			bindSlot(sub.textureIndex,      0u); // albedo      t0
+			bindSlot(sub.metalRoughTexture, 2u); // metal/rough t2
+			bindSlot(sub.normalTexture,     3u); // normal      t3
+			bindSlot(sub.emissiveTexture,   4u); // emissive    t4
+			bindSlot(sub.occlusionTexture,  5u); // AO          t5
+
+			MaterialData md = {};
+			md.tint = mat.tint;
+			md.baseColorFactor = { sub.baseColorFactor[0], sub.baseColorFactor[1], sub.baseColorFactor[2], sub.baseColorFactor[3] };
+			md.emissiveFactor  = { sub.emissiveFactor[0], sub.emissiveFactor[1], sub.emissiveFactor[2], 0.0f };
+			md.metallicFactor  = sub.metallicFactor;
+			md.roughnessFactor = sub.roughnessFactor;
+			md.hasMetalRough = sub.metalRoughTexture >= 0 ? 1.0f : 0.0f;
+			md.hasNormal     = sub.normalTexture     >= 0 ? 1.0f : 0.0f;
+			md.hasEmissive   = sub.emissiveTexture   >= 0 ? 1.0f : 0.0f;
+			md.hasOcclusion  = sub.occlusionTexture  >= 0 ? 1.0f : 0.0f;
+			md.hasAlbedo     = sub.textureIndex      >= 0 ? 1.0f : 0.0f;
+			materialBuffer.Update(gfx, md);
+
 			gfx.GetContext()->DrawIndexed(sub.indexCount, sub.indexOffset, 0);
 		}
 	}
@@ -470,8 +491,9 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	// `ambient + nDotL*lightColor` close to 1.0 so directly-lit
 	// surfaces sit at "natural daylight" rather than blown-out white,
 	// and shadowed faces retain visible color instead of going flat.
-	lightData.ambient    = 0.18f;
-	lightData.lightColor = { 0.86f, 0.83f, 0.78f };
+	lightData.ambient    = 0.26f;
+	lightData.lightColor = { 0.95f, 0.92f, 0.86f };
+	lightData.camPos     = camera.GetPosition(); // PBR view vector
 	lightBuffer.Update(gfx, lightData);
 
 	// Shadow depth pass (Shadow S2): render all casters from the sun's POV
@@ -653,7 +675,7 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 			try
 			{
 				Surface surf = ImageLoader::LoadSurfaceFromMemory(tx.bytes.data(), tx.bytes.size());
-				tex = std::make_unique<Texture2D>(gfx, surf);
+				tex = std::make_unique<Texture2D>(gfx, surf, tx.isSRGB);
 			}
 			catch (const std::exception&) {}
 		}

@@ -426,7 +426,62 @@ namespace MeshImporter
 			ImportedSubMesh sub;
 			sub.indexOffset  = subIndexOffset;
 			sub.indexCount   = subIndexCount;
-			sub.textureIndex = texIndex;
+			sub.textureIndex = texIndex; // baseColor (resolved above)
+				// PBR maps beyond baseColor. resolveTex folds a texture view into
+				// the de-duped texture list, keyed on the image index so each map
+				// decodes exactly once.
+				auto resolveTex = [&](const cgltf_texture_view& view, bool linear) -> int
+				{
+					if (view.texture == nullptr || view.texture->image == nullptr) return -1;
+					const std::ptrdiff_t imgIdx = view.texture->image - data->images;
+					const std::string tag = pathStr + "#img" + std::to_string(imgIdx);
+					for (std::size_t ti = 0; ti < out.textures.size(); ++ti)
+					{
+						if (out.textures[ti].sourceTag == tag) return static_cast<int>(ti);
+					}
+					std::vector<std::uint8_t> texBytes;
+					if (!ResolveImageBytes(*view.texture->image, gltfPath, texBytes)) return -1;
+					ImportedTexture t;
+					t.bytes = std::move(texBytes);
+					t.sourceTag = tag;
+					t.isSRGB = !linear; // MR/normal/AO are linear; emissive is sRGB
+					out.textures.push_back(std::move(t));
+					return static_cast<int>(out.textures.size()) - 1;
+				};
+				if (prim.material != nullptr)
+				{
+					const cgltf_material* mat = prim.material;
+					if (mat->has_pbr_metallic_roughness)
+					{
+						const auto& mr = mat->pbr_metallic_roughness;
+						sub.metalRoughTexture = resolveTex(mr.metallic_roughness_texture, /*linear=*/true);
+						sub.baseColorFactor[0] = mr.base_color_factor[0];
+						sub.baseColorFactor[1] = mr.base_color_factor[1];
+						sub.baseColorFactor[2] = mr.base_color_factor[2];
+						sub.baseColorFactor[3] = mr.base_color_factor[3];
+						sub.metallicFactor  = mr.metallic_factor;
+						sub.roughnessFactor = mr.roughness_factor;
+					}
+					sub.normalTexture    = resolveTex(mat->normal_texture,    /*linear=*/true);
+					sub.emissiveTexture  = resolveTex(mat->emissive_texture,  /*linear=*/false);
+					sub.occlusionTexture = resolveTex(mat->occlusion_texture, /*linear=*/true);
+					sub.emissiveFactor[0] = mat->emissive_factor[0];
+					sub.emissiveFactor[1] = mat->emissive_factor[1];
+					sub.emissiveFactor[2] = mat->emissive_factor[2];
+				}
+				// Our VColor assets (Quaternius nature) bake the albedo into
+				// COLOR_0 while the source glTF *also* keeps a matching
+				// baseColorFactor. A correct PBR shader multiplies both, which
+				// double-darkens (factor*vcolor) to near-black. When the
+				// primitive carries vertex colors, COLOR_0 owns the albedo, so
+				// neutralize the redundant factor.
+				if (accColor != nullptr)
+				{
+					sub.baseColorFactor[0] = 1.0f;
+					sub.baseColorFactor[1] = 1.0f;
+					sub.baseColorFactor[2] = 1.0f;
+					sub.baseColorFactor[3] = 1.0f;
+				}
 			out.submeshes.push_back(sub);
 		}
 

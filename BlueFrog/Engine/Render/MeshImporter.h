@@ -39,6 +39,11 @@ struct ImportedTexture
 {
 	std::vector<std::uint8_t> bytes;     // raw PNG/JPEG/etc. bytes
 	std::string               sourceTag; // for cache keys + debug logs
+	// Color space of the encoded source. baseColor + emissive are sRGB
+	// (perceptual); metallic-roughness, normal, and occlusion maps store
+	// linear data and MUST NOT be sRGB-decoded on sample or their values
+	// are corrupted. The renderer picks the SRV format from this.
+	bool                      isSRGB = true;
 };
 
 // One contiguous run of indices that share a single material/texture. A
@@ -50,7 +55,20 @@ struct ImportedSubMesh
 {
 	std::uint32_t indexOffset = 0; // first index into ImportedMesh.indices
 	std::uint32_t indexCount  = 0; // number of indices in this run
-	int           textureIndex = -1; // into ImportedMesh.textures; -1 = untextured (white)
+	// All texture indices point into ImportedMesh.textures (-1 = absent).
+	// textureIndex keeps its legacy name = the PBR baseColor (albedo) map so
+	// the existing single/multi-texture draw path is unchanged.
+	int           textureIndex      = -1; // baseColor / albedo (sRGB)
+	int           metalRoughTexture = -1; // glTF packed: G=roughness, B=metallic (linear)
+	int           normalTexture     = -1; // tangent-space normal map (linear)
+	int           emissiveTexture   = -1; // emissive (sRGB)
+	int           occlusionTexture  = -1; // AO, R channel (linear)
+	// glTF material factors (multiplied with the corresponding texture, or
+	// used directly when the texture is absent).
+	float         baseColorFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float         metallicFactor     = 1.0f;
+	float         roughnessFactor    = 1.0f;
+	float         emissiveFactor[3]  = { 0.0f, 0.0f, 0.0f };
 };
 
 // Imported mesh in the engine's interleave-friendly form. The renderer copies

@@ -28,7 +28,17 @@ namespace LitPipeline
 			"cbuffer MaterialBuffer : register(b1)\n"
 			"{\n"
 			"    float3 tint;\n"
-			"    float pad0;\n"
+			"    float  pad0;\n"
+			"    float4 baseColorFactor;\n"
+			"    float4 emissiveFactor;\n"
+			"    float  metallicFactor;\n"
+			"    float  roughnessFactor;\n"
+			"    float  hasMetalRough;\n"
+			"    float  hasNormal;\n"
+			"    float  hasEmissive;\n"
+			"    float  hasOcclusion;\n"
+			"    float  hasAlbedo;\n"
+			"    float  pbrPad;\n"
 			"};\n"
 			"cbuffer LightBuffer : register(b2)\n"
 			"{\n"
@@ -36,6 +46,8 @@ namespace LitPipeline
 			"    float  ambient;\n"
 			"    float3 lightColor;\n"
 			"    float  pad1;\n"
+			"    float3 camPos;\n"
+			"    float  pad2;\n"
 			"};\n"
 			"cbuffer ShadowBuffer : register(b4)\n"
 			"{\n"
@@ -45,6 +57,10 @@ namespace LitPipeline
 			"SamplerState surfaceSampler : register(s0);\n"
 			"Texture2D shadowMap : register(t1);\n"
 			"SamplerComparisonState shadowSampler : register(s1);\n"
+			"Texture2D metalRoughTex : register(t2);\n"
+			"Texture2D normalTex     : register(t3);\n"
+			"Texture2D emissiveTex   : register(t4);\n"
+			"Texture2D occlusionTex  : register(t5);\n"
 			"struct VSIn\n"
 			"{\n"
 			"    float3 pos    : POSITION;\n"
@@ -58,6 +74,7 @@ namespace LitPipeline
 			"    float3 normalWS : NORMAL;\n"
 			"    float2 uv       : TEXCOORD0;\n"
 			"    float4 lightPos : TEXCOORD1;\n"
+			"    float3 worldPos : TEXCOORD2;\n"
 			"    float4 color    : COLOR;\n"
 			"};\n"
 			"PSIn VSMain(VSIn input)\n"
@@ -68,6 +85,7 @@ namespace LitPipeline
 			"    output.normalWS = mul(input.normal, (float3x3)model);\n"
 			"    output.uv       = input.uv;\n"
 			"    output.lightPos = mul(worldPos, lightViewProj);\n"
+			"    output.worldPos = worldPos.xyz;\n"
 			"    output.color    = input.color;\n"
 			"    return output;\n"
 			"}\n"
@@ -91,14 +109,77 @@ namespace LitPipeline
 			"            sum += shadowMap.SampleCmpLevelZero(shadowSampler, uv + float2(x, y) * texel, depth);\n"
 			"    return sum * (1.0f / 9.0f);\n"
 			"}\n"
+			// Per-pixel tangent frame from screen-space derivatives (Schuler).
+			// Lets us apply a tangent-space normal map without a vertex TANGENT
+			// attribute -- the helmet (and most kit assets) ship none.
+			"float3 PerturbNormal(float3 N, float3 p, float2 uv, float3 nTex)\n"
+			"{\n"
+			"    float3 dp1 = ddx(p); float3 dp2 = ddy(p);\n"
+			"    float2 du1 = ddx(uv); float2 du2 = ddy(uv);\n"
+			"    float3 dp2perp = cross(dp2, N);\n"
+			"    float3 dp1perp = cross(N, dp1);\n"
+			"    float3 T = dp2perp * du1.x + dp1perp * du2.x;\n"
+			"    float3 B = dp2perp * du1.y + dp1perp * du2.y;\n"
+			"    float invmax = rsqrt(max(dot(T, T), dot(B, B)));\n"
+			"    float3x3 TBN = float3x3(T * invmax, B * invmax, N);\n"
+			"    return normalize(mul(nTex, TBN));\n"
+			"}\n"
+			"static const float PI = 3.14159265f;\n"
 			"float4 PSMain(PSIn input) : SV_Target\n"
 			"{\n"
-			"    float3 n        = normalize(input.normalWS);\n"
-			"    float  nDotL    = saturate(dot(n, -lightDir));\n"
-			"    float  shadow   = SampleShadow(input.lightPos, nDotL);\n"
-			"    float3 light    = ambient + nDotL * lightColor * shadow;\n"
-			"    float4 albedo   = surfaceTexture.Sample(surfaceSampler, input.uv);\n"
-			"    return float4(albedo.rgb * input.color.rgb * tint * light, albedo.a * input.color.a);\n"
+			"    float3 N = normalize(input.normalWS);\n"
+			"    float3 V = normalize(camPos - input.worldPos);\n"
+			// Normal map: always sampled (default white bound when absent) and
+			// blended in by the hasNormal flag so the ddx/ddy stays uniform.
+			"    float3 nTex = normalTex.Sample(surfaceSampler, input.uv).xyz * 2.0f - 1.0f;\n"
+			"    float3 mappedN = PerturbNormal(N, input.worldPos, input.uv, nTex);\n"
+			"    N = normalize(lerp(N, mappedN, saturate(hasNormal)));\n"
+			// Albedo (sRGB SRV -> linear) * factors * vertex color * tint.
+			"    float4 baseTex = surfaceTexture.Sample(surfaceSampler, input.uv);\n"
+			"    float3 albedo  = baseTex.rgb * baseColorFactor.rgb * input.color.rgb * tint;\n"
+			"    float  alpha   = baseTex.a * baseColorFactor.a * input.color.a;\n"
+			// Metallic-roughness. With no MR map, force a rough dielectric so
+			// stylized kit assets stay ~diffuse (glTF's metallic default is 1,
+			// which would otherwise turn every untextured wall to metal).
+			"    float metallic, roughness;\n"
+			"    if (hasMetalRough > 0.5f) {\n"
+			"        float3 mr = metalRoughTex.Sample(surfaceSampler, input.uv).rgb;\n"
+			"        roughness = mr.g * roughnessFactor;\n"
+			"        metallic  = mr.b * metallicFactor;\n"
+			"    } else { metallic = 0.0f; roughness = 1.0f; }\n"
+			"    roughness = clamp(roughness, 0.045f, 1.0f);\n"
+			// Cook-Torrance direct lighting from the single directional sun.
+			"    float3 L = normalize(-lightDir);\n"
+			"    float3 H = normalize(V + L);\n"
+			"    float nDotL = saturate(dot(N, L));\n"
+			"    float nDotV = saturate(dot(N, V)) + 1e-4f;\n"
+			"    float nDotH = saturate(dot(N, H));\n"
+			"    float vDotH = saturate(dot(V, H));\n"
+			"    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);\n"
+			"    float a = roughness * roughness; float a2 = a * a;\n"
+			"    float dnm = nDotH * nDotH * (a2 - 1.0f) + 1.0f;\n"
+			"    float D = a2 / max(PI * dnm * dnm, 1e-6f);\n"
+			"    float k = (roughness + 1.0f); k = k * k / 8.0f;\n"
+			"    float G = (nDotV / (nDotV * (1.0f - k) + k)) * (nDotL / (nDotL * (1.0f - k) + k));\n"
+			"    float3 F = F0 + (1.0f - F0) * pow(1.0f - vDotH, 5.0f);\n"
+			"    float3 spec = (D * G) * F / max(4.0f * nDotV * nDotL, 1e-4f);\n"
+			// kd: diffuse weight, killed for metals. We deliberately drop the
+			// (1-F) Fresnel factor here so non-PBR / vertex-colored assets keep
+			// the old flat-Lambert brightness (the energy loss is negligible
+			// for the stylized look and avoids darkening tree silhouettes). No
+			// 1/PI either, for the same reason.
+			"    float3 kd = (1.0f - metallic);\n"
+			"    float shadow = SampleShadow(input.lightPos, nDotL);\n"
+			"    float3 direct = (kd * albedo + spec) * lightColor * nDotL * shadow;\n"
+			// Ambient (no IBL): flat term on diffuse albedo + a crude specular
+			// floor on F0 so metals aren't pure black. Modulated by AO.
+			"    float ao = (hasOcclusion > 0.5f) ? occlusionTex.Sample(surfaceSampler, input.uv).r : 1.0f;\n"
+			"    float3 ambientTerm = ambient * ao * (albedo * (1.0f - metallic) + F0);\n"
+			// Emissive: factor defaults to 0 for non-emissive materials.
+			"    float3 emissive = emissiveFactor.rgb;\n"
+			"    if (hasEmissive > 0.5f) emissive *= emissiveTex.Sample(surfaceSampler, input.uv).rgb;\n"
+			"    float3 color = direct + ambientTerm + emissive;\n"
+			"    return float4(color, alpha);\n"
 			"}\n";
 	}
 }
