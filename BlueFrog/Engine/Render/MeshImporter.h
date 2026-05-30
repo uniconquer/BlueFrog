@@ -32,14 +32,25 @@ struct ImportedAnimation
 };
 
 // Encoded image bytes (PNG / JPEG / etc., as authored). The renderer's
-// existing WIC-backed ImageLoader decodes these into RGBA pixels. v1
-// captures only the first material's baseColorTexture — multi-material
-// or roughness/normal/etc. maps are deferred until a real material
-// pipeline lands.
+// existing WIC-backed ImageLoader decodes these into RGBA pixels. Only the
+// baseColorTexture is captured; roughness/normal/etc. maps are deferred
+// until a real material pipeline lands.
 struct ImportedTexture
 {
 	std::vector<std::uint8_t> bytes;     // raw PNG/JPEG/etc. bytes
 	std::string               sourceTag; // for cache keys + debug logs
+};
+
+// One contiguous run of indices that share a single material/texture. A
+// mesh merged from several glTF primitives (e.g. a building module with
+// separate brick + wood + plaster materials) yields one SubMesh per
+// primitive so the renderer can bind the right texture per run. A simple
+// single-texture asset is just one SubMesh covering all indices.
+struct ImportedSubMesh
+{
+	std::uint32_t indexOffset = 0; // first index into ImportedMesh.indices
+	std::uint32_t indexCount  = 0; // number of indices in this run
+	int           textureIndex = -1; // into ImportedMesh.textures; -1 = untextured (white)
 };
 
 // Imported mesh in the engine's interleave-friendly form. The renderer copies
@@ -92,10 +103,16 @@ struct ImportedMesh
 	// render with vertices collapsed to origin.
 	std::vector<float>          jointParentBaseWorld; // stride 16 column-major
 
-	// First baseColorTexture image referenced by the primitive's material,
-	// if any. `bytes.empty()` = no diffuse texture (Renderer falls back to
-	// its default white texture).
-	ImportedTexture             diffuseTexture;
+	// baseColorTexture images referenced by the mesh's materials, de-duped
+	// by source. Empty = the whole mesh is untextured. SubMesh.textureIndex
+	// points into this; -1 means that run has no texture.
+	std::vector<ImportedTexture> textures;
+
+	// One run per merged primitive, in index order. Always covers the full
+	// index range. A single-material mesh has exactly one entry. The
+	// renderer iterates these, binding textures[sub.textureIndex] (or the
+	// default white texture for -1) and issuing DrawIndexed over the run.
+	std::vector<ImportedSubMesh> submeshes;
 
 	// All animation clips in the file (Stage 4 — multi-clip foundation).
 	// Stage 3 carried only the first clip; Stage 4 keeps every clip so

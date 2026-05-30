@@ -258,20 +258,24 @@ const Renderer::MeshBuffers& Renderer::ResolveMesh(const RenderComponent& render
 				static_cast<UINT>(verts.size()),
 				imported.indices.data(),
 				static_cast<UINT>(imported.indices.size())));
-		// Decode the imported asset-side diffuse texture if any. Failure here
-		// is non-fatal: missing/corrupt embedded textures degrade to flat
-		// shading rather than blocking scene boot.
-		if (!imported.diffuseTexture.bytes.empty())
+		// Decode each imported material texture. Failure on any one is
+		// non-fatal: a missing/corrupt texture leaves a null slot and that
+		// submesh draws white rather than blocking scene boot.
+		for (const auto& it : imported.textures)
 		{
-			try
+			std::unique_ptr<Texture2D> tex;
+			if (!it.bytes.empty())
 			{
-				Surface surf = ImageLoader::LoadSurfaceFromMemory(
-					imported.diffuseTexture.bytes.data(),
-					imported.diffuseTexture.bytes.size());
-				emplacedIt->second.diffuseTexture = std::make_unique<Texture2D>(gfx, surf);
+				try
+				{
+					Surface surf = ImageLoader::LoadSurfaceFromMemory(it.bytes.data(), it.bytes.size());
+					tex = std::make_unique<Texture2D>(gfx, surf);
+				}
+				catch (const std::exception&) {}
 			}
-			catch (const std::exception&) {}
+			emplacedIt->second.textures.push_back(std::move(tex));
 		}
+		emplacedIt->second.submeshes = imported.submeshes;
 		return emplacedIt->second;
 	}
 
@@ -304,23 +308,35 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 	const MaterialData materialData = { mat.tint, 0.0f };
 	materialBuffer.Update(gfx, materialData);
 
-	// Asset-embedded texture (glTF baseColorTexture) wins over the
-	// scene-side material.texturePath. The scene-side path stays useful
-	// for hand-authored cubes/planes (Ground checker pattern, etc.)
-	// where there's no source asset to extract from.
-	if (mesh.diffuseTexture)
+	ResolveSampler(mat.sampler).Bind(gfx);
+	mesh.vertexBuffer.Bind(gfx);
+	mesh.indexBuffer.Bind(gfx);
+
+	if (mesh.submeshes.empty())
 	{
-		mesh.diffuseTexture->Bind(gfx);
+		// Hand-authored cube/plane primitives (no source asset): the
+		// scene-side material.texturePath drives the texture (Ground
+		// checker, etc.), falling back to white when unset.
+		ResolveTexture(mat.texturePath).Bind(gfx);
+		gfx.DrawIndexed(mesh.indexBuffer.GetCount());
 	}
 	else
 	{
-		ResolveTexture(mat.texturePath).Bind(gfx);
+		// Imported mesh: draw each material run with its own texture.
+		// textureIndex -1 (or a null/failed decode) binds white, so an
+		// untextured / vertex-colored run shows albedo*vertexColor*tint.
+		for (const auto& sub : mesh.submeshes)
+		{
+			Texture2D* tex = nullptr;
+			if (sub.textureIndex >= 0 && sub.textureIndex < static_cast<int>(mesh.textures.size()))
+			{
+				tex = mesh.textures[sub.textureIndex].get();
+			}
+			if (tex) tex->Bind(gfx);
+			else     defaultWhiteTexture.Bind(gfx);
+			gfx.GetContext()->DrawIndexed(sub.indexCount, sub.indexOffset, 0);
+		}
 	}
-	ResolveSampler(mat.sampler).Bind(gfx);
-
-	mesh.vertexBuffer.Bind(gfx);
-	mesh.indexBuffer.Bind(gfx);
-	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
 }
 
 Texture2D& Renderer::ResolveTexture(const std::string& path)
@@ -629,17 +645,21 @@ const Renderer::SkinnedMeshBuffers* Renderer::ResolveSkinnedMesh(const RenderCom
 			std::move(bindS),
 			std::move(jpbwRowMajor),
 			std::move(imported.animations)));
-	if (!imported.diffuseTexture.bytes.empty())
+	for (const auto& tx : imported.textures)
 	{
-		try
+		std::unique_ptr<Texture2D> tex;
+		if (!tx.bytes.empty())
 		{
-			Surface surf = ImageLoader::LoadSurfaceFromMemory(
-				imported.diffuseTexture.bytes.data(),
-				imported.diffuseTexture.bytes.size());
-			it->second.diffuseTexture = std::make_unique<Texture2D>(gfx, surf);
+			try
+			{
+				Surface surf = ImageLoader::LoadSurfaceFromMemory(tx.bytes.data(), tx.bytes.size());
+				tex = std::make_unique<Texture2D>(gfx, surf);
+			}
+			catch (const std::exception&) {}
 		}
-		catch (const std::exception&) {}
+		it->second.textures.push_back(std::move(tex));
 	}
+	it->second.submeshes = imported.submeshes;
 	return &it->second;
 }
 
@@ -697,19 +717,29 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	const SkinningData skinData = ComputeSkinningData(mesh, animState);
 	skinningBuffer.Update(gfx, skinData);
 
-	if (mesh.diffuseTexture)
+	ResolveSampler(mat.sampler).Bind(gfx);
+	mesh.vertexBuffer.Bind(gfx);
+	mesh.indexBuffer.Bind(gfx);
+
+	if (mesh.submeshes.empty())
 	{
-		mesh.diffuseTexture->Bind(gfx);
+		ResolveTexture(mat.texturePath).Bind(gfx);
+		gfx.DrawIndexed(mesh.indexBuffer.GetCount());
 	}
 	else
 	{
-		ResolveTexture(mat.texturePath).Bind(gfx);
+		for (const auto& sub : mesh.submeshes)
+		{
+			Texture2D* tex = nullptr;
+			if (sub.textureIndex >= 0 && sub.textureIndex < static_cast<int>(mesh.textures.size()))
+			{
+				tex = mesh.textures[sub.textureIndex].get();
+			}
+			if (tex) tex->Bind(gfx);
+			else     defaultWhiteTexture.Bind(gfx);
+			gfx.GetContext()->DrawIndexed(sub.indexCount, sub.indexOffset, 0);
+		}
 	}
-	ResolveSampler(mat.sampler).Bind(gfx);
-
-	mesh.vertexBuffer.Bind(gfx);
-	mesh.indexBuffer.Bind(gfx);
-	gfx.DrawIndexed(mesh.indexBuffer.GetCount());
 }
 
 void Renderer::SamplePose(const SkinnedMeshBuffers& mesh, const std::string& clipName, float clipTime, bool looping,

@@ -207,7 +207,6 @@ namespace MeshImporter
 
 		// Per-primitive accumulator. We append into out.* streams as we
 		// go; uint16 index cap applies to the merged total at the end.
-		bool materialCaptured = false;
 		bool anyHasJoints     = false;
 		for (cgltf_size pi = 0; pi < mesh.primitives_count; ++pi)
 		{
@@ -364,7 +363,9 @@ namespace MeshImporter
 				out.jointWeights.resize(out.jointWeights.size() + primVertexCount * 4, 0.0f);
 			}
 
-			// Indices with vertex-base offset.
+			// Indices with vertex-base offset. Record the run start so this
+			// primitive becomes one SubMesh.
+			const std::uint32_t subIndexOffset = static_cast<std::uint32_t>(out.indices.size());
 			if (prim.indices != nullptr)
 			{
 				std::vector<std::uint16_t> tmpInd(prim.indices->count);
@@ -387,26 +388,46 @@ namespace MeshImporter
 					out.indices.push_back(static_cast<std::uint16_t>(vertexBase + i));
 				}
 			}
+			const std::uint32_t subIndexCount = static_cast<std::uint32_t>(out.indices.size()) - subIndexOffset;
 
-			// Material: first primitive that has one wins. Multi-material
-			// per mesh would need a per-primitive draw split which is a
-			// renderer-side change for a later phase.
-			if (!materialCaptured && prim.material != nullptr && prim.material->has_pbr_metallic_roughness)
+			// Resolve this primitive's baseColorTexture and fold it into the
+			// de-duped texture list, then emit a SubMesh tying this index run
+			// to that texture (-1 = untextured). De-dup keeps a building's
+			// repeated brick faces from re-decoding the same PNG per
+			// primitive.
+			int texIndex = -1;
+			if (prim.material != nullptr && prim.material->has_pbr_metallic_roughness)
 			{
 				const cgltf_texture_view& bcView = prim.material->pbr_metallic_roughness.base_color_texture;
 				if (bcView.texture != nullptr && bcView.texture->image != nullptr)
 				{
-					std::vector<std::uint8_t> bytes;
-					if (ResolveImageBytes(*bcView.texture->image, gltfPath, bytes))
+					const std::string tag = pathStr +
+						(bcView.texture->image->name ? std::string("#") + bcView.texture->image->name
+						                              : std::string("#image") + std::to_string(pi));
+					// Already loaded?
+					for (std::size_t ti = 0; ti < out.textures.size(); ++ti)
 					{
-						out.diffuseTexture.bytes = std::move(bytes);
-						out.diffuseTexture.sourceTag = pathStr +
-							(bcView.texture->image->name ? std::string("#") + bcView.texture->image->name
-							                              : std::string("#image0"));
-						materialCaptured = true;
+						if (out.textures[ti].sourceTag == tag) { texIndex = static_cast<int>(ti); break; }
+					}
+					if (texIndex < 0)
+					{
+						std::vector<std::uint8_t> bytes;
+						if (ResolveImageBytes(*bcView.texture->image, gltfPath, bytes))
+						{
+							ImportedTexture t;
+							t.bytes = std::move(bytes);
+							t.sourceTag = tag;
+							out.textures.push_back(std::move(t));
+							texIndex = static_cast<int>(out.textures.size()) - 1;
+						}
 					}
 				}
 			}
+			ImportedSubMesh sub;
+			sub.indexOffset  = subIndexOffset;
+			sub.indexCount   = subIndexCount;
+			sub.textureIndex = texIndex;
+			out.submeshes.push_back(sub);
 		}
 
 		const cgltf_size vertexCount = out.positions.size() / 3;

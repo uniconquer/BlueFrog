@@ -66,10 +66,12 @@ private:
 
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
-		// Optional asset-embedded baseColorTexture. Owned per-mesh so its
-		// lifetime tracks the cached imported mesh. nullptr -> Renderer
-		// falls back to defaultWhiteTexture during draw.
-		std::unique_ptr<Texture2D> diffuseTexture;
+		// Per-material baseColorTextures + the submesh runs that reference
+		// them (by index; -1 = untextured, draws with defaultWhiteTexture).
+		// A single-material mesh has one texture + one submesh; a building
+		// module merged from brick/wood/plaster primitives has several.
+		std::vector<std::unique_ptr<Texture2D>> textures;
+		std::vector<ImportedSubMesh>            submeshes;
 	};
 
 	// SkinnedMeshBuffers carries the SkinnedVertex stride (56B) plus the
@@ -104,7 +106,9 @@ private:
 		// joints rooted in non-joint ancestors (Armature, Z_UP, etc.).
 		std::vector<DirectX::XMFLOAT4X4> jointParentBaseWorld;
 		std::vector<ImportedAnimation> animations; // all clips; empty vector => bind pose
-		std::unique_ptr<Texture2D>     diffuseTexture; // see MeshBuffers comment
+		// Multi-material textures + submesh runs (see MeshBuffers).
+		std::vector<std::unique_ptr<Texture2D>> textures;
+		std::vector<ImportedSubMesh>            submeshes;
 	};
 
 	struct SkinningData
