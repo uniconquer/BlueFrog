@@ -41,27 +41,15 @@
         "npc": { "displayName": "Lina", "dialogText": "Have you seen the fox? It runs around the arena!" }
       },
       {
+        "name": "House1",
+        "prefab": "Assets/Prefabs/House.prefab.json",
+        "transform": { "position": [0.0, 0.0, -9.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }
+      },
+      {
         "name": "VillageHorse",
         "prefab": "Assets/Prefabs/Horse.prefab.json",
         "transform": { "position": [0.0, 0.0, 4.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }
       },
-      { "name": "H_Floor0", "prefab": "Assets/Prefabs/ModFloor.prefab.json", "transform": { "position": [-1.0, 0.0, -8.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_Floor1", "prefab": "Assets/Prefabs/ModFloor.prefab.json", "transform": { "position": [ 1.0, 0.0, -8.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_Floor2", "prefab": "Assets/Prefabs/ModFloor.prefab.json", "transform": { "position": [-1.0, 0.0, -10.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_Floor3", "prefab": "Assets/Prefabs/ModFloor.prefab.json", "transform": { "position": [ 1.0, 0.0, -10.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_WallS_Door", "prefab": "Assets/Prefabs/ModWallDoor.prefab.json",     "transform": { "position": [-1.0, 0.0, -11.0], "rotation": [0.0, 0.0,    0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_WallS_1",    "prefab": "Assets/Prefabs/ModWallStraight.prefab.json", "transform": { "position": [ 1.0, 0.0, -11.0], "rotation": [0.0, 0.0,    0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_WallN_0",    "prefab": "Assets/Prefabs/ModWallStraight.prefab.json", "transform": { "position": [-1.0, 0.0, -7.0],  "rotation": [0.0, 3.1416, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_WallN_1",    "prefab": "Assets/Prefabs/ModWallStraight.prefab.json", "transform": { "position": [ 1.0, 0.0, -7.0],  "rotation": [0.0, 3.1416, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_WallW_Win",  "prefab": "Assets/Prefabs/ModWallWindow.prefab.json",   "transform": { "position": [-2.0, 0.0, -10.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_WallW_1",    "prefab": "Assets/Prefabs/ModWallStraight.prefab.json", "transform": { "position": [-2.0, 0.0, -8.0],  "rotation": [0.0, 1.5708, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_WallE_0",    "prefab": "Assets/Prefabs/ModWallStraight.prefab.json", "transform": { "position": [ 2.0, 0.0, -10.0], "rotation": [0.0, -1.5708,0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_WallE_Win",  "prefab": "Assets/Prefabs/ModWallWindow.prefab.json",   "transform": { "position": [ 2.0, 0.0, -8.0],  "rotation": [0.0, -1.5708,0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_Corner0", "prefab": "Assets/Prefabs/ModCorner.prefab.json", "transform": { "position": [-2.0, 0.0, -7.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_Corner1", "prefab": "Assets/Prefabs/ModCorner.prefab.json", "transform": { "position": [ 2.0, 0.0, -7.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_Corner2", "prefab": "Assets/Prefabs/ModCorner.prefab.json", "transform": { "position": [-2.0, 0.0, -11.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_Corner3", "prefab": "Assets/Prefabs/ModCorner.prefab.json", "transform": { "position": [ 2.0, 0.0, -11.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
-      { "name": "H_Roof", "prefab": "Assets/Prefabs/ModRoof.prefab.json", "transform": { "position": [0.0, 3.12, -9.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0,1.0,1.0] } },
       {
         "name": "ArenaGateMarker",
         "transform": { "position": [8.5, 0.4, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.6, 1.6, 0.6] },

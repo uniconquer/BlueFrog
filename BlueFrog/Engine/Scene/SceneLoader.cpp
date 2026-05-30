@@ -241,6 +241,47 @@ static bool BuildObjectFromJson(Scene& scene, json objJson, const std::filesyste
 		}
 	}
 
+	// Group prefab (Unity-style node hierarchy): a prefab can declare a
+	// "children" array of sub-objects (e.g. a house = floors + walls + roof
+	// modules). Each child is expanded into its own scene object with its
+	// transform composed onto this container's placement, so the assembly
+	// is built from separately-imported (and thus correctly RH->LH
+	// converted) modules rather than one pre-joined mesh whose baked
+	// rotations the import X-mirror would scramble. The container itself
+	// carries no renderable.
+	if (objJson.contains("children") && objJson["children"].is_array())
+	{
+		Transform parentT;
+		if (objJson.contains("transform")) ParseTransform(objJson["transform"], parentT);
+		const std::string namePrefix = objJson.value("name", std::string("group"));
+		const float yaw = parentT.rotation.y;
+		const float c = std::cos(yaw), s = std::sin(yaw);
+		int idx = 0;
+		for (const auto& childRef : objJson["children"])
+		{
+			json child = childRef;
+			Transform local;
+			if (child.contains("transform")) ParseTransform(child["transform"], local);
+			// World position: parent position + parent-yaw-rotated child
+			// local XZ (our yaw convention: forward = (sin, cos)).
+			const float wx = parentT.position.x + (local.position.x * c + local.position.z * s);
+			const float wz = parentT.position.z + (-local.position.x * s + local.position.z * c);
+			const float wy = parentT.position.y + local.position.y;
+			child["transform"] = {
+				{ "position", { wx, wy, wz } },
+				{ "rotation", { local.rotation.x, yaw + local.rotation.y, local.rotation.z } },
+				{ "scale",    { parentT.scale.x * local.scale.x, parentT.scale.y * local.scale.y, parentT.scale.z * local.scale.z } }
+			};
+			if (!child.contains("name")) child["name"] = namePrefix + "_" + std::to_string(idx);
+			++idx;
+			if (!BuildObjectFromJson(scene, child, path, prefabCache, errorOut))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	const std::string name = objJson.value("name", "");
 	auto& obj = scene.CreateObject(name);
 

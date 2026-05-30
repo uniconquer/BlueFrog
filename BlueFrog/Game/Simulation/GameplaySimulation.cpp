@@ -108,10 +108,9 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 	{
 		skillSystem_->Tick(scene, dt, &eventBus, audio_, damagePopupsSink_, particleSystem_);
 	}
-	// Visual polish: NPCs turn to face the player once they enter the
-	// notice range. Runs after KnockbackSystem so the rotation uses the
-	// player's final position for the tick.
-	NpcFacingSystem::Tick(scene);
+	// NPC look-at-player was disabled by request: NPCs keep their authored
+	// facing rather than tracking the player.
+	// NpcFacingSystem::Tick(scene);
 	triggerSystem.Update(ctx);
 	cameraSystem.FollowPlayer(ctx);
 
