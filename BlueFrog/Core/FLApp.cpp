@@ -593,6 +593,9 @@ void FLApp::PollDebugToggles() noexcept
 		case 'T': // rotate the next placement by 45 degrees
 			if (placementMode) placeRotate = true;
 			break;
+		case 'G': // toggle grid snap (1 m)
+			if (placementMode) placeSnapToggle = true;
+			break;
 		case VK_BACK: // undo the last placement
 			if (placementMode) placeUndo = true;
 			break;
@@ -964,9 +967,20 @@ void FLApp::UpdatePlacement(const GameplayInput& input) noexcept
 		}
 	}
 
+	if (placeSnapToggle) { placementSnap = !placementSnap; placeSnapToggle = false; }
+
+	// Resolve the ghost mesh for the current prefab (cached; re-read on cycle).
+	if (placementGhostIndex != placementIndex)
+	{
+		placementGhostIndex = placementIndex;
+		placementGhostHasMesh = SceneLoader::GetPrefabPreviewMesh(
+			PlacementPrefabPath(), placementGhostMesh, placementGhostScale);
+	}
+
 	// Track the cursor's ground point every frame for the ghost preview.
 	DirectX::XMFLOAT3 gp{};
 	placementCursorValid = PlayerAimSystem::ComputeMouseGroundPoint(input, camera, 0.0f, gp);
+	if (placementSnap) { gp.x = std::round(gp.x); gp.z = std::round(gp.z); } // 1 m grid
 	if (placementCursorValid) { placementCursorX = gp.x; placementCursorZ = gp.z; }
 
 	// LMB drops the selected prefab at the mouse's ground point (y = 0).
@@ -1052,12 +1066,21 @@ void FLApp::OnRender()
 		// space but the HUD/text overlays still come on top.
 		debugRenderer.Render(scene, camera);
 	}
-	// Placement ghost: footprint box + yaw arrow at the cursor's ground point.
+	// Placement ghost: translucent real mesh (when the prefab has one) +
+	// a footprint box + yaw arrow at the cursor's ground point.
 	if (placementMode && placementCursorValid)
 	{
 		const int pi = ((placementIndex % kPlacePrefabCount) + kPlacePrefabCount) % kPlacePrefabCount;
-		const float f = kPlacePrefabs[pi].foot;
-		debugRenderer.RenderGhost(camera, placementCursorX, placementCursorZ, f, f, placementYaw,
+		if (placementGhostHasMesh)
+		{
+			renderer.DrawGhostMesh(placementGhostMesh, placementCursorX, 0.0f, placementCursorZ,
+				placementYaw, placementGhostScale, camera);
+		}
+		// With a real mesh ghost present the box is just a small anchor reticle
+		// marking the drop origin (the art may sit off-center). Group prefabs
+		// (no mesh ghost) keep the larger footprint box as a size hint.
+		const float marker = placementGhostHasMesh ? 0.2f : kPlacePrefabs[pi].foot;
+		debugRenderer.RenderGhost(camera, placementCursorX, placementCursorZ, marker, marker, placementYaw,
 			DirectX::XMFLOAT3{ 0.30f, 1.00f, 0.55f });
 	}
 	// Tonemap the HDR scene onto the back buffer (exposure + ACES). UI/text
@@ -1108,7 +1131,7 @@ void FLApp::OnRender()
 		const int pi = ((placementIndex % kPlacePrefabCount) + kPlacePrefabCount) % kPlacePrefabCount;
 		textRenderer.RenderPlacementHud(
 			Widen(kPlacePrefabs[pi].label), pi, kPlacePrefabCount,
-			placementYaw * 57.2957795f, static_cast<int>(placedNames.size()),
+			placementYaw * 57.2957795f, placementSnap, static_cast<int>(placedNames.size()),
 			GetWindow().GetWidth(), GetWindow().GetHeight());
 	}
 	(void)GetGfx().EndTextDraw();

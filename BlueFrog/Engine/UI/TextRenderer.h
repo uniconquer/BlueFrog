@@ -55,7 +55,7 @@ public:
     // current prefab + index, rotation, placed count, and key hints. Drawn
     // only while placement mode is active.
     void RenderPlacementHud(const std::wstring& prefabLabel, int prefabIndex, int prefabCount,
-        float yawDegrees, int placedCount, int viewportW, int viewportH) noexcept;
+        float yawDegrees, bool gridSnap, int placedCount, int viewportW, int viewportH) noexcept;
 
     // Floating damage-number overlay. Projects each popup's spawn worldPos
     // through the supplied camera, then floats the resulting screen point

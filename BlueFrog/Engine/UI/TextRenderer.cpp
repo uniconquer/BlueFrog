@@ -481,7 +481,7 @@ void TextRenderer::RenderInteractPrompt(const HudState& hud, int viewportW, int 
 }
 
 void TextRenderer::RenderPlacementHud(const std::wstring& prefabLabel, int prefabIndex, int prefabCount,
-    float yawDegrees, int placedCount, int viewportW, int viewportH) noexcept
+    float yawDegrees, bool gridSnap, int placedCount, int viewportW, int viewportH) noexcept
 {
     ID2D1RenderTarget* const target = gfx.GetD2DTarget();
     if (target == nullptr || !panelBrush || !whiteBrush || !dialogNameFormat || !dialogBodyFormat) return;
@@ -489,7 +489,7 @@ void TextRenderer::RenderPlacementHud(const std::wstring& prefabLabel, int prefa
 
     const float left = 16.0f, top = 16.0f, width = 380.0f;
     const float pad = 12.0f, lineH = 22.0f;
-    const float height = pad * 2.0f + lineH * 5.0f + 8.0f;
+    const float height = pad * 2.0f + lineH * 6.0f + 8.0f;
     target->FillRectangle(D2D1::RectF(left, top, left + width, top + height), panelBrush.Get());
 
     const float il = left + pad, ir = left + width - pad;
@@ -514,6 +514,8 @@ void TextRenderer::RenderPlacementHud(const std::wstring& prefabLabel, int prefa
     line(buf, whiteBrush.Get(), dialogBodyFormat.Get());
     swprintf_s(buf, L"Rotation:  %d deg        Placed:  %d", static_cast<int>(yawDegrees + 0.5f), placedCount);
     line(buf, whiteBrush.Get(), dialogBodyFormat.Get());
+    swprintf_s(buf, L"Grid snap:  %s   (G)", gridSnap ? L"ON  (1 m)" : L"OFF");
+    line(buf, gridSnap ? (highlightBrush ? highlightBrush.Get() : whiteBrush.Get()) : whiteBrush.Get(), dialogBodyFormat.Get());
     line(L"[ ]  cycle      T  rotate      LMB  place", dim, dialogBodyFormat.Get());
     line(L"Backspace  undo     F12  save     F4  exit", dim, dialogBodyFormat.Get());
 }

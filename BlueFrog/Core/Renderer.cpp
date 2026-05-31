@@ -74,6 +74,20 @@ Renderer::Renderer(Graphics& gfx)
 	samplerWrapPoint(gfx, D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_WRAP),
 	topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 {
+	// Standard straight-alpha blend for the placement ghost (src*a + dst*(1-a)).
+	D3D11_BLEND_DESC bd = {};
+	bd.RenderTarget[0].BlendEnable    = TRUE;
+	bd.RenderTarget[0].SrcBlend       = D3D11_BLEND_SRC_ALPHA;
+	bd.RenderTarget[0].DestBlend      = D3D11_BLEND_INV_SRC_ALPHA;
+	bd.RenderTarget[0].BlendOp        = D3D11_BLEND_OP_ADD;
+	bd.RenderTarget[0].SrcBlendAlpha  = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	bd.RenderTarget[0].BlendOpAlpha   = D3D11_BLEND_OP_ADD;
+	bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	if (const HRESULT hr = gfx.GetDevice()->CreateBlendState(&bd, ghostBlendState.GetAddressOf()); FAILED(hr))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
 }
 
 const std::array<Renderer::LitVertex, 24>& Renderer::GetCubeVertices() noexcept
@@ -308,6 +322,7 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 	const Material mat = renderComponent.material.value_or(Material{});
 	MaterialData materialData = {};
 	materialData.tint = mat.tint; // primitives + fallback: diffuse, no PBR maps
+	materialData.ghostAlpha = currentGhostAlpha;
 	materialBuffer.Update(gfx, materialData);
 
 	ResolveSampler(mat.sampler).Bind(gfx);
@@ -354,10 +369,45 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 			md.hasEmissive   = sub.emissiveTexture   >= 0 ? 1.0f : 0.0f;
 			md.hasOcclusion  = sub.occlusionTexture  >= 0 ? 1.0f : 0.0f;
 			md.hasAlbedo     = sub.textureIndex      >= 0 ? 1.0f : 0.0f;
+			md.ghostAlpha    = currentGhostAlpha;
 			materialBuffer.Update(gfx, md);
 
 			gfx.GetContext()->DrawIndexed(sub.indexCount, sub.indexOffset, 0);
 		}
+	}
+}
+
+void Renderer::DrawGhostMesh(const std::string& meshPath, float x, float y, float z,
+	float yaw, float importScale, const TopDownCamera& camera) noexcept
+{
+	using namespace DirectX;
+	try
+	{
+		RenderComponent rc;
+		rc.meshType    = RenderMeshType::External;
+		rc.meshPath    = meshPath;
+		rc.importScale = importScale;
+
+		Transform t;
+		t.position = { x, y, z };
+		t.rotation = { 0.0f, yaw, 0.0f };
+		t.scale    = { 1.0f, 1.0f, 1.0f };
+
+		const MeshBuffers& mesh = ResolveMesh(rc); // may throw on first load
+
+		BindLitState();
+		const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		gfx.GetContext()->OMSetBlendState(ghostBlendState.Get(), blendFactor, 0xffffffffu);
+		currentGhostAlpha = 0.45f;
+		DrawMesh(mesh, t, rc, camera);
+		currentGhostAlpha = 1.0f;
+		gfx.GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffffu);
+	}
+	catch (...)
+	{
+		// Mesh load failure (or group prefab without a single mesh): skip the
+		// ghost this frame. The caller falls back to the box marker.
+		currentGhostAlpha = 1.0f;
 	}
 }
 
@@ -821,6 +871,7 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 			md.hasEmissive   = sub.emissiveTexture   >= 0 ? 1.0f : 0.0f;
 			md.hasOcclusion  = sub.occlusionTexture  >= 0 ? 1.0f : 0.0f;
 			md.hasAlbedo     = sub.textureIndex      >= 0 ? 1.0f : 0.0f;
+			md.ghostAlpha    = currentGhostAlpha;
 			materialBuffer.Update(gfx, md);
 
 			gfx.GetContext()->DrawIndexed(sub.indexCount, sub.indexOffset, 0);

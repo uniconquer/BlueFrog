@@ -38,7 +38,7 @@ namespace LitPipeline
 			"    float  hasEmissive;\n"
 			"    float  hasOcclusion;\n"
 			"    float  hasAlbedo;\n"
-			"    float  pbrPad;\n"
+			"    float  ghostAlpha;\n"
 			"};\n"
 			"cbuffer LightBuffer : register(b2)\n"
 			"{\n"
@@ -204,7 +204,7 @@ namespace LitPipeline
 			"    float3 emissive = emissiveFactor.rgb;\n"
 			"    if (hasEmissive > 0.5f) emissive *= emissiveTex.Sample(surfaceSampler, input.uv).rgb;\n"
 			"    float3 color = direct + ambientTerm + emissive;\n"
-			"    return float4(color, alpha);\n"
+			"    return float4(color, alpha * ghostAlpha);\n"
 			"}\n";
 	}
 }

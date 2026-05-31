@@ -38,4 +38,11 @@ public:
 	static bool InstantiatePrefab(Scene& scene, const std::string& prefabPath,
 		float x, float y, float z, float yawRadians,
 		const std::string& name, std::string* errorOut = nullptr);
+
+	// Peek a prefab's single render mesh (placement-tool ghost preview).
+	// Returns true and fills meshPathOut/importScaleOut when the prefab is a
+	// simple render prefab; returns false for group prefabs (children) or
+	// prefabs without a mesh, so the caller falls back to a box marker.
+	static bool GetPrefabPreviewMesh(const std::string& prefabPath,
+		std::string& meshPathOut, float& importScaleOut);
 };

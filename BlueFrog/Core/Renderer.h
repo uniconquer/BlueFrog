@@ -64,7 +64,10 @@ private:
 		float hasEmissive     = 0.0f;
 		float hasOcclusion    = 0.0f;
 		float hasAlbedo       = 0.0f;
-		float pbrPad          = 0.0f;
+		// Multiplied into the output alpha. 1.0 for normal opaque draws; the
+		// placement tool sets it < 1 (with alpha blending on) to render a
+		// translucent "ghost" preview of the prefab mesh at the cursor.
+		float ghostAlpha      = 1.0f;
 	};
 
 	struct LightData
@@ -161,6 +164,13 @@ public:
 	// failure instead of aborting the process via std::terminate.
 	void Render(const Scene& scene, const TopDownCamera& camera);
 
+	// Draw an imported mesh as a translucent "ghost" at the given transform
+	// (placement-tool preview). Reuses the lit PBR path with alpha blending
+	// + a reduced output alpha. No-op on a mesh-load failure. Call within the
+	// 3D pass (it leaves the lit pipeline bound; blend state is restored).
+	void DrawGhostMesh(const std::string& meshPath, float x, float y, float z,
+		float yaw, float importScale, const TopDownCamera& camera) noexcept;
+
 private:
 	void BindLitState() noexcept;
 	void BindSkinnedState() noexcept;
@@ -219,6 +229,10 @@ private:
 	VertexConstantBuffer<SkinningData> skinningBuffer;
 	VertexConstantBuffer<ShadowData> shadowBuffer;
 	Texture2D defaultWhiteTexture;
+	// Placement-ghost rendering: alpha-blend state + the per-draw alpha the
+	// lit/skinned shaders multiply into their output (1.0 = opaque normal draw).
+	Microsoft::WRL::ComPtr<ID3D11BlendState> ghostBlendState;
+	float currentGhostAlpha = 1.0f;
 	std::unordered_map<std::string, Texture2D> textureCache;
 	Sampler samplerWrapLinear;
 	Sampler samplerClampLinear;

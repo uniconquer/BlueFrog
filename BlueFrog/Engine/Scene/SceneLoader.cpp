@@ -522,6 +522,22 @@ bool SceneLoader::InstantiatePrefab(Scene& scene, const std::string& prefabPath,
 	return BuildObjectFromJson(scene, obj, std::filesystem::path("Assets/Scenes/_runtime"), cache, errorOut);
 }
 
+bool SceneLoader::GetPrefabPreviewMesh(const std::string& prefabPath, std::string& meshPathOut, float& importScaleOut)
+{
+	std::ifstream f(prefabPath);
+	if (!f) return false;
+	json j;
+	try { j = json::parse(f); }
+	catch (...) { return false; }
+	if (j.contains("children")) return false;             // group prefab: no single mesh
+	if (!j.contains("render")) return false;
+	const auto& r = j["render"];
+	if (!r.contains("meshPath")) return false;             // primitive (cube/plane), not a glTF mesh
+	meshPathOut    = r["meshPath"].get<std::string>();
+	importScaleOut = r.value("importScale", 1.0f);
+	return true;
+}
+
 bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut, std::string* objectiveBlockJsonOut)
 {
 	json root;

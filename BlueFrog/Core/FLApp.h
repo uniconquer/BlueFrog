@@ -117,6 +117,14 @@ private:
 	bool        placeCyclePrev   = false;
 	bool        placeRotate      = false;
 	bool        placeUndo        = false;
+	bool        placeSnapToggle  = false;
+	bool        placementSnap    = false;
+	// Cached single-mesh ghost for the current prefab (re-resolved on cycle).
+	// Group prefabs have no single mesh -> hasMesh false -> box marker only.
+	int         placementGhostIndex   = -1;
+	bool        placementGhostHasMesh = false;
+	std::string placementGhostMesh;
+	float       placementGhostScale   = 1.0f;
 	float       placementCursorX = 0.0f;
 	float       placementCursorZ = 0.0f;
 	bool        placementCursorValid = false;
