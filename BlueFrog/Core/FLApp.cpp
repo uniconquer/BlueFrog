@@ -6,6 +6,8 @@
 #include "../Engine/UI/InspectorFields.h"
 #include "../Game/Objectives/ObjectiveStateIO.h"
 #include "../Game/Simulation/GameplaySceneIds.h"
+#include "../Game/Player/PlayerAimSystem.h"
+#include "../Engine/Scene/SceneLoader.h"
 
 #include <algorithm>
 #include <cmath>
@@ -165,7 +167,19 @@ void FLApp::OnUpdate(float dt)
 {
 	currentPlayTimeSec += dt;
 	PollDebugToggles();
-	const GameplayInput input = CollectGameplayInput(dt);
+	GameplayInput input = CollectGameplayInput(dt);
+
+	// Placement tool (world editor). LMB drops prefabs instead of attacking;
+	// gameplay-only edges (talk/inventory/heal) are ignored so editing stays
+	// clean. Movement/camera still work so you can reposition while editing.
+	if (placementMode)
+	{
+		UpdatePlacement(input);
+		input.attackQueued = false;
+		consumeHotkeyPressedThisFrame = false;
+		inventoryKeyPressedThisFrame = false;
+		interactPressedThisFrame = false;
+	}
 
 	// Dialog state transitions (Phase I-1C). E toggles: in dialog → exit;
 	// out of dialog + prompt visible → enter, capturing the NPC payload
@@ -561,6 +575,22 @@ void FLApp::PollDebugToggles() noexcept
 		case VK_F3:
 			worldGridEnabled = !worldGridEnabled;
 			break;
+		case VK_F4:
+			// Toggle the in-game placement tool (world editor).
+			placementMode = !placementMode;
+			break;
+		case VK_OEM_4: // '[' — previous prefab
+			if (placementMode) placeCyclePrev = true;
+			break;
+		case VK_OEM_6: // ']' — next prefab
+			if (placementMode) placeCycleNext = true;
+			break;
+		case 'T': // rotate the next placement by 45 degrees
+			if (placementMode) placeRotate = true;
+			break;
+		case VK_BACK: // undo the last placement
+			if (placementMode) placeUndo = true;
+			break;
 		case VK_F5:
 			// Hot-reload: latch the request and let UpdateModel apply it
 			// after Update returns, matching the trigger-driven scene-load
@@ -880,6 +910,76 @@ GameplayInput FLApp::CollectGameplayInput(float dt) noexcept
 	return input;
 }
 
+namespace
+{
+	struct PlacePrefab { const char* path; const char* label; };
+	// Curated palette for the placement tool. All single-object props plus the
+	// House group prefab; extend freely.
+	const PlacePrefab kPlacePrefabs[] = {
+		{ "Assets/Prefabs/Barrel.prefab.json",    "Barrel" },
+		{ "Assets/Prefabs/Tree.prefab.json",      "Tree" },
+		{ "Assets/Prefabs/PineTree.prefab.json",  "PineTree" },
+		{ "Assets/Prefabs/BirchTree.prefab.json", "BirchTree" },
+		{ "Assets/Prefabs/Rock.prefab.json",      "Rock" },
+		{ "Assets/Prefabs/Bush.prefab.json",      "Bush" },
+		{ "Assets/Prefabs/Flowers.prefab.json",   "Flowers" },
+		{ "Assets/Prefabs/House.prefab.json",     "House" },
+	};
+	constexpr int kPlacePrefabCount = static_cast<int>(sizeof(kPlacePrefabs) / sizeof(kPlacePrefabs[0]));
+}
+
+const char* FLApp::PlacementPrefabPath() const noexcept
+{
+	return kPlacePrefabs[((placementIndex % kPlacePrefabCount) + kPlacePrefabCount) % kPlacePrefabCount].path;
+}
+
+void FLApp::UpdatePlacement(const GameplayInput& input) noexcept
+{
+	if (placeCycleNext) { placementIndex = (placementIndex + 1) % kPlacePrefabCount; placeCycleNext = false; }
+	if (placeCyclePrev) { placementIndex = (placementIndex + kPlacePrefabCount - 1) % kPlacePrefabCount; placeCyclePrev = false; }
+	if (placeRotate)
+	{
+		placementYaw += 0.7853981634f; // +45 deg
+		if (placementYaw >= 6.2831853f) placementYaw -= 6.2831853f;
+		placeRotate = false;
+	}
+	if (placeUndo)
+	{
+		placeUndo = false;
+		if (!placedNames.empty())
+		{
+			const std::string base = placedNames.back();
+			placedNames.pop_back();
+			auto& objs = scene.GetObjects();
+			objs.erase(std::remove_if(objs.begin(), objs.end(),
+				[&](const SceneObject& o) {
+					return o.name == base || o.name.rfind(base + "_", 0) == 0;
+				}), objs.end());
+		}
+	}
+
+	// LMB drops the selected prefab at the mouse's ground point (y = 0).
+	if (input.attackQueued)
+	{
+		DirectX::XMFLOAT3 gp{};
+		if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, 0.0f, gp))
+		{
+			const std::string name = "Placed_" + std::to_string(placementCounter++);
+			std::string err;
+			if (SceneLoader::InstantiatePrefab(scene, PlacementPrefabPath(), gp.x, gp.y, gp.z, placementYaw, name, &err))
+			{
+				placedNames.push_back(name);
+			}
+			else
+			{
+				const std::string msg = "[Place] failed: " + err + "\n";
+				std::fputs(msg.c_str(), stdout);
+				::OutputDebugStringA(msg.c_str());
+			}
+		}
+	}
+}
+
 void FLApp::OnRender()
 {
 	GetWindow().SetTitle(GameplaySimulation::BuildWindowTitle(hudState));
@@ -985,6 +1085,14 @@ void FLApp::OnRender()
 	if (inspectorEnabled)
 	{
 		textRenderer.RenderInspector(scene, inspectorSelected, inspectorFieldIndex, GetWindow().GetWidth(), GetWindow().GetHeight());
+	}
+	if (placementMode)
+	{
+		const int pi = ((placementIndex % kPlacePrefabCount) + kPlacePrefabCount) % kPlacePrefabCount;
+		textRenderer.RenderPlacementHud(
+			Widen(kPlacePrefabs[pi].label), pi, kPlacePrefabCount,
+			placementYaw * 57.2957795f, static_cast<int>(placedNames.size()),
+			GetWindow().GetWidth(), GetWindow().GetHeight());
 	}
 	(void)GetGfx().EndTextDraw();
 	GetGfx().EndFrame();

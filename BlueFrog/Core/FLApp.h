@@ -59,6 +59,11 @@ private:
 	// Restore the dialog NPC's authored facing (saved when the dialog
 	// opened) and clear the tracking state. No-op when no NPC was faced.
 	void RestoreDialogFacing(Scene& scene) noexcept;
+	// Placement tool: consume the cycle/rotate/undo edges and, on LMB, drop
+	// the selected prefab at the mouse's ground point. Returns the current
+	// prefab's display label for the HUD/title.
+	void UpdatePlacement(const GameplayInput& input) noexcept;
+	[[nodiscard]] const char* PlacementPrefabPath() const noexcept;
 
 	Renderer renderer;
 	UIRenderer uiRenderer;
@@ -101,6 +106,18 @@ private:
 	bool   debugGizmosEnabled  = false;
 	bool   worldGridEnabled    = false;
 	bool   reloadRequested     = false;
+	// In-game placement tool (world editor). F4 toggles; in placement mode
+	// LMB drops the selected prefab at the mouse's ground point, [ ] cycle
+	// the prefab, T rotates, Backspace undoes the last drop, F12 saves.
+	bool        placementMode    = false;
+	int         placementIndex   = 0;
+	float       placementYaw     = 0.0f;
+	int         placementCounter = 0;
+	bool        placeCycleNext   = false;
+	bool        placeCyclePrev   = false;
+	bool        placeRotate      = false;
+	bool        placeUndo        = false;
+	std::vector<std::string> placedNames;
 	bool   inspectorEnabled    = false;
 	int    inspectorSelected   = 0;
 	int    inspectorFieldIndex = 0;

@@ -498,6 +498,30 @@ static bool BuildScatterEntry(Scene& scene, const json& entry, const std::filesy
 	return true;
 }
 
+bool SceneLoader::InstantiatePrefab(Scene& scene, const std::string& prefabPath,
+	float x, float y, float z, float yawRadians, const std::string& name, std::string* errorOut)
+{
+	// Prefab files cached across placements; small JSON, reused freely.
+	static PrefabLoader::Cache cache;
+
+	// Reserve headroom BEFORE creating so the append inside BuildObjectFromJson
+	// doesn't reallocate the object vector mid-session (which would dangle any
+	// SceneObject* held by live systems). The caller (placement mode) also
+	// suppresses gameplay interaction so this reserve's one-time move is safe.
+	auto& objs = scene.GetObjects();
+	if (objs.capacity() < objs.size() + 32) objs.reserve(objs.size() + 256);
+
+	json obj;
+	obj["name"] = name;
+	obj["prefab"] = prefabPath;
+	obj["transform"] = {
+		{ "position", { x, y, z } },
+		{ "rotation", { 0.0, yawRadians, 0.0 } },
+		{ "scale",    { 1.0, 1.0, 1.0 } }
+	};
+	return BuildObjectFromJson(scene, obj, std::filesystem::path("Assets/Scenes/_runtime"), cache, errorOut);
+}
+
 bool SceneLoader::Load(const std::filesystem::path& path, Scene& scene, TopDownCamera& camera, std::string* errorOut, std::string* objectiveBlockJsonOut)
 {
 	json root;

@@ -51,6 +51,12 @@ public:
     // placeholder. `alpha` mirrors RenderDialog's fade param.
     void RenderInventory(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept;
 
+    // Placement-tool overlay (world editor): a top-left panel showing the
+    // current prefab + index, rotation, placed count, and key hints. Drawn
+    // only while placement mode is active.
+    void RenderPlacementHud(const std::wstring& prefabLabel, int prefabIndex, int prefabCount,
+        float yawDegrees, int placedCount, int viewportW, int viewportH) noexcept;
+
     // Floating damage-number overlay. Projects each popup's spawn worldPos
     // through the supplied camera, then floats the resulting screen point
     // upward over the popup's lifetime and fades it out at the tail end.

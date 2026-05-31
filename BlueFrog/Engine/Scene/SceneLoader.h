@@ -28,4 +28,14 @@ public:
 	// runs against the full boot scene list inside ValidateAllAssets.
 	// Errors carry the same "<path>: <reason>" prefix as Load.
 	static bool Validate(const std::filesystem::path& path, std::string* errorOut = nullptr);
+
+	// Instantiate a single prefab into an already-loaded scene at runtime (the
+	// in-game placement tool). Builds the same object(s) Load would for a
+	// scene entry of { name, prefab, transform } -- including group-prefab
+	// children. Reserves object-vector headroom first so the append doesn't
+	// reallocate and dangle pointers held by live systems. Returns true on
+	// success; on failure fills errorOut and leaves the scene unchanged.
+	static bool InstantiatePrefab(Scene& scene, const std::string& prefabPath,
+		float x, float y, float z, float yawRadians,
+		const std::string& name, std::string* errorOut = nullptr);
 };

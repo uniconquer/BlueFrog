@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cwchar>
 #include <string>
 
 namespace
@@ -477,6 +478,44 @@ void TextRenderer::RenderInteractPrompt(const HudState& hud, int viewportW, int 
         whiteBrush.Get(),
         D2D1_DRAW_TEXT_OPTIONS_NONE,
         DWRITE_MEASURING_MODE_NATURAL);
+}
+
+void TextRenderer::RenderPlacementHud(const std::wstring& prefabLabel, int prefabIndex, int prefabCount,
+    float yawDegrees, int placedCount, int viewportW, int viewportH) noexcept
+{
+    ID2D1RenderTarget* const target = gfx.GetD2DTarget();
+    if (target == nullptr || !panelBrush || !whiteBrush || !dialogNameFormat || !dialogBodyFormat) return;
+    (void)viewportW; (void)viewportH;
+
+    const float left = 16.0f, top = 16.0f, width = 380.0f;
+    const float pad = 12.0f, lineH = 22.0f;
+    const float height = pad * 2.0f + lineH * 5.0f + 8.0f;
+    target->FillRectangle(D2D1::RectF(left, top, left + width, top + height), panelBrush.Get());
+
+    const float il = left + pad, ir = left + width - pad;
+    float y = top + pad;
+
+    ID2D1SolidColorBrush* const hdr = highlightBrush ? highlightBrush.Get() : whiteBrush.Get();
+    ID2D1SolidColorBrush* const dim = dimBrush ? dimBrush.Get() : whiteBrush.Get();
+
+    auto line = [&](const wchar_t* s, ID2D1SolidColorBrush* brush, IDWriteTextFormat* fmt)
+    {
+        target->DrawText(s, static_cast<UINT32>(wcslen(s)), fmt,
+            D2D1::RectF(il, y, ir, y + lineH), brush,
+            D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+        y += lineH;
+    };
+
+    line(L"PLACEMENT MODE  (F4)", hdr, dialogNameFormat.Get());
+    y += 6.0f;
+
+    wchar_t buf[192];
+    swprintf_s(buf, L"Prefab:  %s   (%d/%d)", prefabLabel.c_str(), prefabIndex + 1, prefabCount);
+    line(buf, whiteBrush.Get(), dialogBodyFormat.Get());
+    swprintf_s(buf, L"Rotation:  %d deg        Placed:  %d", static_cast<int>(yawDegrees + 0.5f), placedCount);
+    line(buf, whiteBrush.Get(), dialogBodyFormat.Get());
+    line(L"[ ]  cycle      T  rotate      LMB  place", dim, dialogBodyFormat.Get());
+    line(L"Backspace  undo     F12  save     F4  exit", dim, dialogBodyFormat.Get());
 }
 
 void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH, float alpha) noexcept
