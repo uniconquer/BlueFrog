@@ -8,18 +8,18 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
-// HDR off-screen scene target + tonemapping resolve (graphics track B1).
+// HDR off-screen scene target + bloom + tonemapping resolve (graphics B1/B3).
 //
-// The 3D scene (lit/skinned/particles/grid/debug) renders into a
-// linear R16G16B16A16_FLOAT target instead of straight to the sRGB swap
-// chain. After the 3D passes, Resolve() draws a full-screen triangle that
-// samples the HDR target, applies exposure + ACES filmic tonemapping, and
-// writes to the sRGB back buffer (hardware sRGB-encodes on store). UI/text
-// then composites on the back buffer, untouched by tonemapping.
+// The 3D scene renders into a linear R16G16B16A16_FLOAT target instead of
+// straight to the sRGB swap chain. After the 3D passes, Resolve():
+//   1. bright-pass: extract HDR pixels above a threshold into a half-res target
+//   2. separable Gaussian blur (H then V) on that target
+//   3. composite: full-screen triangle adds the blurred bloom to the scene,
+//      applies exposure + ACES tonemapping, and writes the sRGB back buffer
+// UI/text then composite on the back buffer, untouched by tonemapping.
 //
-// This is the foundation for later post effects (bloom samples the same HDR
-// target). The HDR target shares the engine's main depth buffer so depth
-// testing is identical to the no-post path.
+// The HDR target shares the engine's main depth buffer so depth testing is
+// identical to the no-post path.
 class PostProcessPass
 {
 public:
@@ -31,25 +31,44 @@ public:
 	// passes. clear color is linear.
 	void BeginScene(Graphics& gfx, float r, float g, float b) noexcept;
 
-	// Resolve the HDR target to the back buffer with exposure + ACES. Call
-	// after all 3D passes and before UI/text.
+	// Run bloom + resolve the HDR target to the back buffer with exposure +
+	// ACES. Call after all 3D passes and before UI/text.
 	void Resolve(Graphics& gfx, float exposure) noexcept;
 
 private:
 	struct PostParams
 	{
-		float exposure = 1.0f;
-		float pad[3]   = { 0.0f, 0.0f, 0.0f };
+		float exposure       = 1.0f;
+		float bloomThreshold = 0.8f;
+		float bloomIntensity = 0.7f;
+		float pad0           = 0.0f;
+		float blurDirX       = 0.0f;
+		float blurDirY       = 0.0f;
+		float pad1           = 0.0f;
+		float pad2           = 0.0f;
 	};
+
+	// Bind one off-screen RTV at the given size, no depth.
+	void SetTarget(Graphics& gfx, ID3D11RenderTargetView* rtv, UINT w, UINT h) noexcept;
 
 	UINT width  = 0;
 	UINT height = 0;
+	UINT bloomW = 0;
+	UINT bloomH = 0;
+
 	Microsoft::WRL::ComPtr<ID3D11Texture2D>          pHdrTexture;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   pHdrRtv;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pHdrSrv;
+	// Two half-res ping-pong targets for bright-pass + separable blur.
+	Microsoft::WRL::ComPtr<ID3D11Texture2D>          pBloomTex[2];
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   pBloomRtv[2];
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pBloomSrv[2];
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState>  pNoDepthState;
-	VertexShader                      fullscreenVS;
-	PixelShader                       tonemapPS;
-	Sampler                           sampler;
-	PixelConstantBuffer<PostParams>   paramsBuffer;
+
+	VertexShader                    fullscreenVS;
+	PixelShader                     tonemapPS;    // composite scene + bloom, exposure, ACES
+	PixelShader                     brightPassPS; // threshold extract
+	PixelShader                     blurPS;       // separable Gaussian
+	Sampler                         sampler;
+	PixelConstantBuffer<PostParams> paramsBuffer;
 };
