@@ -181,12 +181,9 @@ HudState GameplaySimulation::BuildHudState(const Scene& scene) const noexcept
 
 std::wstring GameplaySimulation::BuildWindowTitle(const HudState& hudState) noexcept
 {
-	std::wostringstream oss;
-	oss << L"Blue Frog | HP " << static_cast<int>(hudState.playerHealth.current) << L"/" << static_cast<int>(hudState.playerHealth.max);
-	if (hudState.hasTarget)
-	{
-		oss << L" | Enemy " << static_cast<int>(hudState.targetHealth.current) << L"/" << static_cast<int>(hudState.targetHealth.max);
-	}
-	oss << L" | " << hudState.objectiveText << L" | WASD move | Space dash | LMB attack | E talk | I inventory | 1 use potion | Q/R orbit | Wheel zoom | F1 gizmos | F2 inspector | F3 grid | F5 reload | F8 save profile | F12 save scene";
-	return oss.str();
+	// The HP bar, objective, and controls now live on-screen, so the window
+	// title is just the game name. hudState is kept in the signature for
+	// callers / future use (e.g. appending a debug suffix).
+	(void)hudState;
+	return L"Fantasy Life";
 }

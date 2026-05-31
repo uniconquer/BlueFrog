@@ -34,7 +34,7 @@ namespace
 
 FLApp::FLApp(std::string scenePath)
 	:
-	AppBase(800, 600, L"FL"),
+	AppBase(800, 600, L"Fantasy Life"),
 	renderer(GetGfx()),
 	uiRenderer(GetGfx()),
 	textRenderer(GetGfx()),
