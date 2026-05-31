@@ -186,10 +186,20 @@ namespace LitPipeline
 			// Ambient (no IBL): flat term on diffuse albedo + a crude specular
 			// floor on F0 so metals aren't pure black. Modulated by AO.
 			"    float ao = (hasOcclusion > 0.5f) ? occlusionTex.Sample(surfaceSampler, input.uv).r : 1.0f;\n"
-			// Hemispheric ambient: blend ground->sky by the up-facing-ness of N.
+			// Analytic environment (lightweight IBL). Diffuse irradiance is the
+			// hemispheric fill at N; specular is the sky color along the
+			// reflection vector, blurred toward that fill by roughness and
+			// weighted by a roughness-aware Fresnel. Metals pick up a
+			// sky-tinted reflection that shifts with surface orientation.
 			"    float  skyT     = N.y * 0.5f + 0.5f;\n"
 			"    float3 ambLight = lerp(ambientGround, ambientSky, skyT);\n"
-			"    float3 ambientTerm = ambLight * ao * (albedo * (1.0f - metallic) + F0);\n"
+			"    float3 ambDiffuse = ambLight * albedo * (1.0f - metallic);\n"
+			"    float3 Rdir    = reflect(-V, N);\n"
+			"    float3 envSpec = lerp(ambientGround, ambientSky, Rdir.y * 0.5f + 0.5f);\n"
+			"    envSpec = lerp(envSpec, ambLight, roughness);\n"
+			"    float  omr  = 1.0f - roughness;\n"
+			"    float3 Famb = F0 + (max(float3(omr, omr, omr), F0) - F0) * pow(1.0f - nDotV, 5.0f);\n"
+			"    float3 ambientTerm = (ambDiffuse + envSpec * Famb) * ao;\n"
 			// Emissive: factor defaults to 0 for non-emissive materials.
 			"    float3 emissive = emissiveFactor.rgb;\n"
 			"    if (hasEmissive > 0.5f) emissive *= emissiveTex.Sample(surfaceSampler, input.uv).rgb;\n"
