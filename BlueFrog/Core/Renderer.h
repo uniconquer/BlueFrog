@@ -78,6 +78,14 @@ private:
 		// only up to pad1) still reads a valid prefix.
 		DirectX::XMFLOAT3 camPos;
 		float pad2 = 0.0f;
+		// Hemispheric ambient (B2): sky color tints upward-facing surfaces,
+		// ground color the downward — blended by the world normal's Y. Gives
+		// tree tops / ground a brighter natural fill and undersides more depth
+		// than a single flat ambient term did.
+		DirectX::XMFLOAT3 ambientSky;
+		float pad3 = 0.0f;
+		DirectX::XMFLOAT3 ambientGround;
+		float pad4 = 0.0f;
 	};
 
 	struct MeshBuffers

@@ -48,6 +48,10 @@ namespace LitPipeline
 			"    float  pad1;\n"
 			"    float3 camPos;\n"
 			"    float  pad2;\n"
+			"    float3 ambientSky;\n"
+			"    float  pad3;\n"
+			"    float3 ambientGround;\n"
+			"    float  pad4;\n"
 			"};\n"
 			"cbuffer ShadowBuffer : register(b4)\n"
 			"{\n"
@@ -182,7 +186,10 @@ namespace LitPipeline
 			// Ambient (no IBL): flat term on diffuse albedo + a crude specular
 			// floor on F0 so metals aren't pure black. Modulated by AO.
 			"    float ao = (hasOcclusion > 0.5f) ? occlusionTex.Sample(surfaceSampler, input.uv).r : 1.0f;\n"
-			"    float3 ambientTerm = ambient * ao * (albedo * (1.0f - metallic) + F0);\n"
+			// Hemispheric ambient: blend ground->sky by the up-facing-ness of N.
+			"    float  skyT     = N.y * 0.5f + 0.5f;\n"
+			"    float3 ambLight = lerp(ambientGround, ambientSky, skyT);\n"
+			"    float3 ambientTerm = ambLight * ao * (albedo * (1.0f - metallic) + F0);\n"
 			// Emissive: factor defaults to 0 for non-emissive materials.
 			"    float3 emissive = emissiveFactor.rgb;\n"
 			"    if (hasEmissive > 0.5f) emissive *= emissiveTex.Sample(surfaceSampler, input.uv).rgb;\n"

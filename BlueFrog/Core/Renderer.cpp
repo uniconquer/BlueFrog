@@ -506,9 +506,13 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	// `ambient + nDotL*lightColor` close to 1.0 so directly-lit
 	// surfaces sit at "natural daylight" rather than blown-out white,
 	// and shadowed faces retain visible color instead of going flat.
-	lightData.ambient    = 0.26f;
+	lightData.ambient    = 0.26f; // legacy flat term, superseded by sky/ground below
 	lightData.lightColor = { 0.95f, 0.92f, 0.86f };
 	lightData.camPos     = camera.GetPosition(); // PBR view vector
+	// Hemispheric ambient: slightly cool/bright sky from above, warmer darker
+	// bounce from below. Roughly averages to the old 0.26 flat value.
+	lightData.ambientSky    = { 0.34f, 0.37f, 0.44f };
+	lightData.ambientGround = { 0.17f, 0.15f, 0.13f };
 	lightBuffer.Update(gfx, lightData);
 
 	// Shadow depth pass (Shadow S2): render all casters from the sun's POV
