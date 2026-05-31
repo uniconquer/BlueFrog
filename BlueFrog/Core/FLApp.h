@@ -12,6 +12,7 @@
 #include "../Engine/Render/DebugRenderer.h"
 #include "../Engine/Render/ParticleRenderer.h"
 #include "../Engine/Render/ParticleSystem.h"
+#include "../Engine/Render/PostProcessPass.h"
 #include "../Engine/Render/WorldGridRenderer.h"
 #include "../Engine/Audio/AudioEngine.h"
 #include "../Game/Simulation/GameplaySimulation.h"
@@ -65,6 +66,7 @@ private:
 	DebugRenderer debugRenderer;
 	ParticleRenderer particleRenderer;
 	WorldGridRenderer worldGridRenderer;
+	PostProcessPass postProcess;
 	ParticleSystem particleSystem;
 	TopDownCamera camera;
 	Scene scene;

@@ -41,6 +41,7 @@ FLApp::FLApp(std::string scenePath)
 	debugRenderer(GetGfx()),
 	particleRenderer(GetGfx()),
 	worldGridRenderer(GetGfx()),
+	postProcess(GetGfx()),
 	camera(static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight())),
 	currentScenePath(scenePath.empty() ? std::string(kDefaultScenePath) : std::move(scenePath))
 {
@@ -893,6 +894,10 @@ void FLApp::OnRender()
 	camera.SetShakeOffsetXZ(shakeDirX * shakeOsc, shakeDirZ * shakeOsc);
 
 	GetGfx().BeginFrame(0.07f, 0.09f, 0.14f);
+	// Graphics B1: the 3D scene renders into an HDR off-screen target;
+	// Resolve() (after the 3D passes, before UI) tonemaps it to the back
+	// buffer. BeginScene binds + clears that target.
+	postProcess.BeginScene(GetGfx(), 0.07f, 0.09f, 0.14f);
 	// Catch any exception escaping the renderer (mesh import failures, etc.)
 	// so we can show a diagnostic dialog instead of aborting via
 	// std::terminate. The user gets actionable info; we keep the option to
@@ -938,6 +943,9 @@ void FLApp::OnRender()
 		// space but the HUD/text overlays still come on top.
 		debugRenderer.Render(scene, camera);
 	}
+	// Tonemap the HDR scene onto the back buffer (exposure + ACES). UI/text
+	// then composite on top in sRGB, untouched by tonemapping.
+	postProcess.Resolve(GetGfx(), 1.2f);
 	uiRenderer.Render(hudState);
 	GetGfx().BeginTextDraw();
 	textRenderer.Render(hudState, GetWindow().GetWidth(), GetWindow().GetHeight(), inspectorEnabled, damageFlashAlpha);

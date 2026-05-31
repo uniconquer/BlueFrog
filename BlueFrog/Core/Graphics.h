@@ -39,6 +39,11 @@ public:
 	void RestoreBackBuffer() noexcept;
 	[[nodiscard]] UINT GetBackBufferWidth() const noexcept { return backBufferWidth; }
 	[[nodiscard]] UINT GetBackBufferHeight() const noexcept { return backBufferHeight; }
+	// Raw views for off-screen passes (post-processing): the sRGB swap-chain
+	// RTV and the shared main depth buffer. The HDR scene target shares this
+	// depth so 3D depth-tests identically whether or not post is active.
+	[[nodiscard]] ID3D11RenderTargetView* GetBackBufferRTV() noexcept { return pRenderTarget.Get(); }
+	[[nodiscard]] ID3D11DepthStencilView* GetDepthStencilView() noexcept { return pDepthStencilView.Get(); }
 	ID2D1RenderTarget* GetD2DTarget() noexcept;
 	IDWriteFactory* GetDWriteFactory() noexcept;
 	void BeginTextDraw() noexcept;

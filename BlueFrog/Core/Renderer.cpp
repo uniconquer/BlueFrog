@@ -418,9 +418,19 @@ void Renderer::RenderShadowDepth(const Scene& scene, DirectX::FXMMATRIX lightVie
 {
 	using namespace DirectX;
 
+	auto* ctx = gfx.GetContext();
+	// Save the currently bound main target + viewport so we can restore it
+	// after the depth pass. It may be the HDR post-process target (graphics
+	// B1), not the back buffer — so we can't just RestoreBackBuffer().
+	ID3D11RenderTargetView* savedRtv = nullptr;
+	ID3D11DepthStencilView* savedDsv = nullptr;
+	ctx->OMGetRenderTargets(1u, &savedRtv, &savedDsv);
+	UINT savedVpCount = 1u;
+	D3D11_VIEWPORT savedVp = {};
+	ctx->RSGetViewports(&savedVpCount, &savedVp);
+
 	shadowPass.Begin(gfx);
 
-	auto* ctx = gfx.GetContext();
 	// Depth-only: no pixel shader bound. Rasterizer fills the depth buffer
 	// directly from SV_Position.
 	ctx->PSSetShader(nullptr, nullptr, 0u);
@@ -472,7 +482,12 @@ void Renderer::RenderShadowDepth(const Scene& scene, DirectX::FXMMATRIX lightVie
 	}
 
 	shadowPass.End(gfx);
-	gfx.RestoreBackBuffer();
+	// Restore the saved main target + viewport (replaces RestoreBackBuffer so
+	// the HDR target survives the shadow pass). OMGetRenderTargets AddRef'd.
+	ctx->OMSetRenderTargets(1u, &savedRtv, savedDsv);
+	ctx->RSSetViewports(1u, &savedVp);
+	if (savedRtv != nullptr) savedRtv->Release();
+	if (savedDsv != nullptr) savedDsv->Release();
 }
 
 void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
