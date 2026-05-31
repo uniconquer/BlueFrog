@@ -120,7 +120,11 @@ namespace LitPipeline
 			"    float3 dp1perp = cross(N, dp1);\n"
 			"    float3 T = dp2perp * du1.x + dp1perp * du2.x;\n"
 			"    float3 B = dp2perp * du1.y + dp1perp * du2.y;\n"
-			"    float invmax = rsqrt(max(dot(T, T), dot(B, B)));\n"
+			// Guard against zero UV gradient (UV-less meshes): rsqrt(0)=inf
+			// would make T/B NaN and poison the normal. Fall back to geometric N.
+			"    float denom = max(dot(T, T), dot(B, B));\n"
+			"    if (denom < 1e-12f) return N;\n"
+			"    float invmax = rsqrt(denom);\n"
 			"    float3x3 TBN = float3x3(T * invmax, B * invmax, N);\n"
 			"    return normalize(mul(nTex, TBN));\n"
 			"}\n"
@@ -131,9 +135,13 @@ namespace LitPipeline
 			"    float3 V = normalize(camPos - input.worldPos);\n"
 			// Normal map: always sampled (default white bound when absent) and
 			// blended in by the hasNormal flag so the ddx/ddy stays uniform.
-			"    float3 nTex = normalTex.Sample(surfaceSampler, input.uv).xyz * 2.0f - 1.0f;\n"
-			"    float3 mappedN = PerturbNormal(N, input.worldPos, input.uv, nTex);\n"
-			"    N = normalize(lerp(N, mappedN, saturate(hasNormal)));\n"
+			// Uniform branch (hasNormal is a per-draw constant) so the ddx/ddy
+			// inside stay legal and UV-less meshes skip the map entirely.
+			"    if (hasNormal > 0.5f)\n"
+			"    {\n"
+			"        float3 nTex = normalTex.Sample(surfaceSampler, input.uv).xyz * 2.0f - 1.0f;\n"
+			"        N = PerturbNormal(N, input.worldPos, input.uv, nTex);\n"
+			"    }\n"
 			// Albedo (sRGB SRV -> linear) * factors * vertex color * tint.
 			"    float4 baseTex = surfaceTexture.Sample(surfaceSampler, input.uv);\n"
 			"    float3 albedo  = baseTex.rgb * baseColorFactor.rgb * input.color.rgb * tint;\n"

@@ -733,7 +733,8 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	transformBuffer.Update(gfx, transformData);
 
 	const Material mat = renderComponent.material.value_or(Material{});
-	const MaterialData materialData = { mat.tint, 0.0f };
+	MaterialData materialData = {};
+	materialData.tint = mat.tint;
 	materialBuffer.Update(gfx, materialData);
 
 	const SkinningData skinData = ComputeSkinningData(mesh, animState);
@@ -752,13 +753,31 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 	{
 		for (const auto& sub : mesh.submeshes)
 		{
-			Texture2D* tex = nullptr;
-			if (sub.textureIndex >= 0 && sub.textureIndex < static_cast<int>(mesh.textures.size()))
+			auto bindSlot = [&](int idx, UINT slot)
 			{
-				tex = mesh.textures[sub.textureIndex].get();
-			}
-			if (tex) tex->Bind(gfx);
-			else     defaultWhiteTexture.Bind(gfx);
+				Texture2D* t = (idx >= 0 && idx < static_cast<int>(mesh.textures.size()))
+					? mesh.textures[idx].get() : nullptr;
+				if (t) t->Bind(gfx, slot); else defaultWhiteTexture.Bind(gfx, slot);
+			};
+			bindSlot(sub.textureIndex,      0u); // albedo      t0
+			bindSlot(sub.metalRoughTexture, 2u); // metal/rough t2
+			bindSlot(sub.normalTexture,     3u); // normal      t3
+			bindSlot(sub.emissiveTexture,   4u); // emissive    t4
+			bindSlot(sub.occlusionTexture,  5u); // AO          t5
+
+			MaterialData md = {};
+			md.tint = mat.tint;
+			md.baseColorFactor = { sub.baseColorFactor[0], sub.baseColorFactor[1], sub.baseColorFactor[2], sub.baseColorFactor[3] };
+			md.emissiveFactor  = { sub.emissiveFactor[0], sub.emissiveFactor[1], sub.emissiveFactor[2], 0.0f };
+			md.metallicFactor  = sub.metallicFactor;
+			md.roughnessFactor = sub.roughnessFactor;
+			md.hasMetalRough = sub.metalRoughTexture >= 0 ? 1.0f : 0.0f;
+			md.hasNormal     = sub.normalTexture     >= 0 ? 1.0f : 0.0f;
+			md.hasEmissive   = sub.emissiveTexture   >= 0 ? 1.0f : 0.0f;
+			md.hasOcclusion  = sub.occlusionTexture  >= 0 ? 1.0f : 0.0f;
+			md.hasAlbedo     = sub.textureIndex      >= 0 ? 1.0f : 0.0f;
+			materialBuffer.Update(gfx, md);
+
 			gfx.GetContext()->DrawIndexed(sub.indexCount, sub.indexOffset, 0);
 		}
 	}

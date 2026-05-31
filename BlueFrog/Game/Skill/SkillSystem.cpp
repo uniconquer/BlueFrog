@@ -116,6 +116,7 @@ void SkillSystem::Tick(Scene& scene, float dt,
 				for (SceneObject& obj : scene.GetObjects())
 				{
 					if (&obj == caster) continue;
+					if (obj.npcComponent.has_value()) continue; // friendly NPCs aren't targets
 					if (!obj.combatComponent.has_value()) continue;
 					if (obj.combatComponent->faction == casterFac) continue;
 					if (!obj.combatComponent->IsAlive()) continue;

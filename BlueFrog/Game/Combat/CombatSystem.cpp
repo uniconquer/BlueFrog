@@ -21,6 +21,13 @@ bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, in
 		return false;
 	}
 
+	// Friendly NPCs (villagers) are never damageable — the player can swing
+	// right through them. Guards every attack path, not just the player's.
+	if (target.npcComponent.has_value())
+	{
+		return false;
+	}
+
 	if (DistanceXZ(attacker.transform.position, target.transform.position) > range)
 	{
 		return false;
