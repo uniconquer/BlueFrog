@@ -4,6 +4,7 @@
 #include "../Engine/Render/ShadowDepthPipeline.h"
 #include <DirectXMath.h>
 #include <cmath>
+#include <chrono>
 #include <filesystem>
 #include <stdexcept>
 
@@ -496,23 +497,48 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 
 	// Upload light data once per frame (uniform scale assumed, so model matrix
 	// upper-left 3x3 is a valid normal matrix without inverse-transpose).
-	const XMVECTOR rawDir = XMVector3Normalize(XMVectorSet(0.3f, -1.0f, 0.2f, 0.0f));
+	// Day/night cycle (B5): a real-time clock sweeps the sun around the sky;
+	// at night it hands off to a dim, cool moonlight. The sun direction (and
+	// thus shadows), its color, and the hemispheric ambient all follow the
+	// time of day. kDayLength is the seconds per full cycle (tune to taste).
+	auto lerpf = [](float a, float b, float t) noexcept { return a + (b - a) * t; };
+	auto sat   = [](float x) noexcept { return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x); };
+	static const auto dayClockStart = std::chrono::steady_clock::now();
+	const float tsec = std::chrono::duration<float>(std::chrono::steady_clock::now() - dayClockStart).count();
+	constexpr float kDayLength = 240.0f;
+	const float phase    = std::fmod(tsec / kDayLength, 1.0f); // 0..1, 0 = midnight
+	const float dayAngle = phase * 6.2831853f;
+	const float sunHeight = -std::cos(dayAngle);               // -1 midnight .. +1 noon
+
 	LightData lightData = {};
-	XMStoreFloat3(&lightData.lightDir,   rawDir);
-	// Tuned for the sRGB-correct output pipeline (Engine B). Pre-sRGB
-	// these were ambient=0.35 / lightColor=1.0 to compensate for the
-	// display undershoot; now those values produce a sun-bleached
-	// overbright look. ambient 0.18 + lightColor ≈0.85 keeps the peak
-	// `ambient + nDotL*lightColor` close to 1.0 so directly-lit
-	// surfaces sit at "natural daylight" rather than blown-out white,
-	// and shadowed faces retain visible color instead of going flat.
-	lightData.ambient    = 0.26f; // legacy flat term, superseded by sky/ground below
-	lightData.lightColor = { 0.95f, 0.92f, 0.86f };
-	lightData.camPos     = camera.GetPosition(); // PBR view vector
-	// Hemispheric ambient: slightly cool/bright sky from above, warmer darker
-	// bounce from below. Roughly averages to the old 0.26 flat value.
-	lightData.ambientSky    = { 0.34f, 0.37f, 0.44f };
-	lightData.ambientGround = { 0.17f, 0.15f, 0.13f };
+	XMVECTOR rawDir; // direction the light travels (= -toward the light source)
+	if (sunHeight > 0.05f)
+	{
+		// Daytime. Sun arcs east->west; warmer + dimmer near the horizon.
+		const XMVECTOR sun = XMVector3Normalize(XMVectorSet(std::sin(dayAngle) * 0.6f, sunHeight, 0.25f, 0.0f));
+		rawDir = XMVectorNegate(sun);
+		const float warm   = sat(1.0f - sunHeight);   // 0 noon .. 1 horizon
+		const float bright = sat(sunHeight + 0.15f);
+		lightData.lightColor = {
+			lerpf(1.0f, 1.0f, warm) * bright,
+			lerpf(0.96f, 0.58f, warm) * bright,
+			lerpf(0.90f, 0.32f, warm) * bright };
+		lightData.ambientSky    = { lerpf(0.20f, 0.34f, bright), lerpf(0.18f, 0.40f, bright), lerpf(0.22f, 0.50f, bright) };
+		lightData.ambientGround = { lerpf(0.06f, 0.18f, bright), lerpf(0.05f, 0.16f, bright), lerpf(0.05f, 0.13f, bright) };
+	}
+	else
+	{
+		// Night. Dim, cool moonlight from a fixed high angle; low blue ambient
+		// kept above black so the world stays readable.
+		const XMVECTOR moon = XMVector3Normalize(XMVectorSet(-0.3f, 0.85f, -0.25f, 0.0f));
+		rawDir = XMVectorNegate(moon);
+		lightData.lightColor    = { 0.14f, 0.17f, 0.28f };
+		lightData.ambientSky    = { 0.10f, 0.12f, 0.18f };
+		lightData.ambientGround = { 0.04f, 0.045f, 0.06f };
+	}
+	XMStoreFloat3(&lightData.lightDir, rawDir);
+	lightData.ambient = 0.26f;                  // legacy flat term, unused by shaders now
+	lightData.camPos  = camera.GetPosition();   // PBR view vector
 	lightBuffer.Update(gfx, lightData);
 
 	// Shadow depth pass (Shadow S2): render all casters from the sun's POV
