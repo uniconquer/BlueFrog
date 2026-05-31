@@ -30,6 +30,12 @@ public:
 
     void Render(const Scene& scene, const TopDownCamera& camera) noexcept;
 
+    // Placement-tool ghost: a footprint box + a forward arrow (yaw) drawn at
+    // the cursor's ground point, independent of the F1 gizmo toggle. Shows
+    // where + which way the next prefab will drop.
+    void RenderGhost(const TopDownCamera& camera, float cx, float cz,
+        float halfX, float halfZ, float yaw, const DirectX::XMFLOAT3& color) noexcept;
+
 private:
     struct ViewProjData
     {
@@ -38,6 +44,9 @@ private:
 
     void EnsureCapacity(UINT vertexCount);
     void AppendAabbXZ(float cx, float y, float cz, float halfX, float halfZ, const DirectX::XMFLOAT3& color) noexcept;
+    // Upload the current `scratch` line list and issue the draw (shared by
+    // Render and RenderGhost).
+    void FlushAndDraw(const TopDownCamera& camera) noexcept;
 
     Graphics& gfx;
     Microsoft::WRL::ComPtr<ID3D11Buffer>             pVertexBuffer;

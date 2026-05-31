@@ -117,6 +117,9 @@ private:
 	bool        placeCyclePrev   = false;
 	bool        placeRotate      = false;
 	bool        placeUndo        = false;
+	float       placementCursorX = 0.0f;
+	float       placementCursorZ = 0.0f;
+	bool        placementCursorValid = false;
 	std::vector<std::string> placedNames;
 	bool   inspectorEnabled    = false;
 	int    inspectorSelected   = 0;

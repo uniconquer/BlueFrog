@@ -1,5 +1,7 @@
 #include "DebugRenderer.h"
 
+#include <cmath>
+
 #include "../Scene/CollisionComponent.h"
 #include "../Scene/SceneObject.h"
 #include "../Scene/TriggerComponent.h"
@@ -114,6 +116,38 @@ void DebugRenderer::Render(const Scene& scene, const TopDownCamera& camera) noex
             AppendAabbXZ(ox, oy, oz, tc.halfExtents.x, tc.halfExtents.y, color);
         }
     }
+
+    FlushAndDraw(camera);
+}
+
+void DebugRenderer::RenderGhost(const TopDownCamera& camera, float cx, float cz,
+    float halfX, float halfZ, float yaw, const DirectX::XMFLOAT3& color) noexcept
+{
+    scratch.clear();
+
+    // Footprint box (slightly above ground to avoid z-fight with the floor).
+    const float y = 0.02f;
+    AppendAabbXZ(cx, y, cz, halfX, halfZ, color);
+
+    // Forward arrow along the yaw direction (our convention: forward = (sin, cos)).
+    const float fx = std::sin(yaw), fz = std::cos(yaw);
+    const float len = (halfX > halfZ ? halfX : halfZ) + 0.6f;
+    const float px = -fz, pz = fx; // perpendicular, for the arrowhead
+    const auto V = [&](float x, float z) -> DebugPipeline::DebugVertex
+    {
+        return { x, y, z, color.x, color.y, color.z };
+    };
+    const float ax = cx + fx * len, az = cz + fz * len;
+    scratch.push_back(V(cx, cz));   scratch.push_back(V(ax, az));
+    scratch.push_back(V(ax, az));   scratch.push_back(V(ax - fx * 0.25f + px * 0.18f, az - fz * 0.25f + pz * 0.18f));
+    scratch.push_back(V(ax, az));   scratch.push_back(V(ax - fx * 0.25f - px * 0.18f, az - fz * 0.25f - pz * 0.18f));
+
+    FlushAndDraw(camera);
+}
+
+void DebugRenderer::FlushAndDraw(const TopDownCamera& camera) noexcept
+{
+    using namespace DirectX;
 
     if (scratch.empty())
     {

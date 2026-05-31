@@ -91,8 +91,13 @@ void FLApp::OnStartup()
 	audio.LoadSound("attack",     std::filesystem::path("Assets/Audio/attack.wav"));
 	audio.LoadSound("enemy_hit",  std::filesystem::path("Assets/Audio/enemy_hit.wav"));
 	audio.LoadSound("enemy_kill", std::filesystem::path("Assets/Audio/enemy_kill.wav"));
-	audio.LoadBgm("arena", std::filesystem::path("Assets/Audio/bgm_arena.wav"));
-	audio.PlayBgm("arena");
+	audio.LoadBgm("arena",   std::filesystem::path("Assets/Audio/bgm_arena.wav"));
+	audio.LoadBgm("village", std::filesystem::path("Assets/Audio/bgm_village.wav"));
+	// Pick the boot track by scene: the village hub gets the calm theme, the
+	// arena/combat scenes keep the arena track. (Per-scene BGM switching on
+	// portal transitions is a later refinement.)
+	const bool isVillageBoot = currentScenePath.find("village") != std::string::npos;
+	audio.PlayBgm(isVillageBoot ? "village" : "arena");
 	gameplaySimulation.SetAudio(&audio);
 	gameplaySimulation.SetDamagePopupSink(&activePopups);
 	gameplaySimulation.SetParticleSystem(&particleSystem);
@@ -912,18 +917,19 @@ GameplayInput FLApp::CollectGameplayInput(float dt) noexcept
 
 namespace
 {
-	struct PlacePrefab { const char* path; const char* label; };
-	// Curated palette for the placement tool. All single-object props plus the
+	struct PlacePrefab { const char* path; const char* label; float foot; };
+	// Curated palette for the placement tool. `foot` is the ghost footprint
+	// half-size (m) for the preview marker. All single-object props plus the
 	// House group prefab; extend freely.
 	const PlacePrefab kPlacePrefabs[] = {
-		{ "Assets/Prefabs/Barrel.prefab.json",    "Barrel" },
-		{ "Assets/Prefabs/Tree.prefab.json",      "Tree" },
-		{ "Assets/Prefabs/PineTree.prefab.json",  "PineTree" },
-		{ "Assets/Prefabs/BirchTree.prefab.json", "BirchTree" },
-		{ "Assets/Prefabs/Rock.prefab.json",      "Rock" },
-		{ "Assets/Prefabs/Bush.prefab.json",      "Bush" },
-		{ "Assets/Prefabs/Flowers.prefab.json",   "Flowers" },
-		{ "Assets/Prefabs/House.prefab.json",     "House" },
+		{ "Assets/Prefabs/Barrel.prefab.json",    "Barrel",    0.35f },
+		{ "Assets/Prefabs/Tree.prefab.json",      "Tree",      0.6f },
+		{ "Assets/Prefabs/PineTree.prefab.json",  "PineTree",  0.6f },
+		{ "Assets/Prefabs/BirchTree.prefab.json", "BirchTree", 0.5f },
+		{ "Assets/Prefabs/Rock.prefab.json",      "Rock",      0.5f },
+		{ "Assets/Prefabs/Bush.prefab.json",      "Bush",      0.6f },
+		{ "Assets/Prefabs/Flowers.prefab.json",   "Flowers",   0.5f },
+		{ "Assets/Prefabs/House.prefab.json",     "House",     2.5f },
 	};
 	constexpr int kPlacePrefabCount = static_cast<int>(sizeof(kPlacePrefabs) / sizeof(kPlacePrefabs[0]));
 }
@@ -958,11 +964,14 @@ void FLApp::UpdatePlacement(const GameplayInput& input) noexcept
 		}
 	}
 
+	// Track the cursor's ground point every frame for the ghost preview.
+	DirectX::XMFLOAT3 gp{};
+	placementCursorValid = PlayerAimSystem::ComputeMouseGroundPoint(input, camera, 0.0f, gp);
+	if (placementCursorValid) { placementCursorX = gp.x; placementCursorZ = gp.z; }
+
 	// LMB drops the selected prefab at the mouse's ground point (y = 0).
-	if (input.attackQueued)
+	if (input.attackQueued && placementCursorValid)
 	{
-		DirectX::XMFLOAT3 gp{};
-		if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, 0.0f, gp))
 		{
 			const std::string name = "Placed_" + std::to_string(placementCounter++);
 			std::string err;
@@ -1042,6 +1051,14 @@ void FLApp::OnRender()
 		// Draw between 3D and 2D so collision/trigger boxes sit in world
 		// space but the HUD/text overlays still come on top.
 		debugRenderer.Render(scene, camera);
+	}
+	// Placement ghost: footprint box + yaw arrow at the cursor's ground point.
+	if (placementMode && placementCursorValid)
+	{
+		const int pi = ((placementIndex % kPlacePrefabCount) + kPlacePrefabCount) % kPlacePrefabCount;
+		const float f = kPlacePrefabs[pi].foot;
+		debugRenderer.RenderGhost(camera, placementCursorX, placementCursorZ, f, f, placementYaw,
+			DirectX::XMFLOAT3{ 0.30f, 1.00f, 0.55f });
 	}
 	// Tonemap the HDR scene onto the back buffer (exposure + ACES). UI/text
 	// then composite on top in sRGB, untouched by tonemapping.
