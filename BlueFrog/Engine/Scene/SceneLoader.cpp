@@ -362,6 +362,15 @@ static bool BuildObjectFromJson(Scene& scene, json objJson, const std::filesyste
 		if (h.contains("respawnSec")) hc.respawnSec = h["respawnSec"].get<float>();
 		obj.harvestComponent = std::move(hc);
 	}
+	if (objJson.contains("loot"))
+	{
+		const auto& l = objJson["loot"];
+		LootComponent lc;
+		if (l.contains("itemId")) lc.itemId = l["itemId"].get<std::string>();
+		if (l.contains("amount")) lc.amount = l["amount"].get<int>();
+		if (l.contains("chance")) lc.chance = l["chance"].get<float>();
+		obj.lootComponent = std::move(lc);
+	}
 	return true;
 }
 

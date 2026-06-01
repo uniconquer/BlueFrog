@@ -220,6 +220,7 @@
     <ClInclude Include="Engine\Scene\CollisionComponent.h" />
     <ClInclude Include="Engine\Scene\CombatComponent.h" />
     <ClInclude Include="Engine\Scene\HarvestComponent.h" />
+    <ClInclude Include="Engine\Scene\LootComponent.h" />
     <ClInclude Include="Engine\Scene\EnemyBehaviorComponent.h" />
     <ClInclude Include="Engine\Scene\Material.h" />
     <ClInclude Include="Engine\Scene\NpcComponent.h" />

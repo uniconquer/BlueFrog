@@ -177,6 +177,15 @@ namespace
 		return j;
 	}
 
+	json EncodeLoot(const LootComponent& lc)
+	{
+		json j = json::object();
+		j["itemId"] = lc.itemId;
+		j["amount"] = lc.amount;
+		j["chance"] = lc.chance;
+		return j;
+	}
+
 	json EncodeSceneObject(const SceneObject& obj)
 	{
 		json j = json::object();
@@ -190,6 +199,7 @@ namespace
 		if (obj.animationStateComponent.has_value()) j["animation"] = EncodeAnimation(obj.animationStateComponent.value());
 		if (obj.npcComponent.has_value())      j["npc"]       = EncodeNpc(obj.npcComponent.value());
 		if (obj.harvestComponent.has_value())  j["harvest"]   = EncodeHarvest(obj.harvestComponent.value());
+		if (obj.lootComponent.has_value())     j["loot"]      = EncodeLoot(obj.lootComponent.value());
 		return j;
 	}
 

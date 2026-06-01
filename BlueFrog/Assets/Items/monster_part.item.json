@@ -1,0 +1,6 @@
+{
+  "id": "monster_part",
+  "name": "Monster Part",
+  "description": "A trophy scrap from a defeated foe. A combat drop used in crafting and bounties.",
+  "maxStack": 99
+}

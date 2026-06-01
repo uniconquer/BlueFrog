@@ -4,6 +4,7 @@
 #include "CombatComponent.h"
 #include "EnemyBehaviorComponent.h"
 #include "HarvestComponent.h"
+#include "LootComponent.h"
 #include "MountComponent.h"
 #include "NpcComponent.h"
 #include "RenderComponent.h"
@@ -26,6 +27,7 @@ struct SceneObject
 	std::optional<NpcComponent>      npcComponent;
 	std::optional<MountComponent>    mountComponent;
 	std::optional<HarvestComponent>  harvestComponent;
+	std::optional<LootComponent>     lootComponent;
 
 	bool CanRender() const noexcept
 	{

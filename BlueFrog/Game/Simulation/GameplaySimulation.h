@@ -17,6 +17,7 @@
 #include "TriggerGameplaySystem.h"
 #include <optional>
 #include <string>
+#include <utility>
 
 class AudioEngine;
 
@@ -81,6 +82,16 @@ public:
 	[[nodiscard]] HudState Update(const GameplayInput& input, Scene& scene, TopDownCamera& camera, float dt) noexcept;
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept;
 
+	// Loot rolled from enemies killed during the last Update (itemId, amount).
+	// FLApp drains this each frame and grants it to the inventory, keeping
+	// inventory/item knowledge on the game-app side. Cleared by the take.
+	[[nodiscard]] std::vector<std::pair<std::string, int>> TakePendingLoot() noexcept
+	{
+		std::vector<std::pair<std::string, int>> out = std::move(pendingLoot_);
+		pendingLoot_.clear();
+		return out;
+	}
+
 	// Pointer (possibly null) to the NPC the InteractionSystem found
 	// closest to the player this past tick — or nullptr when none was
 	// in range. Valid until the next Update or ReloadScene call. FLApp
@@ -117,4 +128,5 @@ private:
 	QuestSystem*                 questSystem_        = nullptr;
 	SkillSystem*                 skillSystem_        = nullptr;
 	class ParticleSystem*        particleSystem_     = nullptr;
+	std::vector<std::pair<std::string, int>> pendingLoot_;
 };

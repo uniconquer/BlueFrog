@@ -5,6 +5,8 @@
 #include "../Interaction/InteractionSystem.h"
 #include "../Interaction/NpcFacingSystem.h"
 
+#include <cstdlib>
+
 #include <sstream>
 #include <string>
 #include <utility>
@@ -128,6 +130,21 @@ HudState GameplaySimulation::Update(const GameplayInput& input, Scene& scene, To
 			// In practice trigger fireOnce prevents this, but explicit
 			// behaviour beats "first request by accident".
 			pendingSceneLoad = e.a;
+		}
+		else if (e.type == GameEventType::EnemyKilled && !e.a.empty())
+		{
+			// Loot drop: if the killed enemy carries a LootComponent, roll its
+			// chance and queue the grant for FLApp to apply to the inventory.
+			if (const SceneObject* victim = scene.FindObject(e.a);
+				victim != nullptr && victim->lootComponent.has_value())
+			{
+				const auto& lc = victim->lootComponent.value();
+				const float roll = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+				if (roll <= lc.chance && !lc.itemId.empty() && lc.amount > 0)
+				{
+					pendingLoot_.emplace_back(lc.itemId, lc.amount);
+				}
+			}
 		}
 	}
 	objectiveSystem.Consume(events);

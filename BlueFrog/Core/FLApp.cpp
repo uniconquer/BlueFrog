@@ -767,6 +767,15 @@ void FLApp::UpdateModel(const GameplayInput& input, float dt) noexcept
 {
 	hudState = gameplaySimulation.Update(input, scene, camera, dt);
 
+	// Grant any loot rolled from enemies killed this tick (combat -> inventory).
+	for (const auto& [id, count] : gameplaySimulation.TakePendingLoot())
+	{
+		const int added = inventory.Add(id, count, &itemRegistry);
+		const std::string msg = "[Loot] +" + std::to_string(added) + " " + id + "\n";
+		std::fputs(msg.c_str(), stdout);
+		::OutputDebugStringA(msg.c_str());
+	}
+
 	// Honor LoadSceneRequested events drained during Update. Reload happens
 	// here — after every system has finished iterating the scene — so no
 	// live references into scene objects are invalidated mid-tick. We

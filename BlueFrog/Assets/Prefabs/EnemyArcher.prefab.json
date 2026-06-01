@@ -2,6 +2,7 @@
   "render":    { "meshPath": "Assets/Models/Mixamo/Knight.glb", "importScale": 0.95, "material": { "tint": [0.50, 0.60, 0.85] } },
   "collision": { "halfExtents": [0.45, 0.45], "blocking": true },
   "combat":    { "faction": "enemy", "maxHp": 2, "currentHp": 2 },
+  "loot":      { "itemId": "monster_part", "amount": 1, "chance": 1.0 },
   "behavior":  { "type": "archer" },
   "animation": { "clipName": "Idle", "playSpeed": 1.0, "looping": true }
 }
