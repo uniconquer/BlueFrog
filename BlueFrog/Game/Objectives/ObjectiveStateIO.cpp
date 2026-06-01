@@ -52,11 +52,12 @@ namespace
 		out.type = leafNode.value("type", std::string{});
 		out.name = leafNode.value("name", std::string{});
 
-		// v1 leaf allow-list. Add new leaf types here when their matcher
-		// is wired in ObjectiveSystem::Consume.
-		if (out.type != "enemy_killed")
+		// Leaf allow-list. enemy_killed is event-driven (ObjectiveSystem /
+		// QuestSystem::Consume); collect_item is inventory-driven (quest only,
+		// synced by QuestSystem::SyncCollectProgress — name = item id).
+		if (out.type != "enemy_killed" && out.type != "collect_item")
 		{
-			return SetError(errorOut, pathPrefix + "objective leaf: unknown type '" + out.type + "' (expected 'enemy_killed')");
+			return SetError(errorOut, pathPrefix + "objective leaf: unknown type '" + out.type + "' (expected 'enemy_killed' or 'collect_item')");
 		}
 
 		// "count" is optional; absence means 1 (the v1 single-kill default).

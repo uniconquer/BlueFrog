@@ -1,0 +1,14 @@
+{
+  "id": "gather_supplies",
+  "title": "Supplies for the Village",
+  "conditions": [
+    { "type": "collect_item", "name": "wood",  "count": 3 },
+    { "type": "collect_item", "name": "stone", "count": 2 }
+  ],
+  "dialogOffer":    "We're short on building materials. Bring me 3 Wood and 2 Stone and I'll reward you.",
+  "dialogActive":   "Still need 3 Wood and 2 Stone. Chop trees and mine rocks out there!",
+  "dialogComplete": "Wonderful, just what we needed. Here, take these for your trouble.",
+  "dialogTurnedIn": "Thanks again for the supplies, friend."
+,
+  "reward": { "healPlayer": 3, "itemId": "healing_potion", "itemQuantity": 2 }
+}

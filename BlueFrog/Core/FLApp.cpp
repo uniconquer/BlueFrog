@@ -205,6 +205,11 @@ void FLApp::OnUpdate(float dt)
 	// pattern. Skipped while dialog is active (turning a dialog
 	// into a heal moment would be confusing); inventory open is
 	// fine because the panel updates immediately.
+	// Sync collect-quest progress against the live inventory so a gather
+	// quest flips to Complete the moment the player holds enough materials
+	// (before this frame's dialog open reads its status).
+	questSystem.SyncCollectProgress([this](const std::string& id) { return inventory.Count(id); });
+
 	// Crafting panel toggle (C). Mutually exclusive with dialog/inventory;
 	// pauses the sim. Opening it closes any other modal.
 	if (craftKeyPressedThisFrame)
@@ -385,19 +390,25 @@ void FLApp::OnUpdate(float dt)
 						dialogText = q->dialogActive;
 						break;
 					case QuestStatus::Complete:
-						// Phase I-2B: auto-turn-in on first dialog
-						// open after the quest hits Complete. The
-						// player sees `dialogComplete` THIS frame and
-						// the reward applies immediately; subsequent
-						// opens land in the TurnedIn branch below and
-						// show the past-tense line.
-						dialogText = q->dialogComplete;
-						if (questSystem.TurnIn(nc.questId))
+						// Auto-turn-in on first dialog open after Complete.
+						// For collect quests we must still hold the materials
+						// at this moment (the player could have spent them);
+						// ConsumeQuestCollect verifies + removes them, and only
+						// then do we turn in + reward. Kill-only quests have no
+						// collect leaves so it consumes nothing and returns true.
+						if (ConsumeQuestCollect(q))
 						{
-							ApplyQuestReward(q->reward);
-							// Audio cue would be ideal here (a "quest
-							// complete" jingle), but no asset shipped
-							// yet — TODO Phase I-2 follow-up.
+							dialogText = q->dialogComplete;
+							if (questSystem.TurnIn(nc.questId))
+							{
+								ApplyQuestReward(q->reward);
+							}
+						}
+						else
+						{
+							// Materials no longer in inventory — keep them on
+							// the hook with the in-progress line.
+							dialogText = q->dialogActive;
 						}
 						break;
 					case QuestStatus::TurnedIn:
@@ -857,6 +868,33 @@ void FLApp::UpdateModel(const GameplayInput& input, float dt) noexcept
 	}
 }
 
+bool FLApp::ConsumeQuestCollect(const Quest* quest) noexcept
+{
+	if (quest == nullptr) return true;
+	// Verify every collect_item leaf is satisfiable before removing anything.
+	for (const auto& cond : quest->conditions)
+	{
+		for (const auto& leaf : cond.leaves)
+		{
+			if (leaf.type == "collect_item" && inventory.Count(leaf.name) < leaf.required)
+			{
+				return false;
+			}
+		}
+	}
+	for (const auto& cond : quest->conditions)
+	{
+		for (const auto& leaf : cond.leaves)
+		{
+			if (leaf.type == "collect_item")
+			{
+				inventory.Take(leaf.name, leaf.required);
+			}
+		}
+	}
+	return true;
+}
+
 void FLApp::ApplyQuestReward(const QuestReward& reward) noexcept
 {
 	// Both fields are independent. Apply boostMaxHealth FIRST so the
@@ -1051,6 +1089,8 @@ namespace
 		{ "Assets/Prefabs/Wagon.prefab.json",     "Wagon",      2.0f },
 		{ "Assets/Prefabs/WoodenFence.prefab.json","WoodenFence",1.0f },
 		{ "Assets/Prefabs/MetalFence.prefab.json", "MetalFence", 1.0f },
+		// NPCs
+		{ "Assets/Prefabs/QuestGiver.prefab.json", "QuestGiver(Carpenter)", 0.5f },
 		// Buildings + modules
 		{ "Assets/Prefabs/House.prefab.json",         "House",        2.5f },
 		{ "Assets/Prefabs/ModFloor.prefab.json",      "ModFloor",     1.0f },

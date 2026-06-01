@@ -5,6 +5,7 @@
 
 #include "../../Engine/Events/GameEvent.h"
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -54,6 +55,12 @@ public:
 	// progress where the names match. Transitions Active → Complete
 	// when ConditionsMet flips true.
 	void Consume(const std::vector<GameEvent>& events) noexcept;
+
+	// Sync "collect_item" leaves (name = item id) against the current
+	// inventory via the supplied count lookup, promoting Active → Complete
+	// when all conditions are met. Called each tick by the game (which owns
+	// the inventory). Only ever raises progress / promotes; never demotes.
+	void SyncCollectProgress(const std::function<int(const std::string&)>& have) noexcept;
 
 	// Total quest entries currently tracked (Active + Complete +
 	// TurnedIn). Available quests don't allocate.

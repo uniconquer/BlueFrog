@@ -109,6 +109,35 @@ bool QuestSystem::TurnIn(const std::string& questId) noexcept
 	return true;
 }
 
+void QuestSystem::SyncCollectProgress(const std::function<int(const std::string&)>& have) noexcept
+{
+	if (state_.empty() || !have) return;
+	for (auto& [id, rt] : state_)
+	{
+		if (rt.status != QuestStatus::Active) continue;
+		bool touched = false;
+		for (auto& cond : rt.conditionsLive)
+		{
+			for (auto& leaf : cond.leaves)
+			{
+				if (leaf.type == "collect_item")
+				{
+					const int h = have(leaf.name);
+					leaf.progress = (h > leaf.required) ? leaf.required : h;
+					touched = true;
+				}
+			}
+		}
+		if (!touched) continue;
+		bool allMet = !rt.conditionsLive.empty();
+		for (const auto& c : rt.conditionsLive)
+		{
+			if (!c.IsMet()) { allMet = false; break; }
+		}
+		if (allMet) rt.status = QuestStatus::Complete;
+	}
+}
+
 void QuestSystem::Consume(const std::vector<GameEvent>& events) noexcept
 {
 	if (state_.empty()) return;

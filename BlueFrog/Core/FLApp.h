@@ -52,6 +52,10 @@ private:
 	GameplayInput CollectGameplayInput(float dt) noexcept;
 	void PollDebugToggles() noexcept;
 	void ApplyQuestReward(const struct QuestReward& reward) noexcept;
+	// For a collect quest: if the inventory holds every "collect_item" input,
+	// remove them and return true (kill-only quests consume nothing -> true);
+	// otherwise consume nothing and return false. Called at turn-in.
+	[[nodiscard]] bool ConsumeQuestCollect(const struct Quest* quest) noexcept;
 	// Consume one of the (currently hardcoded) "healing_potion" item
 	// from inventory and apply its ItemEffect to the player. No-op
 	// when the inventory is empty. Phase I-3D will generalize to
