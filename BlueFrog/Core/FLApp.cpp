@@ -135,6 +135,12 @@ void FLApp::OnStartup()
 		std::fputs(("[Item] registry load failed: " + itemErr + "\n").c_str(), stdout);
 		::OutputDebugStringA(("[Item] registry load failed: " + itemErr + "\n").c_str());
 	}
+	std::string recipeErr;
+	if (!recipeRegistry.LoadAll(std::filesystem::path("Assets/Recipes"), &recipeErr))
+	{
+		std::fputs(("[Recipe] registry load failed: " + recipeErr + "\n").c_str(), stdout);
+		::OutputDebugStringA(("[Recipe] registry load failed: " + recipeErr + "\n").c_str());
+	}
 
 	// Persistence restore (Phase I-D). The profile loaded at the top
 	// of this function already carries quest + inventory snapshots —
@@ -184,6 +190,8 @@ void FLApp::OnUpdate(float dt)
 		consumeHotkeyPressedThisFrame = false;
 		inventoryKeyPressedThisFrame = false;
 		interactPressedThisFrame = false;
+		digitPressedThisFrame = 0;
+		craftKeyPressedThisFrame = false;
 	}
 
 	// Dialog state transitions (Phase I-1C). E toggles: in dialog → exit;
@@ -197,10 +205,43 @@ void FLApp::OnUpdate(float dt)
 	// pattern. Skipped while dialog is active (turning a dialog
 	// into a heal moment would be confusing); inventory open is
 	// fine because the panel updates immediately.
-	if (consumeHotkeyPressedThisFrame)
+	// Crafting panel toggle (C). Mutually exclusive with dialog/inventory;
+	// pauses the sim. Opening it closes any other modal.
+	if (craftKeyPressedThisFrame)
 	{
-		consumeHotkeyPressedThisFrame = false;
-		if (!dialogActive)
+		craftKeyPressedThisFrame = false;
+		if (craftingActive)
+		{
+			craftingActive = false;
+			craftingFade   = 0.0f;
+		}
+		else
+		{
+			craftingActive = true;
+			craftingFade   = 0.0f;
+			inventoryActive = false;
+			if (dialogActive)
+			{
+				dialogActive = false;
+				dialogNpcName.clear();
+				dialogText.clear();
+				dialogFade = 0.0f;
+				RestoreDialogFacing(scene);
+			}
+		}
+	}
+
+	// Digit (1-9) dispatch: a crafting slot while the crafting panel is open,
+	// otherwise the consumable hotkey (slot 1, healing potion).
+	if (digitPressedThisFrame > 0)
+	{
+		const int d = digitPressedThisFrame;
+		digitPressedThisFrame = 0;
+		if (craftingActive)
+		{
+			TryCraft(d - 1);
+		}
+		else if (d == 1 && !dialogActive)
 		{
 			UseConsumable();
 		}
@@ -222,6 +263,7 @@ void FLApp::OnUpdate(float dt)
 		{
 			inventoryActive = true;
 			inventoryFade   = 0.0f;
+			craftingActive  = false;
 			// Close any active dialog so the player doesn't have two
 			// modals stacked.
 			if (dialogActive)
@@ -411,7 +453,7 @@ void FLApp::OnUpdate(float dt)
 	// UpdateModel entirely so movement, combat, animation, triggers,
 	// AND queued input all freeze. The fades above still run on real
 	// dt because they tick before the gate.
-	const bool worldPaused = dialogActive || inventoryActive;
+	const bool worldPaused = dialogActive || inventoryActive || craftingActive;
 	if (!worldPaused)
 	{
 		UpdateModel(input, dt);
@@ -585,11 +627,15 @@ void FLApp::PollDebugToggles() noexcept
 			// only FLApp itself does).
 			inventoryKeyPressedThisFrame = true;
 			break;
-		case '1':
-			// Consumable hotkey slot 0 (Phase I-3C). v1 hardcodes
-			// "healing_potion" as the target; a future hotbar system
-			// will map slot indices to item ids.
-			consumeHotkeyPressedThisFrame = true;
+		case '1': case '2': case '3': case '4': case '5':
+		case '6': case '7': case '8': case '9':
+			// Digit edge. Drives the consumable hotkey (slot 1) normally, or a
+			// crafting slot when the crafting panel is open (handled in OnUpdate).
+			digitPressedThisFrame = e->GetCode() - '0';
+			break;
+		case 'C':
+			// Toggle the crafting panel.
+			craftKeyPressedThisFrame = true;
 			break;
 		case 'F':
 			// Second skill slot. PlayerController routes this through
@@ -858,6 +904,30 @@ void FLApp::RestoreDialogFacing(Scene& scene) noexcept
 		npc->transform.rotation.y = dialogFacingSavedYaw;
 	}
 	dialogFacingNpc.clear();
+}
+
+void FLApp::TryCraft(int slotIndex) noexcept
+{
+	const auto& recipes = recipeRegistry.All();
+	if (slotIndex < 0 || slotIndex >= static_cast<int>(recipes.size())) return;
+	const Recipe& r = recipes[slotIndex];
+
+	// All inputs must be present before we consume anything.
+	for (const auto& in : r.inputs)
+	{
+		if (inventory.Count(in.itemId) < in.count)
+		{
+			const std::string msg = "[Craft] not enough materials for " + r.outputItemId + "\n";
+			std::fputs(msg.c_str(), stdout);
+			::OutputDebugStringA(msg.c_str());
+			return;
+		}
+	}
+	for (const auto& in : r.inputs) inventory.Take(in.itemId, in.count);
+	const int added = inventory.Add(r.outputItemId, r.outputCount, &itemRegistry);
+	const std::string msg = "[Craft] +" + std::to_string(added) + " " + r.outputItemId + "\n";
+	std::fputs(msg.c_str(), stdout);
+	::OutputDebugStringA(msg.c_str());
 }
 
 void FLApp::UseConsumable() noexcept
@@ -1173,6 +1243,35 @@ void FLApp::OnRender()
 			lines.push_back(name + L"  x" + std::to_wstring(count));
 		}
 		textRenderer.RenderInventory(lines, GetWindow().GetWidth(), GetWindow().GetHeight(), inventoryFade);
+	}
+	if (craftingActive)
+	{
+		// Build recipe rows game-side: "[n] Output xK  <- in1 xC, in2 xC  [OK]".
+		auto itemName = [&](const std::string& id) -> std::wstring {
+			const Item* d = itemRegistry.Find(id);
+			return (d && !d->name.empty()) ? d->name : Widen(id);
+		};
+		std::vector<std::wstring> lines;
+		int slot = 1;
+		for (const auto& r : recipeRegistry.All())
+		{
+			std::wstring row = L"[" + std::to_wstring(slot) + L"] " + itemName(r.outputItemId);
+			if (r.outputCount > 1) row += L" x" + std::to_wstring(r.outputCount);
+			row += L"  <- ";
+			bool affordable = true;
+			for (size_t i = 0; i < r.inputs.size(); ++i)
+			{
+				const auto& in = r.inputs[i];
+				const int have = inventory.Count(in.itemId);
+				if (have < in.count) affordable = false;
+				if (i > 0) row += L", ";
+				row += itemName(in.itemId) + L" " + std::to_wstring(have) + L"/" + std::to_wstring(in.count);
+			}
+			row += affordable ? L"   [OK]" : L"   [need]";
+			lines.push_back(row);
+			++slot;
+		}
+		textRenderer.RenderCrafting(lines, GetWindow().GetWidth(), GetWindow().GetHeight(), 1.0f);
 	}
 	// Damage-number overlay: drawn between the persistent HUD text and the
 	// inspector panel so the panel (if open) still covers the right-side

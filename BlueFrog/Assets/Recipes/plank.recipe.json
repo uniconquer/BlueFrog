@@ -1,0 +1,1 @@
+{ "id": "plank", "name": "Wooden Plank", "output": "plank", "outputCount": 1, "inputs": [ { "itemId": "wood", "count": 3 } ] }

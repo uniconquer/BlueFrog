@@ -51,6 +51,11 @@ public:
     // placeholder. `alpha` mirrors RenderDialog's fade param.
     void RenderInventory(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept;
 
+    // Crafting panel — same modal as the inventory but headed "Crafting" with
+    // a [1-9] Craft footer. Each line is a pre-formatted recipe row built by
+    // the game side (engine stays agnostic about recipes/items).
+    void RenderCrafting(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept;
+
     // Placement-tool overlay (world editor): a top-left panel showing the
     // current prefab + index, rotation, placed count, and key hints. Drawn
     // only while placement mode is active.

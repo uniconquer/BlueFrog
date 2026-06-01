@@ -18,6 +18,7 @@
 #include "../Game/Simulation/GameplaySimulation.h"
 #include "../Game/Inventory/Inventory.h"
 #include "../Game/Inventory/ItemRegistry.h"
+#include "../Game/Crafting/RecipeRegistry.h"
 #include "../Game/Profile/PlayerProfile.h"
 #include "../Game/Quest/QuestRegistry.h"
 #include "../Game/Quest/QuestSystem.h"
@@ -56,6 +57,9 @@ private:
 	// when the inventory is empty. Phase I-3D will generalize to
 	// hotbar slot → item-id mapping.
 	void UseConsumable() noexcept;
+	// Attempt to craft the recipe at `slotIndex` (crafting panel order): if the
+	// inventory holds every input, consume them and add the output.
+	void TryCraft(int slotIndex) noexcept;
 	// Restore the dialog NPC's authored facing (saved when the dialog
 	// opened) and clear the tracking state. No-op when no NPC was faced.
 	void RestoreDialogFacing(Scene& scene) noexcept;
@@ -95,6 +99,8 @@ private:
 	// launches.
 	ItemRegistry itemRegistry;
 	Inventory    inventory;
+	// Crafting recipe definitions (Assets/Recipes/*.recipe.json), loaded once.
+	RecipeRegistry recipeRegistry;
 
 	// Skill layer. Registry holds static definitions loaded from
 	// Assets/Skills/*.skill.json; SkillSystem owns per-actor
@@ -189,8 +195,15 @@ private:
 	// for the E key — PollDebugToggles latches, CollectGameplayInput
 	// reads + clears.
 	bool          inventoryKeyPressedThisFrame = false;
-	// '1' hotkey edge for the first consumable slot.
-	bool          consumeHotkeyPressedThisFrame = false;
+	// Digit (1-9) edge: drives the consumable hotkey when no modal is open,
+	// or the crafting slot when the crafting panel is open. 0 = none.
+	int           digitPressedThisFrame = 0;
+	bool          consumeHotkeyPressedThisFrame = false; // legacy alias (unused)
+	// Crafting panel (C key). Mutually exclusive with dialog/inventory;
+	// pauses the simulation. Number keys craft the matching recipe slot.
+	bool          craftingActive   = false;
+	float         craftingFade     = 0.0f;
+	bool          craftKeyPressedThisFrame = false;
 	// E-key edge detection. PollDebugToggles consumes the keyboard event
 	// queue and sets this flag for the current frame; CollectGameplayInput
 	// reads it into the GameplayInput, then we clear it.

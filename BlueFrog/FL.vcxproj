@@ -164,6 +164,7 @@
     <ClCompile Include="Game\Combat\KnockbackSystem.cpp" />
     <ClCompile Include="Game\Interaction\InteractionSystem.cpp" />
     <ClCompile Include="Game\Interaction\NpcFacingSystem.cpp" />
+    <ClCompile Include="Game\Crafting\RecipeRegistry.cpp" />
     <ClCompile Include="Game\Inventory\Inventory.cpp" />
     <ClCompile Include="Game\Inventory\ItemLoader.cpp" />
     <ClCompile Include="Game\Inventory\ItemRegistry.cpp" />
@@ -187,6 +188,8 @@
     <ClInclude Include="Game\Combat\KnockbackSystem.h" />
     <ClInclude Include="Game\Interaction\InteractionSystem.h" />
     <ClInclude Include="Game\Interaction\NpcFacingSystem.h" />
+    <ClInclude Include="Game\Crafting\Recipe.h" />
+    <ClInclude Include="Game\Crafting\RecipeRegistry.h" />
     <ClInclude Include="Game\Inventory\Inventory.h" />
     <ClInclude Include="Game\Inventory\Item.h" />
     <ClInclude Include="Game\Inventory\ItemLoader.h" />

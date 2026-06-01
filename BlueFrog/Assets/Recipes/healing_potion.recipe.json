@@ -1,0 +1,1 @@
+{ "id": "healing_potion", "name": "Healing Potion", "output": "healing_potion", "outputCount": 1, "inputs": [ { "itemId": "fiber", "count": 2 }, { "itemId": "wood", "count": 1 } ] }

@@ -1,0 +1,1 @@
+{ "id": "charm", "name": "Trophy Charm", "output": "charm", "outputCount": 1, "inputs": [ { "itemId": "monster_part", "count": 2 }, { "itemId": "stone", "count": 1 } ] }
