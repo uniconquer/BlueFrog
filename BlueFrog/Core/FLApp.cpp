@@ -301,6 +301,21 @@ void FLApp::OnUpdate(float dt)
 				}
 				gameplaySimulation.GetPlayerController().SetMount(target->name);
 			}
+			else if (target->harvestComponent.has_value() && target->harvestComponent->Ready())
+			{
+				// Gather a resource node: grant the item, then put the node on
+				// its respawn cooldown so it can't be farmed instantly.
+				if (SceneObject* node = scene.FindObject(target->name);
+					node != nullptr && node->harvestComponent.has_value())
+				{
+					auto& hc = node->harvestComponent.value();
+					const int added = inventory.Add(hc.itemId, hc.amount, &itemRegistry);
+					hc.cooldownRemaining = hc.respawnSec;
+					const std::string msg = "[Gather] +" + std::to_string(added) + " " + hc.itemId + "\n";
+					std::fputs(msg.c_str(), stdout);
+					::OutputDebugStringA(msg.c_str());
+				}
+			}
 			else if (target->npcComponent.has_value())
 			{
 				dialogActive = true;
@@ -400,6 +415,17 @@ void FLApp::OnUpdate(float dt)
 	if (!worldPaused)
 	{
 		UpdateModel(input, dt);
+	}
+
+	// Tick harvest-node respawn cooldowns (life-skill gathering). Runs every
+	// frame so depleted nodes regrow on the wall clock even while paused.
+	for (auto& o : scene.GetObjects())
+	{
+		if (o.harvestComponent.has_value() && o.harvestComponent->cooldownRemaining > 0.0f)
+		{
+			o.harvestComponent->cooldownRemaining =
+				(std::max)(0.0f, o.harvestComponent->cooldownRemaining - dt);
+		}
 	}
 
 	// Quest HUD overlay: if a quest is in flight (Active or Complete),
@@ -936,6 +962,10 @@ namespace
 		{ "Assets/Prefabs/Rock.prefab.json",      "Rock",       0.5f },
 		{ "Assets/Prefabs/RockMoss.prefab.json",  "RockMoss",   0.5f },
 		{ "Assets/Prefabs/TreeStump.prefab.json", "TreeStump",  0.4f },
+		// Harvest nodes (life-skill gathering: E to gather)
+		{ "Assets/Prefabs/HarvestTree.prefab.json", "Harvest:Tree", 0.4f },
+		{ "Assets/Prefabs/HarvestRock.prefab.json", "Harvest:Rock", 0.5f },
+		{ "Assets/Prefabs/HarvestBush.prefab.json", "Harvest:Bush", 0.6f },
 		// Props
 		{ "Assets/Prefabs/Barrel.prefab.json",    "Barrel",     0.35f },
 		{ "Assets/Prefabs/Crate.prefab.json",     "Crate",      0.55f },

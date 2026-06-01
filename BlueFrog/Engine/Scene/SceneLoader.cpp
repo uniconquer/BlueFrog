@@ -353,6 +353,15 @@ static bool BuildObjectFromJson(Scene& scene, json objJson, const std::filesyste
 		if (m.contains("speedMultiplier")) mc.speedMultiplier = m["speedMultiplier"].get<float>();
 		obj.mountComponent = std::move(mc);
 	}
+	if (objJson.contains("harvest"))
+	{
+		const auto& h = objJson["harvest"];
+		HarvestComponent hc;
+		if (h.contains("itemId"))     hc.itemId     = h["itemId"].get<std::string>();
+		if (h.contains("amount"))     hc.amount     = h["amount"].get<int>();
+		if (h.contains("respawnSec")) hc.respawnSec = h["respawnSec"].get<float>();
+		obj.harvestComponent = std::move(hc);
+	}
 	return true;
 }
 

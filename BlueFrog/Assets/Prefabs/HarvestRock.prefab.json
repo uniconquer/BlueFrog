@@ -1,0 +1,5 @@
+{
+  "render":    { "meshPath": "Assets/Models/Nature/Rock_1.glb", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
+  "collision": { "halfExtents": [0.5, 0.5], "blocking": true },
+  "harvest":   { "itemId": "stone", "amount": 2, "respawnSec": 12.0 }
+}

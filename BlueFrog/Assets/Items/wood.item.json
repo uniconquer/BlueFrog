@@ -1,0 +1,6 @@
+{
+  "id": "wood",
+  "name": "Wood",
+  "description": "A bundle of sturdy logs. A basic crafting material gathered from trees.",
+  "maxStack": 99
+}

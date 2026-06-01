@@ -1,0 +1,6 @@
+{
+  "id": "stone",
+  "name": "Stone",
+  "description": "Rough chunks of rock. A basic crafting material gathered from boulders.",
+  "maxStack": 99
+}

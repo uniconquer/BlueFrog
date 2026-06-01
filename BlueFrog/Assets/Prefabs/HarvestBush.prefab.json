@@ -1,0 +1,4 @@
+{
+  "render":  { "meshPath": "Assets/Models/Nature/Bush_1.glb", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
+  "harvest": { "itemId": "fiber", "amount": 1, "respawnSec": 8.0 }
+}

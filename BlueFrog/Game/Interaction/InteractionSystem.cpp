@@ -44,7 +44,9 @@ namespace InteractionSystem
 			// only in the prompt label + the action FLApp picks.
 			const bool hasNpc   = obj.npcComponent.has_value();
 			const bool hasMount = obj.mountComponent.has_value();
-			if (!hasNpc && !hasMount) continue;
+			// Harvest nodes only advertise when not on cooldown (Ready).
+			const bool hasHarvest = obj.harvestComponent.has_value() && obj.harvestComponent->Ready();
+			if (!hasNpc && !hasMount && !hasHarvest) continue;
 			// Mounts that already have a rider should not advertise
 			// themselves — re-mount prompt while already mounted reads
 			// as a bug.
@@ -76,6 +78,11 @@ namespace InteractionSystem
 			label = best->mountComponent->displayName.empty()
 				? best->name
 				: best->mountComponent->displayName;
+		}
+		else if (best->harvestComponent.has_value())
+		{
+			verb  = "Gather";
+			label = best->harvestComponent->itemId;
 		}
 		else
 		{
