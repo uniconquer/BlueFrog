@@ -925,14 +925,31 @@ namespace
 	// half-size (m) for the preview marker. All single-object props plus the
 	// House group prefab; extend freely.
 	const PlacePrefab kPlacePrefabs[] = {
-		{ "Assets/Prefabs/Barrel.prefab.json",    "Barrel",    0.35f },
-		{ "Assets/Prefabs/Tree.prefab.json",      "Tree",      0.6f },
-		{ "Assets/Prefabs/PineTree.prefab.json",  "PineTree",  0.6f },
-		{ "Assets/Prefabs/BirchTree.prefab.json", "BirchTree", 0.5f },
-		{ "Assets/Prefabs/Rock.prefab.json",      "Rock",      0.5f },
-		{ "Assets/Prefabs/Bush.prefab.json",      "Bush",      0.6f },
-		{ "Assets/Prefabs/Flowers.prefab.json",   "Flowers",   0.5f },
-		{ "Assets/Prefabs/House.prefab.json",     "House",     2.5f },
+		// Nature
+		{ "Assets/Prefabs/Tree.prefab.json",      "Tree",       0.6f },
+		{ "Assets/Prefabs/PineTree.prefab.json",  "PineTree",   0.6f },
+		{ "Assets/Prefabs/BirchTree.prefab.json", "BirchTree",  0.5f },
+		{ "Assets/Prefabs/Willow.prefab.json",    "Willow",     0.7f },
+		{ "Assets/Prefabs/Bush.prefab.json",      "Bush",       0.6f },
+		{ "Assets/Prefabs/Flowers.prefab.json",   "Flowers",    0.5f },
+		{ "Assets/Prefabs/Grass.prefab.json",     "Grass",      0.4f },
+		{ "Assets/Prefabs/Rock.prefab.json",      "Rock",       0.5f },
+		{ "Assets/Prefabs/RockMoss.prefab.json",  "RockMoss",   0.5f },
+		{ "Assets/Prefabs/TreeStump.prefab.json", "TreeStump",  0.4f },
+		// Props
+		{ "Assets/Prefabs/Barrel.prefab.json",    "Barrel",     0.35f },
+		{ "Assets/Prefabs/Crate.prefab.json",     "Crate",      0.55f },
+		{ "Assets/Prefabs/Wagon.prefab.json",     "Wagon",      2.0f },
+		{ "Assets/Prefabs/WoodenFence.prefab.json","WoodenFence",1.0f },
+		{ "Assets/Prefabs/MetalFence.prefab.json", "MetalFence", 1.0f },
+		// Buildings + modules
+		{ "Assets/Prefabs/House.prefab.json",         "House",        2.5f },
+		{ "Assets/Prefabs/ModFloor.prefab.json",      "ModFloor",     1.0f },
+		{ "Assets/Prefabs/ModWallStraight.prefab.json","ModWall",     1.0f },
+		{ "Assets/Prefabs/ModWallDoor.prefab.json",   "ModWallDoor",  1.0f },
+		{ "Assets/Prefabs/ModWallWindow.prefab.json", "ModWallWindow",1.0f },
+		{ "Assets/Prefabs/ModCorner.prefab.json",     "ModCorner",    0.6f },
+		{ "Assets/Prefabs/ModRoof.prefab.json",       "ModRoof",      2.0f },
 	};
 	constexpr int kPlacePrefabCount = static_cast<int>(sizeof(kPlacePrefabs) / sizeof(kPlacePrefabs[0]));
 }

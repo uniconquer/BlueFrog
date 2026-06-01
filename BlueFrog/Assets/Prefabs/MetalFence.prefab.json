@@ -1,0 +1,4 @@
+{
+  "render": { "meshPath": "Assets/Models/Medieval/modules/Prop_MetalFence_Simple.gltf", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
+  "collision": { "halfExtents": [1.0, 0.15], "blocking": true }
+}
