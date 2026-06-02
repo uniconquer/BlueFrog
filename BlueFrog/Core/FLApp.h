@@ -127,6 +127,7 @@ private:
 	bool        placeCyclePrev   = false;
 	bool        placeRotate      = false;
 	bool        placeUndo        = false;
+	bool        placeDeleteNearest = false;
 	bool        placeSnapToggle  = false;
 	bool        placementSnap    = false;
 	// Cached single-mesh ghost for the current prefab (re-resolved on cycle).

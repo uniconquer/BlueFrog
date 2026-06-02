@@ -516,8 +516,8 @@ void TextRenderer::RenderPlacementHud(const std::wstring& prefabLabel, int prefa
     line(buf, whiteBrush.Get(), dialogBodyFormat.Get());
     swprintf_s(buf, L"Grid snap:  %s   (G)", gridSnap ? L"ON  (1 m)" : L"OFF");
     line(buf, gridSnap ? (highlightBrush ? highlightBrush.Get() : whiteBrush.Get()) : whiteBrush.Get(), dialogBodyFormat.Get());
-    line(L"[ ]  cycle      T  rotate      LMB  place", dim, dialogBodyFormat.Get());
-    line(L"Backspace  undo     F12  save     F4  exit", dim, dialogBodyFormat.Get());
+    line(L"[ ] cycle   T rotate   G snap   LMB place", dim, dialogBodyFormat.Get());
+    line(L"Backspace undo   Del remove   F12 save   F4 exit", dim, dialogBodyFormat.Get());
 }
 
 void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH, float alpha) noexcept

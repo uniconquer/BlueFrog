@@ -1,16 +1,32 @@
 #include "CollisionSystem.h"
-#include "AABB.h"
+
+#include <algorithm>
+#include <cmath>
 
 namespace
 {
-	AABB BuildBounds(const SceneObject& object, const DirectX::XMFLOAT3& position) noexcept
+	// Circle (the moving actor, approximated as a disc) vs an oriented box
+	// (the blocker, an OBB built from halfExtents + the blocker's yaw). Tests
+	// in the box's local frame so blockers collide exactly where they sit when
+	// rotated — a long thin wall stays long+thin at any angle. Our yaw
+	// convention maps local->world as (lx*c + lz*s, -lx*s + lz*c), so the
+	// inverse (world->local) is (dx*c - dz*s, dx*s + dz*c).
+	bool CircleVsObb(float cx, float cz, float radius,
+		const SceneObject& box, const DirectX::XMFLOAT3& boxPos) noexcept
 	{
-		const auto& collision = *object.collisionComponent;
-		return
-		{
-			{ position.x, position.z },
-			collision.halfExtents
-		};
+		const auto& bc = *box.collisionComponent;
+		const float yaw = box.transform.rotation.y;
+		const float c = std::cos(yaw);
+		const float s = std::sin(yaw);
+		const float dx = cx - boxPos.x;
+		const float dz = cz - boxPos.z;
+		const float lx = dx * c - dz * s;
+		const float lz = dx * s + dz * c;
+		const float clampedX = std::clamp(lx, -bc.halfExtents.x, bc.halfExtents.x);
+		const float clampedZ = std::clamp(lz, -bc.halfExtents.y, bc.halfExtents.y);
+		const float ddx = lx - clampedX;
+		const float ddz = lz - clampedZ;
+		return (ddx * ddx + ddz * ddz) < (radius * radius);
 	}
 
 	bool IsBlockingCollisionPair(const SceneObject& actor, const SceneObject& other) noexcept
@@ -68,15 +84,19 @@ bool CollisionSystem::CollidesAt(const SceneObject& actor, const Scene& scene, c
 		return false;
 	}
 
-	const AABB actorBounds = BuildBounds(actor, position);
+	// Treat the moving actor as a disc (radius = its larger half-extent); test
+	// it against every blocker as an oriented box. Disc keeps the X-then-Z
+	// slide in MoveAndSlide simple and is a fine fit for the roughly-round
+	// actors (player, enemies, mount).
+	const float radius = (std::max)(actor.collisionComponent->halfExtents.x,
+	                                actor.collisionComponent->halfExtents.y);
 	for (const auto& other : scene.GetObjects())
 	{
 		if (!IsBlockingCollisionPair(actor, other))
 		{
 			continue;
 		}
-
-		if (actorBounds.Intersects(BuildBounds(other, other.transform.position)))
+		if (CircleVsObb(position.x, position.z, radius, other, other.transform.position))
 		{
 			return true;
 		}

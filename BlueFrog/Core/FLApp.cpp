@@ -682,6 +682,9 @@ void FLApp::PollDebugToggles() noexcept
 		case VK_BACK: // undo the last placement
 			if (placementMode) placeUndo = true;
 			break;
+		case VK_DELETE: // delete the object nearest the cursor (any object)
+			if (placementMode) placeDeleteNearest = true;
+			break;
 		case VK_F5:
 			// Hot-reload: latch the request and let UpdateModel apply it
 			// after Update returns, matching the trigger-driven scene-load
@@ -1148,6 +1151,38 @@ void FLApp::UpdatePlacement(const GameplayInput& input) noexcept
 	placementCursorValid = PlayerAimSystem::ComputeMouseGroundPoint(input, camera, 0.0f, gp);
 	if (placementSnap) { gp.x = std::round(gp.x); gp.z = std::round(gp.z); } // 1 m grid
 	if (placementCursorValid) { placementCursorX = gp.x; placementCursorZ = gp.z; }
+
+	// Delete the object nearest the cursor (Del). Works on anything placed or
+	// authored except the player/ground, within ~3m of the cursor.
+	if (placeDeleteNearest)
+	{
+		placeDeleteNearest = false;
+		if (placementCursorValid)
+		{
+			auto& objs = scene.GetObjects();
+			float bestD2 = 9.0f; // (3 m)^2 max pick radius
+			int bestIdx = -1;
+			for (size_t i = 0; i < objs.size(); ++i)
+			{
+				const SceneObject& o = objs[i];
+				if (o.name == GameplaySceneIds::Player || o.name == "Ground") continue;
+				if (!o.renderComponent.has_value() && !o.collisionComponent.has_value()) continue;
+				const float dx = o.transform.position.x - placementCursorX;
+				const float dz = o.transform.position.z - placementCursorZ;
+				const float d2 = dx * dx + dz * dz;
+				if (d2 < bestD2) { bestD2 = d2; bestIdx = static_cast<int>(i); }
+			}
+			if (bestIdx >= 0)
+			{
+				const std::string nm = objs[bestIdx].name;
+				objs.erase(objs.begin() + bestIdx);
+				placedNames.erase(std::remove(placedNames.begin(), placedNames.end(), nm), placedNames.end());
+				const std::string msg = "[Delete] removed '" + nm + "'\n";
+				std::fputs(msg.c_str(), stdout);
+				::OutputDebugStringA(msg.c_str());
+			}
+		}
+	}
 
 	// LMB drops the selected prefab at the mouse's ground point (y = 0).
 	if (input.attackQueued && placementCursorValid)

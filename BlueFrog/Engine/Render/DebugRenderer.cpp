@@ -106,7 +106,26 @@ void DebugRenderer::Render(const Scene& scene, const TopDownCamera& camera) noex
         {
             const auto& cc = obj.collisionComponent.value();
             const auto& color = cc.blocksMovement ? kCollisionBlockingColor : kCollisionPassThruColor;
-            AppendAabbXZ(ox, oy, oz, cc.halfExtents.x, cc.halfExtents.y, color);
+            // Draw the true oriented box (matches CollisionSystem's OBB). Local
+            // corners rotated into world by the object's yaw: world = (lx*c +
+            // lz*s, -lx*s + lz*c).
+            const float yaw = obj.transform.rotation.y;
+            const float c = std::cos(yaw), s = std::sin(yaw);
+            const float hx = cc.halfExtents.x, hz = cc.halfExtents.y;
+            const float lxs[4] = { -hx,  hx,  hx, -hx };
+            const float lzs[4] = { -hz, -hz,  hz,  hz };
+            DebugPipeline::DebugVertex corners[4];
+            for (int i = 0; i < 4; ++i)
+            {
+                corners[i] = { ox + lxs[i] * c + lzs[i] * s, oy,
+                               oz - lxs[i] * s + lzs[i] * c,
+                               color.x, color.y, color.z };
+            }
+            for (int i = 0; i < 4; ++i)
+            {
+                scratch.push_back(corners[i]);
+                scratch.push_back(corners[(i + 1) % 4]);
+            }
         }
 
         if (obj.triggerComponent.has_value())
