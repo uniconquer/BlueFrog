@@ -95,6 +95,10 @@ namespace
 	{
 		json j = json::object();
 		j["halfExtents"] = json::array({ cc.halfExtents.x, cc.halfExtents.y });
+		if (cc.offset.x != 0.0f || cc.offset.y != 0.0f)
+		{
+			j["offset"] = json::array({ cc.offset.x, cc.offset.y });
+		}
 		j["blocking"]    = cc.blocksMovement;
 		return j;
 	}

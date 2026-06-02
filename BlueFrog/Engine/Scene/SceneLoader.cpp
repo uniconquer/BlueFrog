@@ -109,6 +109,7 @@ static CollisionComponent ParseCollision(const json& j)
 {
 	CollisionComponent cc;
 	if (j.contains("halfExtents")) cc.halfExtents = ParseFloat2(j["halfExtents"]);
+	if (j.contains("offset"))      cc.offset = ParseFloat2(j["offset"]);
 	if (j.contains("blocking"))    cc.blocksMovement = j["blocking"].get<bool>();
 	return cc;
 }

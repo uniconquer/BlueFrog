@@ -1,5 +1,5 @@
 {
   "render":    { "meshPath": "Assets/Models/Nature/CommonTree_1.glb", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
-  "collision": { "halfExtents": [0.4, 0.4], "blocking": true },
+  "collision": { "halfExtents": [0.4, 0.4], "offset": [0.0, 1.39], "blocking": true },
   "harvest":   { "itemId": "wood", "amount": 2, "respawnSec": 10.0 }
 }

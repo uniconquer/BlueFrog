@@ -112,8 +112,9 @@ void DebugRenderer::Render(const Scene& scene, const TopDownCamera& camera) noex
             const float yaw = obj.transform.rotation.y;
             const float c = std::cos(yaw), s = std::sin(yaw);
             const float hx = cc.halfExtents.x, hz = cc.halfExtents.y;
-            const float lxs[4] = { -hx,  hx,  hx, -hx };
-            const float lzs[4] = { -hz, -hz,  hz,  hz };
+            const float ax = cc.offset.x, az = cc.offset.y; // local center offset
+            const float lxs[4] = { ax - hx, ax + hx, ax + hx, ax - hx };
+            const float lzs[4] = { az - hz, az - hz, az + hz, az + hz };
             DebugPipeline::DebugVertex corners[4];
             for (int i = 0; i < 4; ++i)
             {

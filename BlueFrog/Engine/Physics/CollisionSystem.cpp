@@ -18,8 +18,12 @@ namespace
 		const float yaw = box.transform.rotation.y;
 		const float c = std::cos(yaw);
 		const float s = std::sin(yaw);
-		const float dx = cx - boxPos.x;
-		const float dz = cz - boxPos.z;
+		// Box center = object position + the local offset rotated into world
+		// (same local->world convention as the corners below).
+		const float wcx = boxPos.x + bc.offset.x * c + bc.offset.y * s;
+		const float wcz = boxPos.z - bc.offset.x * s + bc.offset.y * c;
+		const float dx = cx - wcx;
+		const float dz = cz - wcz;
 		const float lx = dx * c - dz * s;
 		const float lz = dx * s + dz * c;
 		const float clampedX = std::clamp(lx, -bc.halfExtents.x, bc.halfExtents.x);
