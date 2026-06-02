@@ -1,4 +1,4 @@
 {
   "render": { "meshPath": "Assets/Models/Medieval/modules/Prop_Wagon.gltf", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
-  "collision": { "halfExtents": [1.0, 2.0], "blocking": true }
+  "collision": { "halfExtents": [1.0, 2.0], "offset": [0.0, -1.14], "blocking": true }
 }

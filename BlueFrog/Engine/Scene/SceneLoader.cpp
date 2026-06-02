@@ -273,7 +273,15 @@ static bool BuildObjectFromJson(Scene& scene, json objJson, const std::filesyste
 				{ "rotation", { local.rotation.x, yaw + local.rotation.y, local.rotation.z } },
 				{ "scale",    { parentT.scale.x * local.scale.x, parentT.scale.y * local.scale.y, parentT.scale.z * local.scale.z } }
 			};
-			if (!child.contains("name")) child["name"] = namePrefix + "_" + std::to_string(idx);
+			// Every child (even ones with an explicit name like "Collide_S_R")
+			// gets the container's name as a prefix, so the whole assembly
+			// shares one prefix. The placement tool's undo/delete keys remove
+			// "<name>" + "<name>_*" as a unit -- without this, a group's
+			// explicitly-named collision children would be orphaned on undo.
+			const std::string childName = child.contains("name")
+				? child["name"].get<std::string>()
+				: std::to_string(idx);
+			child["name"] = namePrefix + "_" + childName;
 			++idx;
 			if (!BuildObjectFromJson(scene, child, path, prefabCache, errorOut))
 			{

@@ -18,16 +18,24 @@ namespace
 		const float yaw = box.transform.rotation.y;
 		const float c = std::cos(yaw);
 		const float s = std::sin(yaw);
+		// Collision tracks the object's scale (scatter jitters nature scale,
+		// some prefabs shrink NPCs, etc.) so the box matches the scaled mesh.
+		const float sx = box.transform.scale.x;
+		const float sz = box.transform.scale.z;
+		const float offX = bc.offset.x * sx;
+		const float offZ = bc.offset.y * sz;
+		const float hX = bc.halfExtents.x * sx;
+		const float hZ = bc.halfExtents.y * sz;
 		// Box center = object position + the local offset rotated into world
 		// (same local->world convention as the corners below).
-		const float wcx = boxPos.x + bc.offset.x * c + bc.offset.y * s;
-		const float wcz = boxPos.z - bc.offset.x * s + bc.offset.y * c;
+		const float wcx = boxPos.x + offX * c + offZ * s;
+		const float wcz = boxPos.z - offX * s + offZ * c;
 		const float dx = cx - wcx;
 		const float dz = cz - wcz;
 		const float lx = dx * c - dz * s;
 		const float lz = dx * s + dz * c;
-		const float clampedX = std::clamp(lx, -bc.halfExtents.x, bc.halfExtents.x);
-		const float clampedZ = std::clamp(lz, -bc.halfExtents.y, bc.halfExtents.y);
+		const float clampedX = std::clamp(lx, -hX, hX);
+		const float clampedZ = std::clamp(lz, -hZ, hZ);
 		const float ddx = lx - clampedX;
 		const float ddz = lz - clampedZ;
 		return (ddx * ddx + ddz * ddz) < (radius * radius);
