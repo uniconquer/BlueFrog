@@ -29,8 +29,11 @@ namespace
 
 	// Y offset above the ground plane. Small enough that the shadow
 	// reads as flat on the floor, large enough to avoid z-fighting
-	// against the ground mesh at y=0.
-	constexpr float kShadowLift = 0.02f;
+	// against the ground mesh at y=0 — and, importantly, above the
+	// stacked ground decals (dirt roads ~0.02, cobble plaza ~0.04) so a
+	// character's shadow still lands on top of the path it's standing on
+	// instead of being depth-rejected by the decal beneath it.
+	constexpr float kShadowLift = 0.08f;
 
 	// Default footprint when an object has no CollisionComponent for
 	// us to size against. Pulled out so all "no collision" actors get

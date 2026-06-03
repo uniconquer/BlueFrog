@@ -23,7 +23,7 @@
     { "prefab": "Assets/Prefabs/ModGable.prefab.json", "transform": { "position": [0.0, 3.12, -2.0], "rotation": [0.0, 3.1416, 0.0] } },
     { "prefab": "Assets/Prefabs/ModGable.prefab.json", "transform": { "position": [0.0, 3.12,  2.0], "rotation": [0.0, 0.0,    0.0] } },
 
-    { "prefab": "Assets/Prefabs/ModDoor.prefab.json", "transform": { "position": [-1.6, 0.0, -2.0], "rotation": [0.0, 3.1416, 0.0] } },
+    { "prefab": "Assets/Prefabs/ModDoor.prefab.json", "transform": { "position": [-1.45, 0.0, -2.0], "rotation": [0.0, 3.1416, 0.0] } },
 
     { "name": "Collide_S_L", "transform": { "position": [-1.75, 0.0, -2.0], "rotation": [0.0, 0.0, 0.0] }, "collision": { "halfExtents": [0.25, 0.3], "blocking": true } },
     { "name": "Collide_S_R", "transform": { "position": [ 0.75, 0.0, -2.0], "rotation": [0.0, 0.0, 0.0] }, "collision": { "halfExtents": [1.25, 0.3], "blocking": true } },

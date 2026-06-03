@@ -61,6 +61,10 @@ namespace
 		if (!m.texturePath.empty()) j["texture"] = m.texturePath;
 		j["tint"]    = json::array({ m.tint.x, m.tint.y, m.tint.z });
 		j["sampler"] = SamplerToString(m.sampler);
+		if (m.uvScale.x != 1.0f || m.uvScale.y != 1.0f)
+		{
+			j["uvScale"] = json::array({ m.uvScale.x, m.uvScale.y });
+		}
 		return j;
 	}
 

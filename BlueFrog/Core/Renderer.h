@@ -68,6 +68,12 @@ private:
 		// placement tool sets it < 1 (with alpha blending on) to render a
 		// translucent "ghost" preview of the prefab mesh at the cursor.
 		float ghostAlpha      = 1.0f;
+		// Tiling multiplier applied to mesh UVs in the VS. Default (1,1) leaves
+		// baked UVs untouched, so every existing draw is unaffected; ground
+		// decals set it to control texel density on stretched planes.
+		DirectX::XMFLOAT2 uvScale = { 1.0f, 1.0f };
+		float pad1 = 0.0f;
+		float pad2 = 0.0f;
 	};
 
 	struct LightData

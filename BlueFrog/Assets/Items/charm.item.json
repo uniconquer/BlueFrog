@@ -1,1 +1,7 @@
-{ "id": "charm", "name": "Trophy Charm", "description": "A trinket forged from monster parts. Said to bring a hunter luck.", "maxStack": 99 }
+{
+  "id": "charm",
+  "name": "Trophy Charm",
+  "description": "A trinket forged from monster parts. Said to bring a hunter luck.",
+  "maxStack": 99,
+  "icon": "Assets/Textures/icons/charm.png"
+}

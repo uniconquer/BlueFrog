@@ -2,5 +2,6 @@
   "id": "fiber",
   "name": "Plant Fiber",
   "description": "Tough fibrous strands pulled from bushes. Useful for simple crafting.",
-  "maxStack": 99
+  "maxStack": 99,
+  "icon": "Assets/Textures/icons/fiber.png"
 }

@@ -66,6 +66,7 @@ namespace ItemLoader
 
 		if (j.contains("name"))        out.name        = Widen(j["name"].get<std::string>());
 		if (j.contains("description")) out.description = Widen(j["description"].get<std::string>());
+		if (j.contains("icon"))        out.icon        = Widen(j["icon"].get<std::string>());
 		if (j.contains("maxStack"))    out.maxStack    = j["maxStack"].get<int>();
 		if (out.maxStack < 1) out.maxStack = 1; // never let a typo collapse the stack
 

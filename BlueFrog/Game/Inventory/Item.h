@@ -26,6 +26,7 @@ struct Item
 	std::string  id;          // matches inventory key + quest reward refs
 	std::wstring name;        // shown in inventory UI
 	std::wstring description; // shown in inventory UI under name
+	std::wstring icon;        // optional path to a 64x64 icon PNG (UI slots)
 	int          maxStack = 99; // soft cap so we don't overflow on weird drops
 	ItemEffect   effect;        // optional — zero-valued means non-consumable
 };

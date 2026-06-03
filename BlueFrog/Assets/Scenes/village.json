@@ -12,8 +12,13 @@
       {
         "name": "Ground",
         "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [24.0, 1.0, 24.0] },
-        "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/ground_grey_check.png", "tint": [1.0, 1.0, 1.0], "sampler": "wrap_linear" } }
+        "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/grass.png", "tint": [1.0, 1.0, 1.0], "sampler": "wrap_linear", "uvScale": [2.7, 2.7] } }
       },
+
+      { "name": "RoadNS",   "transform": { "position": [0.0,  0.03, 0.75], "rotation": [0.0, 0.0, 0.0], "scale": [1.0,  1.0, 7.0] },  "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/dirt.png", "sampler": "wrap_linear", "uvScale": [0.10, 0.71] } } },
+      { "name": "RoadEW",   "transform": { "position": [0.0,  0.03, 0.0],  "rotation": [0.0, 0.0, 0.0], "scale": [8.0,  1.0, 1.0] },  "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/dirt.png", "sampler": "wrap_linear", "uvScale": [0.81, 0.10] } } },
+      { "name": "RoadGate", "transform": { "position": [9.75, 0.03, 0.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.75, 1.0, 1.0] },  "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/dirt.png", "sampler": "wrap_linear", "uvScale": [0.18, 0.10] } } },
+      { "name": "Plaza",    "transform": { "position": [0.0,  0.05, 0.0],  "rotation": [0.0, 0.0, 0.0], "scale": [4.5,  1.0, 4.5] },  "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/cobble.png", "sampler": "wrap_linear", "uvScale": [0.29, 0.29] } } },
       {
         "name": "Player",
         "prefab": "Assets/Prefabs/Player.prefab.json",

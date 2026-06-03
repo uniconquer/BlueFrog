@@ -358,6 +358,18 @@ void FLApp::OnUpdate(float dt)
 					auto& hc = node->harvestComponent.value();
 					const int added = inventory.Add(hc.itemId, hc.amount, &itemRegistry);
 					hc.cooldownRemaining = hc.respawnSec;
+					// Snapshot the rest pose so the depletion tick can topple +
+					// shrink this node and restore it precisely on regrow. Drop
+					// collision now so the vanished node isn't an invisible wall.
+					hc.baseScale  = node->transform.scale;
+					hc.basePitch  = node->transform.rotation.x;
+					hc.baseBlocks = node->collisionComponent.has_value()
+						? node->collisionComponent->blocksMovement : false;
+					hc.animCaptured = true;
+					if (node->collisionComponent.has_value())
+					{
+						node->collisionComponent->blocksMovement = false;
+					}
 					const std::string msg = "[Gather] +" + std::to_string(added) + " " + hc.itemId + "\n";
 					std::fputs(msg.c_str(), stdout);
 					::OutputDebugStringA(msg.c_str());
@@ -470,14 +482,67 @@ void FLApp::OnUpdate(float dt)
 		UpdateModel(input, dt);
 	}
 
-	// Tick harvest-node respawn cooldowns (life-skill gathering). Runs every
-	// frame so depleted nodes regrow on the wall clock even while paused.
+	// Tick harvest-node respawn cooldowns + drive the topple/regrow animation.
+	// Runs every frame so depleted nodes fall, vanish, and regrow on the wall
+	// clock even while a modal is open.
 	for (auto& o : scene.GetObjects())
 	{
-		if (o.harvestComponent.has_value() && o.harvestComponent->cooldownRemaining > 0.0f)
+		if (!o.harvestComponent.has_value() || o.harvestComponent->cooldownRemaining <= 0.0f)
 		{
-			o.harvestComponent->cooldownRemaining =
-				(std::max)(0.0f, o.harvestComponent->cooldownRemaining - dt);
+			continue;
+		}
+		auto& hc = o.harvestComponent.value();
+		hc.cooldownRemaining = (std::max)(0.0f, hc.cooldownRemaining - dt);
+
+		if (hc.cooldownRemaining <= 0.0f)
+		{
+			// Fully regrown: snap back to the exact authored rest pose and
+			// re-enable collision. Restore happens once, here, on the frame the
+			// cooldown reaches zero.
+			if (hc.animCaptured)
+			{
+				o.transform.scale      = hc.baseScale;
+				o.transform.rotation.x = hc.basePitch;
+				if (o.collisionComponent.has_value())
+				{
+					o.collisionComponent->blocksMovement = hc.baseBlocks;
+				}
+				hc.animCaptured = false;
+			}
+			continue;
+		}
+		if (!hc.animCaptured)
+		{
+			continue; // depleted but never snapshotted (e.g. loaded mid-cooldown)
+		}
+
+		constexpr float kFallDur = 0.6f;  // topple-over + shrink-away
+		constexpr float kGrowDur = 0.45f; // pop back up at the tail of cooldown
+		auto smooth = [](float t) noexcept { t = std::clamp(t, 0.0f, 1.0f); return t * t * (3.0f - 2.0f * t); };
+
+		if (hc.cooldownRemaining <= kGrowDur)
+		{
+			// Regrow: scale 0 -> base, upright, over the last kGrowDur seconds.
+			const float g = smooth(1.0f - hc.cooldownRemaining / kGrowDur);
+			o.transform.scale = { hc.baseScale.x * g, hc.baseScale.y * g, hc.baseScale.z * g };
+			o.transform.rotation.x = hc.basePitch;
+		}
+		else
+		{
+			const float elapsed = hc.respawnSec - hc.cooldownRemaining; // since harvested
+			if (elapsed <= kFallDur)
+			{
+				// Lean over (~85 deg) then shrink away in the back third.
+				const float t = elapsed / kFallDur;
+				o.transform.rotation.x = hc.basePitch + 1.5f * smooth(t);
+				const float s = 1.0f - smooth((t - 0.6f) / 0.4f);
+				o.transform.scale = { hc.baseScale.x * s, hc.baseScale.y * s, hc.baseScale.z * s };
+			}
+			else
+			{
+				// Gone for the middle of the cooldown.
+				o.transform.scale = { 0.0f, 0.0f, 0.0f };
+			}
 		}
 	}
 
@@ -1305,48 +1370,44 @@ void FLApp::OnRender()
 	}
 	if (inventoryActive)
 	{
-		// Flatten inventory contents into pre-formatted display lines.
-		// Engine-side RenderInventory stays game-agnostic this way —
-		// it doesn't know what an Item is, just what the rows say.
-		std::vector<std::wstring> lines;
-		lines.reserve(inventory.All().size());
+		// Build icon slots game-side (engine stays agnostic about items).
+		std::vector<UiSlot> slots;
+		slots.reserve(inventory.All().size());
 		for (const auto& [id, count] : inventory.All())
 		{
 			const Item* def = itemRegistry.Find(id);
-			std::wstring name = def ? def->name : Widen(id);
-			if (name.empty()) name = Widen(id);
-			lines.push_back(name + L"  x" + std::to_wstring(count));
+			UiSlot s;
+			s.label = (def && !def->name.empty()) ? def->name : Widen(id);
+			s.icon  = def ? def->icon : std::wstring();
+			s.count = count;
+			slots.push_back(std::move(s));
 		}
-		textRenderer.RenderInventory(lines, GetWindow().GetWidth(), GetWindow().GetHeight(), inventoryFade);
+		textRenderer.RenderInventory(slots, GetWindow().GetWidth(), GetWindow().GetHeight(), inventoryFade);
 	}
 	if (craftingActive)
 	{
-		// Build recipe rows game-side: "[n] Output xK  <- in1 xC, in2 xC  [OK]".
-		auto itemName = [&](const std::string& id) -> std::wstring {
-			const Item* d = itemRegistry.Find(id);
-			return (d && !d->name.empty()) ? d->name : Widen(id);
-		};
-		std::vector<std::wstring> lines;
-		int slot = 1;
+		std::vector<UiCraftRecipe> rows;
 		for (const auto& r : recipeRegistry.All())
 		{
-			std::wstring row = L"[" + std::to_wstring(slot) + L"] " + itemName(r.outputItemId);
-			if (r.outputCount > 1) row += L" x" + std::to_wstring(r.outputCount);
-			row += L"  <- ";
-			bool affordable = true;
-			for (size_t i = 0; i < r.inputs.size(); ++i)
+			UiCraftRecipe ur;
+			const Item* outDef = itemRegistry.Find(r.outputItemId);
+			ur.name     = (outDef && !outDef->name.empty()) ? outDef->name : Widen(r.outputItemId);
+			ur.outIcon  = outDef ? outDef->icon : std::wstring();
+			ur.outCount = r.outputCount;
+			ur.affordable = true;
+			for (const auto& in : r.inputs)
 			{
-				const auto& in = r.inputs[i];
-				const int have = inventory.Count(in.itemId);
-				if (have < in.count) affordable = false;
-				if (i > 0) row += L", ";
-				row += itemName(in.itemId) + L" " + std::to_wstring(have) + L"/" + std::to_wstring(in.count);
+				UiCraftIngredient ing;
+				const Item* inDef = itemRegistry.Find(in.itemId);
+				ing.icon = inDef ? inDef->icon : std::wstring();
+				ing.have = inventory.Count(in.itemId);
+				ing.need = in.count;
+				if (ing.have < ing.need) ur.affordable = false;
+				ur.inputs.push_back(std::move(ing));
 			}
-			row += affordable ? L"   [OK]" : L"   [need]";
-			lines.push_back(row);
-			++slot;
+			rows.push_back(std::move(ur));
 		}
-		textRenderer.RenderCrafting(lines, GetWindow().GetWidth(), GetWindow().GetHeight(), 1.0f);
+		textRenderer.RenderCrafting(rows, GetWindow().GetWidth(), GetWindow().GetHeight(), 1.0f);
 	}
 	// Damage-number overlay: drawn between the persistent HUD text and the
 	// inspector panel so the panel (if open) still covers the right-side

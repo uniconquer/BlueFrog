@@ -4,10 +4,16 @@
 #include "TextLayout.h"
 #include "UILayout.h"
 
+#include "../Render/ImageLoader.h"
+#include "../Render/Surface.h"
 #include "../Scene/SceneObject.h"
 
+#include <vector>
+
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <cwchar>
 #include <string>
 
@@ -614,7 +620,44 @@ void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring&
     if (dimBrush)       dimBrush->SetOpacity(1.0f);
 }
 
-void TextRenderer::RenderInventory(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept
+ID2D1Bitmap* TextRenderer::GetIcon(const std::wstring& path) noexcept
+{
+    ID2D1RenderTarget* target = gfx.GetD2DTarget();
+    if (target == nullptr || path.empty()) return nullptr;
+    if (target != iconCacheTarget_) { iconCache_.clear(); iconCacheTarget_ = target; }
+    if (auto it = iconCache_.find(path); it != iconCache_.end()) return it->second.Get();
+
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> bmp;
+    try
+    {
+        Surface surf = ImageLoader::LoadSurfaceFromFile(path);
+        const UINT wpx = surf.GetWidth(), hpx = surf.GetHeight(), pitch = surf.GetPitch();
+        // WIC gives straight RGBA; D2D wants premultiplied for correct alpha
+        // blending of the rounded icon corners.
+        std::vector<std::uint8_t> px(static_cast<size_t>(pitch) * hpx);
+        std::memcpy(px.data(), surf.GetData(), px.size());
+        for (size_t i = 0; i + 3 < px.size(); i += 4)
+        {
+            const unsigned al = px[i + 3];
+            px[i + 0] = static_cast<std::uint8_t>(px[i + 0] * al / 255);
+            px[i + 1] = static_cast<std::uint8_t>(px[i + 1] * al / 255);
+            px[i + 2] = static_cast<std::uint8_t>(px[i + 2] * al / 255);
+        }
+        D2D1_BITMAP_PROPERTIES props = D2D1::BitmapProperties(
+            D2D1::PixelFormat(DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED));
+        if (FAILED(target->CreateBitmap(D2D1::SizeU(wpx, hpx), px.data(), pitch, &props, bmp.GetAddressOf())))
+        {
+            bmp.Reset();
+        }
+    }
+    catch (...) { bmp.Reset(); }
+
+    ID2D1Bitmap* raw = bmp.Get();
+    iconCache_[path] = std::move(bmp);
+    return raw;
+}
+
+void TextRenderer::RenderInventory(const std::vector<UiSlot>& slots, int viewportW, int viewportH, float alpha) noexcept
 {
     ID2D1RenderTarget* const target = gfx.GetD2DTarget();
     if (target == nullptr || !inventoryHeaderFormat || !inventoryRowFormat || !whiteBrush || !panelBrush) return;
@@ -636,70 +679,70 @@ void TextRenderer::RenderInventory(const std::vector<std::wstring>& lines, int v
     const float bottom = top  + ph;
     const float pad    = TextLayout::DialogBoxPaddingDip;
 
-    target->FillRectangle(D2D1::RectF(left, top, right, bottom), panelBrush.Get());
+    target->FillRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(left, top, right, bottom), 10.0f, 10.0f), panelBrush.Get());
 
-    // Header
     const wchar_t kHeader[] = L"Inventory";
     const float headerH = TextLayout::PointsToDips(TextLayout::InventoryHeaderPointSize) * 1.5f;
-    target->DrawText(
-        kHeader,
-        static_cast<UINT32>((sizeof(kHeader) / sizeof(wchar_t)) - 1u),
+    target->DrawText(kHeader, static_cast<UINT32>((sizeof(kHeader) / sizeof(wchar_t)) - 1u),
         inventoryHeaderFormat.Get(),
         D2D1::RectF(left + pad, top + pad, right - pad, top + pad + headerH),
         highlightBrush ? highlightBrush.Get() : whiteBrush.Get(),
-        D2D1_DRAW_TEXT_OPTIONS_NONE,
-        DWRITE_MEASURING_MODE_NATURAL);
+        D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
 
-    // Rows or "(empty)" placeholder
-    float rowY = top + pad + headerH + 6.0f;
-    const float rowH = TextLayout::InventoryRowHeightDip;
     const float footerH = TextLayout::PointsToDips(TextLayout::InventoryRowPointSize) * 1.2f;
-    const float maxRowBottom = bottom - pad - footerH - 4.0f;
+    const float gridTop = top + pad + headerH + 6.0f;
+    const float gridLeft = left + pad;
+    const float availW = pw - pad * 2.0f;
+    const float slot = 58.0f, gap = 10.0f;
+    const int cols = std::max(1, static_cast<int>((availW + gap) / (slot + gap)));
 
-    if (lines.empty())
+    if (slots.empty())
     {
         const wchar_t kEmpty[] = L"(empty)";
-        target->DrawText(
-            kEmpty,
-            static_cast<UINT32>((sizeof(kEmpty) / sizeof(wchar_t)) - 1u),
-            inventoryRowFormat.Get(),
-            D2D1::RectF(left + pad * 2, rowY, right - pad, rowY + rowH),
-            dimBrush ? dimBrush.Get() : whiteBrush.Get(),
-            D2D1_DRAW_TEXT_OPTIONS_NONE,
-            DWRITE_MEASURING_MODE_NATURAL);
+        target->DrawText(kEmpty, static_cast<UINT32>((sizeof(kEmpty) / sizeof(wchar_t)) - 1u),
+            inventoryRowFormat.Get(), D2D1::RectF(gridLeft + 6.0f, gridTop, right - pad, gridTop + 28.0f),
+            dimBrush ? dimBrush.Get() : whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
     }
     else
     {
-        for (const auto& line : lines)
+        inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+        for (size_t i = 0; i < slots.size(); ++i)
         {
-            if (rowY + rowH > maxRowBottom) break; // overflow guard
-            target->DrawText(
-                line.c_str(),
-                static_cast<UINT32>(line.size()),
-                inventoryRowFormat.Get(),
-                D2D1::RectF(left + pad * 2, rowY, right - pad, rowY + rowH),
-                whiteBrush.Get(),
-                D2D1_DRAW_TEXT_OPTIONS_NONE,
-                DWRITE_MEASURING_MODE_NATURAL);
-            rowY += rowH;
+            const int col = static_cast<int>(i) % cols;
+            const int row = static_cast<int>(i) / cols;
+            const float x = gridLeft + col * (slot + gap);
+            const float y = gridTop + row * (slot + gap);
+            if (y + slot > bottom - pad - footerH) break;
+            const D2D1_ROUNDED_RECT box = D2D1::RoundedRect(D2D1::RectF(x, y, x + slot, y + slot), 7.0f, 7.0f);
+            target->FillRoundedRectangle(box, panelBrush.Get());
+            if (dimBrush) target->DrawRoundedRectangle(box, dimBrush.Get(), 1.5f);
+            if (ID2D1Bitmap* bmp = GetIcon(slots[i].icon))
+            {
+                target->DrawBitmap(bmp, D2D1::RectF(x + 5.0f, y + 3.0f, x + slot - 5.0f, y + slot - 13.0f),
+                    a, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+            }
+            else
+            {
+                target->DrawText(slots[i].label.c_str(), static_cast<UINT32>(slots[i].label.size()),
+                    inventoryRowFormat.Get(), D2D1::RectF(x + 2.0f, y + 6.0f, x + slot - 2.0f, y + slot - 12.0f),
+                    whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+            }
+            wchar_t cnt[12];
+            swprintf_s(cnt, L"%d", slots[i].count);
+            target->DrawText(cnt, static_cast<UINT32>(wcslen(cnt)), inventoryRowFormat.Get(),
+                D2D1::RectF(x + 4.0f, y + slot - 18.0f, x + slot - 5.0f, y + slot - 1.0f),
+                whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
         }
+        inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
     }
 
-    // Footer hint at bottom of panel.
     if (dimBrush)
     {
         const wchar_t kFooter[] = L"[I] Close";
-        // Trailing-align hint via temporary alignment flip (same trick
-        // RenderDialog uses for "[E] Continue").
         inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-        target->DrawText(
-            kFooter,
-            static_cast<UINT32>((sizeof(kFooter) / sizeof(wchar_t)) - 1u),
-            inventoryRowFormat.Get(),
-            D2D1::RectF(left + pad, bottom - pad - footerH, right - pad, bottom - pad),
-            dimBrush.Get(),
-            D2D1_DRAW_TEXT_OPTIONS_NONE,
-            DWRITE_MEASURING_MODE_NATURAL);
+        target->DrawText(kFooter, static_cast<UINT32>((sizeof(kFooter) / sizeof(wchar_t)) - 1u),
+            inventoryRowFormat.Get(), D2D1::RectF(left + pad, bottom - pad - footerH, right - pad, bottom - pad),
+            dimBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
         inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
     }
 
@@ -709,7 +752,7 @@ void TextRenderer::RenderInventory(const std::vector<std::wstring>& lines, int v
     if (highlightBrush)  highlightBrush->SetOpacity(1.0f);
 }
 
-void TextRenderer::RenderCrafting(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept
+void TextRenderer::RenderCrafting(const std::vector<UiCraftRecipe>& recipes, int viewportW, int viewportH, float alpha) noexcept
 {
     ID2D1RenderTarget* const target = gfx.GetD2DTarget();
     if (target == nullptr || !inventoryHeaderFormat || !inventoryRowFormat || !whiteBrush || !panelBrush) return;
@@ -723,7 +766,7 @@ void TextRenderer::RenderCrafting(const std::vector<std::wstring>& lines, int vi
 
     const float w = static_cast<float>(viewportW);
     const float h = static_cast<float>(viewportH);
-    const float pw = TextLayout::InventoryPanelWidthDip;
+    const float pw = TextLayout::InventoryPanelWidthDip + 60.0f; // a touch wider for ingredient rows
     const float ph = TextLayout::InventoryPanelHeightDip;
     const float left   = (w - pw) * 0.5f;
     const float top    = (h - ph) * 0.5f;
@@ -731,7 +774,7 @@ void TextRenderer::RenderCrafting(const std::vector<std::wstring>& lines, int vi
     const float bottom = top  + ph;
     const float pad    = TextLayout::DialogBoxPaddingDip;
 
-    target->FillRectangle(D2D1::RectF(left, top, right, bottom), panelBrush.Get());
+    target->FillRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(left, top, right, bottom), 10.0f, 10.0f), panelBrush.Get());
 
     const wchar_t kHeader[] = L"Crafting";
     const float headerH = TextLayout::PointsToDips(TextLayout::InventoryHeaderPointSize) * 1.5f;
@@ -741,31 +784,68 @@ void TextRenderer::RenderCrafting(const std::vector<std::wstring>& lines, int vi
         highlightBrush ? highlightBrush.Get() : whiteBrush.Get(),
         D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
 
-    float rowY = top + pad + headerH + 6.0f;
-    const float rowH = TextLayout::InventoryRowHeightDip;
     const float footerH = TextLayout::PointsToDips(TextLayout::InventoryRowPointSize) * 1.2f;
-    const float maxRowBottom = bottom - pad - footerH - 4.0f;
+    float y = top + pad + headerH + 6.0f;
+    const float rowH = 52.0f;
+    const float maxBottom = bottom - pad - footerH - 4.0f;
 
-    if (lines.empty())
+    auto drawIcon = [&](const std::wstring& path, float x, float yy, float size)
+    {
+        if (ID2D1Bitmap* bmp = GetIcon(path))
+            target->DrawBitmap(bmp, D2D1::RectF(x, yy, x + size, yy + size), a, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+    };
+
+    if (recipes.empty())
     {
         const wchar_t kEmpty[] = L"(no recipes)";
         target->DrawText(kEmpty, static_cast<UINT32>((sizeof(kEmpty) / sizeof(wchar_t)) - 1u),
-            inventoryRowFormat.Get(),
-            D2D1::RectF(left + pad * 2, rowY, right - pad, rowY + rowH),
-            dimBrush ? dimBrush.Get() : whiteBrush.Get(),
-            D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+            inventoryRowFormat.Get(), D2D1::RectF(left + pad + 6.0f, y, right - pad, y + 28.0f),
+            dimBrush ? dimBrush.Get() : whiteBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
     }
     else
     {
-        for (const auto& line : lines)
+        int slotNum = 1;
+        for (const auto& r : recipes)
         {
-            if (rowY + rowH > maxRowBottom) break;
-            target->DrawText(line.c_str(), static_cast<UINT32>(line.size()),
-                inventoryRowFormat.Get(),
-                D2D1::RectF(left + pad * 2, rowY, right - pad, rowY + rowH),
-                whiteBrush.Get(),
+            if (y + rowH > maxBottom) break;
+            const float rowMid = y + rowH * 0.5f;
+            // [n] + output icon
+            wchar_t num[8]; swprintf_s(num, L"%d", slotNum);
+            target->DrawText(num, static_cast<UINT32>(wcslen(num)), inventoryRowFormat.Get(),
+                D2D1::RectF(left + pad, rowMid - 12.0f, left + pad + 18.0f, rowMid + 12.0f),
+                (highlightBrush && r.affordable) ? highlightBrush.Get() : whiteBrush.Get(),
                 D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
-            rowY += rowH;
+            float x = left + pad + 22.0f;
+            drawIcon(r.outIcon, x, y + 4.0f, 40.0f);
+            x += 48.0f;
+            // name (+ output count)
+            std::wstring nm = r.name;
+            if (r.outCount > 1) nm += L" x" + std::to_wstring(r.outCount);
+            target->DrawText(nm.c_str(), static_cast<UINT32>(nm.size()), inventoryRowFormat.Get(),
+                D2D1::RectF(x, y + 4.0f, x + 150.0f, y + 28.0f), whiteBrush.Get(),
+                D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+            // ingredient icons + have/need under the name
+            float ix = x;
+            for (const auto& in : r.inputs)
+            {
+                drawIcon(in.icon, ix, y + 24.0f, 22.0f);
+                wchar_t hn[16]; swprintf_s(hn, L"%d/%d", in.have, in.need);
+                target->DrawText(hn, static_cast<UINT32>(wcslen(hn)), inventoryRowFormat.Get(),
+                    D2D1::RectF(ix + 24.0f, y + 26.0f, ix + 64.0f, y + 46.0f),
+                    (in.have >= in.need ? whiteBrush.Get() : (dimBrush ? dimBrush.Get() : whiteBrush.Get())),
+                    D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+                ix += 70.0f;
+            }
+            // OK / need tag, right aligned
+            const wchar_t* tag = r.affordable ? L"[OK]" : L"[need]";
+            inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+            target->DrawText(tag, static_cast<UINT32>(wcslen(tag)), inventoryRowFormat.Get(),
+                D2D1::RectF(right - pad - 70.0f, rowMid - 12.0f, right - pad, rowMid + 12.0f),
+                (highlightBrush && r.affordable) ? highlightBrush.Get() : (dimBrush ? dimBrush.Get() : whiteBrush.Get()),
+                D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+            inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+            y += rowH;
+            ++slotNum;
         }
     }
 
@@ -776,8 +856,7 @@ void TextRenderer::RenderCrafting(const std::vector<std::wstring>& lines, int vi
         target->DrawText(kFooter, static_cast<UINT32>((sizeof(kFooter) / sizeof(wchar_t)) - 1u),
             inventoryRowFormat.Get(),
             D2D1::RectF(left + pad, bottom - pad - footerH, right - pad, bottom - pad),
-            dimBrush.Get(),
-            D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+            dimBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
         inventoryRowFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
     }
 

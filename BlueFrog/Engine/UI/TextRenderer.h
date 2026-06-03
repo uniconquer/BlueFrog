@@ -7,8 +7,29 @@
 #include "HudState.h"
 #include <d2d1.h>
 #include <dwrite.h>
+#include <string>
+#include <unordered_map>
 #include <vector>
 #include <wrl/client.h>
+
+// One inventory slot: an icon (path, may be empty), a name, and a count.
+struct UiSlot
+{
+    std::wstring icon;
+    std::wstring label;
+    int          count = 0;
+};
+
+// One crafting recipe row for the crafting panel.
+struct UiCraftIngredient { std::wstring icon; int have = 0; int need = 0; };
+struct UiCraftRecipe
+{
+    std::wstring outIcon;
+    std::wstring name;
+    int          outCount = 1;
+    std::vector<UiCraftIngredient> inputs;
+    bool         affordable = false;
+};
 
 // Draws the in-viewport HUD text overlay (objective text in β-1; HP numerics
 // added in β-2). Lives on top of UIRenderer's HLSL quads — D2D BeginDraw /
@@ -49,12 +70,12 @@ public:
     // and-format work so this stays engine-agnostic about what an
     // item actually is. Empty `lines` renders the "(empty)"
     // placeholder. `alpha` mirrors RenderDialog's fade param.
-    void RenderInventory(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept;
+    void RenderInventory(const std::vector<UiSlot>& slots, int viewportW, int viewportH, float alpha) noexcept;
 
-    // Crafting panel — same modal as the inventory but headed "Crafting" with
-    // a [1-9] Craft footer. Each line is a pre-formatted recipe row built by
-    // the game side (engine stays agnostic about recipes/items).
-    void RenderCrafting(const std::vector<std::wstring>& lines, int viewportW, int viewportH, float alpha) noexcept;
+    // Crafting panel — recipe rows with output icon + ingredient icons and a
+    // [1-9] Craft footer. The game side fills UiCraftRecipe (engine stays
+    // agnostic about recipes/items).
+    void RenderCrafting(const std::vector<UiCraftRecipe>& recipes, int viewportW, int viewportH, float alpha) noexcept;
 
     // Placement-tool overlay (world editor): a top-left panel showing the
     // current prefab + index, rotation, placed count, and key hints. Drawn
@@ -81,6 +102,14 @@ public:
     // combat field is the live-edit cursor (highlighted in the panel).
     void RenderInspector(const Scene& scene, int selectedIndex, int fieldIndex, int viewportW, int viewportH) noexcept;
 private:
+    // Lazily loads (and caches) a 64x64 icon PNG as a D2D bitmap. Returns
+    // nullptr on a missing/failed load. The cache is keyed by path and tied to
+    // the current D2D target -- when the target is recreated (resize) the
+    // cache is dropped so we never draw a bitmap owned by a dead target.
+    ID2D1Bitmap* GetIcon(const std::wstring& path) noexcept;
+    ID2D1RenderTarget* iconCacheTarget_ = nullptr;
+    std::unordered_map<std::wstring, Microsoft::WRL::ComPtr<ID2D1Bitmap>> iconCache_;
+
     Graphics& gfx;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    objectiveFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>    numericFormat;

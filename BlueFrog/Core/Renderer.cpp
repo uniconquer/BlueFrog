@@ -323,6 +323,7 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 	MaterialData materialData = {};
 	materialData.tint = mat.tint; // primitives + fallback: diffuse, no PBR maps
 	materialData.ghostAlpha = currentGhostAlpha;
+	materialData.uvScale = mat.uvScale; // ground/road decals tile via this
 	materialBuffer.Update(gfx, materialData);
 
 	ResolveSampler(mat.sampler).Bind(gfx);
@@ -370,6 +371,8 @@ void Renderer::DrawMesh(const MeshBuffers& mesh, const Transform& transform, con
 			md.hasOcclusion  = sub.occlusionTexture  >= 0 ? 1.0f : 0.0f;
 			md.hasAlbedo     = sub.textureIndex      >= 0 ? 1.0f : 0.0f;
 			md.ghostAlpha    = currentGhostAlpha;
+			md.uvScale       = mat.uvScale; // explicit: never leave it at 0 (would
+			                                // collapse imported UVs to one texel)
 			materialBuffer.Update(gfx, md);
 
 			gfx.GetContext()->DrawIndexed(sub.indexCount, sub.indexOffset, 0);
@@ -556,7 +559,10 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	static const auto dayClockStart = std::chrono::steady_clock::now();
 	const float tsec = std::chrono::duration<float>(std::chrono::steady_clock::now() - dayClockStart).count();
 	constexpr float kDayLength = 240.0f;
-	const float phase    = std::fmod(tsec / kDayLength, 1.0f); // 0..1, 0 = midnight
+	// Start the world in mid-morning instead of at midnight so launching the
+	// game lands on a bright, readable scene (phase 0 = midnight would open on
+	// the dark night branch). +0.30 puts the opening sun comfortably up.
+	const float phase    = std::fmod(tsec / kDayLength + 0.30f, 1.0f); // 0..1, 0 = midnight
 	const float dayAngle = phase * 6.2831853f;
 	const float sunHeight = -std::cos(dayAngle);               // -1 midnight .. +1 noon
 
@@ -872,6 +878,8 @@ void Renderer::DrawSkinnedMesh(const SkinnedMeshBuffers& mesh, const Transform& 
 			md.hasOcclusion  = sub.occlusionTexture  >= 0 ? 1.0f : 0.0f;
 			md.hasAlbedo     = sub.textureIndex      >= 0 ? 1.0f : 0.0f;
 			md.ghostAlpha    = currentGhostAlpha;
+			md.uvScale       = mat.uvScale; // explicit: never leave it at 0 (would
+			                                // collapse imported UVs to one texel)
 			materialBuffer.Update(gfx, md);
 
 			gfx.GetContext()->DrawIndexed(sub.indexCount, sub.indexOffset, 0);

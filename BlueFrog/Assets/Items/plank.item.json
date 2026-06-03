@@ -1,1 +1,7 @@
-{ "id": "plank", "name": "Wooden Plank", "description": "Milled lumber. A refined material for building and crafting.", "maxStack": 99 }
+{
+  "id": "plank",
+  "name": "Wooden Plank",
+  "description": "Milled lumber. A refined material for building and crafting.",
+  "maxStack": 99,
+  "icon": "Assets/Textures/icons/plank.png"
+}

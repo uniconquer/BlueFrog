@@ -92,6 +92,7 @@ static RenderComponent ParseRender(const json& j)
 		if (m.contains("texture")) mat.texturePath = m["texture"].get<std::string>();
 		if (m.contains("tint"))    mat.tint         = ParseFloat3(m["tint"]);
 		if (m.contains("sampler")) mat.sampler       = ParseSamplerPreset(m["sampler"].get<std::string>());
+		if (m.contains("uvScale")) mat.uvScale       = ParseFloat2(m["uvScale"]);
 		rc.material = std::move(mat);
 	}
 	// Optional asset-level uniform scale. Absent or 0 ⇒ keep the
