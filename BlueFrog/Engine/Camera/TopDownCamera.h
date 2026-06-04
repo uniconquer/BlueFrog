@@ -23,8 +23,8 @@ private:
 	DirectX::XMFLOAT3 target = { 0.0f, 0.0f, 0.0f };
 	float aspectRatio;
 	float orbitAngle = DirectX::XM_PIDIV4;
-	float radius = 12.0f;
-	float height = 15.0f;
+	float radius = 8.0f;
+	float height = 10.0f;
 	float fov = DirectX::XMConvertToRadians(50.0f);
 	float nearZ = 0.1f;
 	float farZ = 150.0f;

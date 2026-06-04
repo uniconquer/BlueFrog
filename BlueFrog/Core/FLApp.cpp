@@ -732,6 +732,17 @@ void FLApp::PollDebugToggles() noexcept
 			// Toggle the in-game placement tool (world editor).
 			placementMode = !placementMode;
 			break;
+		// ---- Live look-tuner hotkeys (post grade + sun) -------------------
+		// Tap to nudge; values show as an on-screen readout. Lets the art look
+		// be dialed in live instead of rebuild-and-screenshot round trips.
+		case VK_OEM_MINUS: gradeExposure   = (std::max)(0.10f, gradeExposure - 0.05f); gradeShowReadout = true; break; // '-'
+		case VK_OEM_PLUS:  gradeExposure   = (std::min)(3.00f, gradeExposure + 0.05f); gradeShowReadout = true; break; // '='
+		case VK_OEM_1:     gradeSaturation = (std::max)(0.00f, gradeSaturation - 0.05f); gradeShowReadout = true; break; // ';'
+		case VK_OEM_7:     gradeSaturation = (std::min)(2.50f, gradeSaturation + 0.05f); gradeShowReadout = true; break; // '\''
+		case VK_OEM_COMMA: gradeContrast   = (std::max)(0.50f, gradeContrast - 0.03f); gradeShowReadout = true; break; // ','
+		case VK_OEM_PERIOD:gradeContrast   = (std::min)(2.00f, gradeContrast + 0.03f); gradeShowReadout = true; break; // '.'
+		case 'O':          renderer.AdjustTimeOfDay(-0.02f); gradeShowReadout = true; break; // earlier/lower sun
+		case 'P':          renderer.AdjustTimeOfDay( 0.02f); gradeShowReadout = true; break; // later/higher sun
 		case VK_OEM_4: // '[' — previous prefab
 			if (placementMode) placeCyclePrev = true;
 			break;
@@ -1351,7 +1362,7 @@ void FLApp::OnRender()
 	}
 	// Tonemap the HDR scene onto the back buffer (exposure + ACES). UI/text
 	// then composite on top in sRGB, untouched by tonemapping.
-	postProcess.Resolve(GetGfx(), 1.2f);
+	postProcess.Resolve(GetGfx(), gradeExposure, gradeSaturation, gradeContrast);
 	uiRenderer.Render(hudState);
 	GetGfx().BeginTextDraw();
 	textRenderer.Render(hudState, GetWindow().GetWidth(), GetWindow().GetHeight(), inspectorEnabled, damageFlashAlpha);
@@ -1424,6 +1435,11 @@ void FLApp::OnRender()
 			Widen(kPlacePrefabs[pi].label), pi, kPlacePrefabCount,
 			placementYaw * 57.2957795f, placementSnap, static_cast<int>(placedNames.size()),
 			GetWindow().GetWidth(), GetWindow().GetHeight());
+	}
+	if (gradeShowReadout)
+	{
+		textRenderer.RenderGradeReadout(gradeExposure, gradeSaturation, gradeContrast,
+			renderer.GetTimeOfDay(), GetWindow().GetWidth(), GetWindow().GetHeight());
 	}
 	(void)GetGfx().EndTextDraw();
 	GetGfx().EndFrame();

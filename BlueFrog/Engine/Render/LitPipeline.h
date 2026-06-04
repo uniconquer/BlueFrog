@@ -89,7 +89,7 @@ namespace LitPipeline
 			"    float4 worldPos = mul(float4(input.pos, 1.0f), model);\n"
 			"    output.pos      = mul(float4(input.pos, 1.0f), transform);\n"
 			"    output.normalWS = mul(input.normal, (float3x3)model);\n"
-			"    output.uv       = input.uv * uvScale;\n"
+			"    output.uv       = input.uv;\n" // uvScale applied in PS (b1 is PS-only)
 			"    output.lightPos = mul(worldPos, lightViewProj);\n"
 			"    output.worldPos = worldPos.xyz;\n"
 			"    output.color    = input.color;\n"
@@ -139,17 +139,21 @@ namespace LitPipeline
 			"{\n"
 			"    float3 N = normalize(input.normalWS);\n"
 			"    float3 V = normalize(camPos - input.worldPos);\n"
+			// Tiling lives here (PS) not the VS: the MaterialBuffer (b1) is bound
+			// to the pixel shader only, so reading uvScale in the VS gave 0 and
+			// collapsed every textured surface to a flat average color.
+			"    float2 uv = input.uv * uvScale;\n"
 			// Normal map: always sampled (default white bound when absent) and
 			// blended in by the hasNormal flag so the ddx/ddy stays uniform.
 			// Uniform branch (hasNormal is a per-draw constant) so the ddx/ddy
 			// inside stay legal and UV-less meshes skip the map entirely.
 			"    if (hasNormal > 0.5f)\n"
 			"    {\n"
-			"        float3 nTex = normalTex.Sample(surfaceSampler, input.uv).xyz * 2.0f - 1.0f;\n"
-			"        N = PerturbNormal(N, input.worldPos, input.uv, nTex);\n"
+			"        float3 nTex = normalTex.Sample(surfaceSampler, uv).xyz * 2.0f - 1.0f;\n"
+			"        N = PerturbNormal(N, input.worldPos, uv, nTex);\n"
 			"    }\n"
 			// Albedo (sRGB SRV -> linear) * factors * vertex color * tint.
-			"    float4 baseTex = surfaceTexture.Sample(surfaceSampler, input.uv);\n"
+			"    float4 baseTex = surfaceTexture.Sample(surfaceSampler, uv);\n"
 			"    float3 albedo  = baseTex.rgb * baseColorFactor.rgb * input.color.rgb * tint;\n"
 			"    float  alpha   = baseTex.a * baseColorFactor.a * input.color.a;\n"
 			// Metallic-roughness. With no MR map, force a rough dielectric so
@@ -157,7 +161,7 @@ namespace LitPipeline
 			// which would otherwise turn every untextured wall to metal).
 			"    float metallic, roughness;\n"
 			"    if (hasMetalRough > 0.5f) {\n"
-			"        float3 mr = metalRoughTex.Sample(surfaceSampler, input.uv).rgb;\n"
+			"        float3 mr = metalRoughTex.Sample(surfaceSampler, uv).rgb;\n"
 			"        roughness = mr.g * roughnessFactor;\n"
 			"        metallic  = mr.b * metallicFactor;\n"
 			"    } else { metallic = 0.0f; roughness = 1.0f; }\n"
@@ -187,7 +191,7 @@ namespace LitPipeline
 			"    float3 direct = (kd * albedo + spec) * lightColor * nDotL * shadow;\n"
 			// Ambient (no IBL): flat term on diffuse albedo + a crude specular
 			// floor on F0 so metals aren't pure black. Modulated by AO.
-			"    float ao = (hasOcclusion > 0.5f) ? occlusionTex.Sample(surfaceSampler, input.uv).r : 1.0f;\n"
+			"    float ao = (hasOcclusion > 0.5f) ? occlusionTex.Sample(surfaceSampler, uv).r : 1.0f;\n"
 			// Analytic environment (lightweight IBL). Diffuse irradiance is the
 			// hemispheric fill at N; specular is the sky color along the
 			// reflection vector, blurred toward that fill by roughness and
@@ -204,7 +208,7 @@ namespace LitPipeline
 			"    float3 ambientTerm = (ambDiffuse + envSpec * Famb) * ao;\n"
 			// Emissive: factor defaults to 0 for non-emissive materials.
 			"    float3 emissive = emissiveFactor.rgb;\n"
-			"    if (hasEmissive > 0.5f) emissive *= emissiveTex.Sample(surfaceSampler, input.uv).rgb;\n"
+			"    if (hasEmissive > 0.5f) emissive *= emissiveTex.Sample(surfaceSampler, uv).rgb;\n"
 			"    float3 color = direct + ambientTerm + emissive;\n"
 			"    return float4(color, alpha * ghostAlpha);\n"
 			"}\n";

@@ -24,8 +24,8 @@ void TopDownCamera::RotateAroundTarget(float deltaRadians) noexcept
 
 void TopDownCamera::AdjustZoom(float delta) noexcept
 {
-	radius = std::clamp(radius + delta, 6.0f, 24.0f);
-	height = std::clamp(height + delta * 0.75f, 8.0f, 30.0f);
+	radius = std::clamp(radius + delta, 5.0f, 24.0f);
+	height = std::clamp(height + delta * 0.75f, 6.0f, 30.0f);
 }
 
 DirectX::XMFLOAT3 TopDownCamera::GetPosition() const noexcept

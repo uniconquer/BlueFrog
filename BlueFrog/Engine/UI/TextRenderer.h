@@ -83,6 +83,11 @@ public:
     void RenderPlacementHud(const std::wstring& prefabLabel, int prefabIndex, int prefabCount,
         float yawDegrees, bool gridSnap, int placedCount, int viewportW, int viewportH) noexcept;
 
+    // Live look-tuner readout: a small bottom-left panel showing the current
+    // post-process grade + sun values while the art look is being dialed in.
+    void RenderGradeReadout(float exposure, float saturation, float contrast,
+        float timeOfDay, int viewportW, int viewportH) noexcept;
+
     // Floating damage-number overlay. Projects each popup's spawn worldPos
     // through the supplied camera, then floats the resulting screen point
     // upward over the popup's lifetime and fades it out at the tail end.

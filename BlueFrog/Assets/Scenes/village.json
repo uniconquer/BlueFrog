@@ -1,97 +1,6867 @@
 {
-  "schemaVersion": 2,
   "objective": {
-    "text": "Explore the village",
     "completionText": "Welcome, traveler",
-    "conditions": []
+    "conditions": [],
+    "text": "Explore the village"
   },
   "scene": {
-    "name": "Village",
-    "camera": { "target": [0.0, 1.0, 0.0] },
+    "camera": {
+      "target": [
+        -20.309480667114258,
+        1.0,
+        2.5094058513641357
+      ]
+    },
     "objects": [
       {
         "name": "Ground",
-        "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [24.0, 1.0, 24.0] },
-        "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/grass.png", "tint": [1.0, 1.0, 1.0], "sampler": "wrap_linear", "uvScale": [2.7, 2.7] } }
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "texture": "Assets/Textures/grass.png",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "uvScale": [
+              0.6,
+              0.6
+            ]
+          },
+          "mesh": "plane"
+        },
+        "transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            24.0,
+            1.0,
+            24.0
+          ]
+        }
       },
-
-      { "name": "RoadNS",   "transform": { "position": [0.0,  0.03, 0.75], "rotation": [0.0, 0.0, 0.0], "scale": [1.0,  1.0, 7.0] },  "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/dirt.png", "sampler": "wrap_linear", "uvScale": [0.10, 0.71] } } },
-      { "name": "RoadEW",   "transform": { "position": [0.0,  0.03, 0.0],  "rotation": [0.0, 0.0, 0.0], "scale": [8.0,  1.0, 1.0] },  "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/dirt.png", "sampler": "wrap_linear", "uvScale": [0.81, 0.10] } } },
-      { "name": "RoadGate", "transform": { "position": [9.75, 0.03, 0.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.75, 1.0, 1.0] },  "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/dirt.png", "sampler": "wrap_linear", "uvScale": [0.18, 0.10] } } },
-      { "name": "Plaza",    "transform": { "position": [0.0,  0.05, 0.0],  "rotation": [0.0, 0.0, 0.0], "scale": [4.5,  1.0, 4.5] },  "render": { "mesh": "plane", "material": { "texture": "Assets/Textures/cobble.png", "sampler": "wrap_linear", "uvScale": [0.29, 0.29] } } },
       {
+        "name": "RoadNS",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "texture": "Assets/Textures/dirt.png",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "uvScale": [
+              0.10000000149011612,
+              0.7099999785423279
+            ]
+          },
+          "mesh": "plane"
+        },
+        "transform": {
+          "position": [
+            0.0,
+            0.029999999329447746,
+            0.75
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            7.0
+          ]
+        }
+      },
+      {
+        "name": "RoadEW",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "texture": "Assets/Textures/dirt.png",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "uvScale": [
+              0.8100000023841858,
+              0.10000000149011612
+            ]
+          },
+          "mesh": "plane"
+        },
+        "transform": {
+          "position": [
+            0.0,
+            0.029999999329447746,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            8.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "RoadGate",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "texture": "Assets/Textures/dirt.png",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "uvScale": [
+              0.18000000715255737,
+              0.10000000149011612
+            ]
+          },
+          "mesh": "plane"
+        },
+        "transform": {
+          "position": [
+            9.75,
+            0.029999999329447746,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.75,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "Plaza",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "texture": "Assets/Textures/cobble.png",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "uvScale": [
+              0.28999999165534973,
+              0.28999999165534973
+            ]
+          },
+          "mesh": "plane"
+        },
+        "transform": {
+          "position": [
+            0.0,
+            0.05000000074505806,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            4.5,
+            1.0,
+            4.5
+          ]
+        }
+      },
+      {
+        "animation": {
+          "clipName": "Idle",
+          "clipTime": 7.233027458190918,
+          "looping": true,
+          "playSpeed": 1.0
+        },
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.44999998807907104,
+            0.44999998807907104
+          ]
+        },
+        "combat": {
+          "currentHp": 5,
+          "faction": "player",
+          "maxHp": 5
+        },
         "name": "Player",
-        "prefab": "Assets/Prefabs/Player.prefab.json",
-        "transform": { "position": [-3.0, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              0.8999999761581421,
+              0.9200000166893005,
+              0.550000011920929
+            ]
+          },
+          "meshPath": "Assets/Models/Mixamo/Knight.glb"
+        },
+        "transform": {
+          "position": [
+            -20.309480667114258,
+            0.0,
+            2.5094058513641357
+          ],
+          "rotation": [
+            0.0,
+            -2.172513961791992,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
       },
-
-      { "name": "HouseNW", "prefab": "Assets/Prefabs/House.prefab.json", "transform": { "position": [-7.5, 0.0, -6.5], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "HouseNE", "prefab": "Assets/Prefabs/House.prefab.json", "transform": { "position": [ 7.5, 0.0, -6.5], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "HouseSW", "prefab": "Assets/Prefabs/House.prefab.json", "transform": { "position": [-7.5, 0.0,  8.0], "rotation": [0.0, 0.0,    0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "HouseSE", "prefab": "Assets/Prefabs/House.prefab.json", "transform": { "position": [ 7.5, 0.0,  8.0], "rotation": [0.0, 0.0,    0.0], "scale": [1.0, 1.0, 1.0] } },
-
       {
+        "name": "HouseNW_0",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.500007152557373,
+            0.0,
+            -7.500007152557373
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_1",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.500007629394531,
+            0.0,
+            -7.499992847442627
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_2",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.499992847442627,
+            0.0,
+            -5.500007152557373
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_3",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.499992370605469,
+            0.0,
+            -5.499992847442627
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_4",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Door_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.499985694885254,
+            0.0,
+            -4.500007152557373
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_5",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Window_Wide_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.499985694885254,
+            0.0,
+            -4.499992847442627
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_6",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.500014305114746,
+            0.0,
+            -8.500007629394531
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_7",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.500014305114746,
+            0.0,
+            -8.499992370605469
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_8",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Window_Wide_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.499992847442627,
+            0.0,
+            -5.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_9",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.500007152557373,
+            0.0,
+            -7.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_10",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.499992370605469,
+            0.0,
+            -5.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            4.712399959564209,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_11",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Window_Wide_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.500007629394531,
+            0.0,
+            -7.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            4.712399959564209,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_12",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_WoodGrid.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.499985694885254,
+            3.119999885559082,
+            -4.500007152557373
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_13",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Wide_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.499985694885254,
+            3.119999885559082,
+            -4.499992847442627
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_14",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_WoodGrid.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.500014305114746,
+            3.119999885559082,
+            -8.500007629394531
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_15",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_WoodGrid.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.500014305114746,
+            3.119999885559082,
+            -8.499992370605469
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_16",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Wide_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.499992847442627,
+            3.119999885559082,
+            -5.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_17",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_WoodGrid.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.500007152557373,
+            3.119999885559082,
+            -7.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_18",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_WoodGrid.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.499992370605469,
+            3.119999885559082,
+            -5.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            4.712399959564209,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_19",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Wide_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.500007629394531,
+            3.119999885559082,
+            -7.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            4.712399959564209,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_20",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.500014305114746,
+            0.0,
+            -8.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_21",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.500014305114746,
+            0.0,
+            -8.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_22",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.499985694885254,
+            0.0,
+            -4.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_23",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.499985694885254,
+            0.0,
+            -4.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_24",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.500014305114746,
+            3.119999885559082,
+            -8.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_25",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.500014305114746,
+            3.119999885559082,
+            -8.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_26",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.499985694885254,
+            3.119999885559082,
+            -4.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_27",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.499985694885254,
+            3.119999885559082,
+            -4.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_28",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Roof_RoundTiles_4x4.gltf"
+        },
+        "transform": {
+          "position": [
+            -7.5,
+            6.239999771118164,
+            -6.5
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_29",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Roof_Front_Brick4.gltf"
+        },
+        "transform": {
+          "position": [
+            -7.499985694885254,
+            6.239999771118164,
+            -4.5
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_30",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Roof_Front_Brick4.gltf"
+        },
+        "transform": {
+          "position": [
+            -7.500014305114746,
+            6.239999771118164,
+            -8.5
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_31",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Prop_Chimney.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.800005912780762,
+            6.0,
+            -7.299990653991699
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_32",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Balcony_Simple_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.499985694885254,
+            3.119999885559082,
+            -4.499992847442627
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNW_33",
+        "render": {
+          "meshPath": "Assets/Models/Medieval/modules/Prop_Vine2.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.450007438659668,
+            3.119999885559082,
+            -7.500014781951904
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.25,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseNW_Collide_S_L",
+        "transform": {
+          "position": [
+            -5.749985694885254,
+            0.0,
+            -4.500012397766113
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.25,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseNW_Collide_S_R",
+        "transform": {
+          "position": [
+            -8.249985694885254,
+            0.0,
+            -4.499994277954102
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            2.0,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseNW_Collide_N",
+        "transform": {
+          "position": [
+            -7.500014305114746,
+            0.0,
+            -8.5
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            2.0
+          ]
+        },
+        "name": "HouseNW_Collide_W",
+        "transform": {
+          "position": [
+            -5.5,
+            0.0,
+            -6.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            2.0
+          ]
+        },
+        "name": "HouseNW_Collide_E",
+        "transform": {
+          "position": [
+            -9.5,
+            0.0,
+            -6.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            8.499992370605469,
+            0.0,
+            -7.500007152557373
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            6.499992847442627,
+            0.0,
+            -7.499992847442627
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            8.500007629394531,
+            0.0,
+            -5.500007152557373
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            6.500007152557373,
+            0.0,
+            -5.499992847442627
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Door_Flat.gltf"
+        },
+        "transform": {
+          "position": [
+            8.500014305114746,
+            0.0,
+            -4.500007152557373
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_5",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            6.500014305114746,
+            0.0,
+            -4.499992847442627
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_6",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            8.499985694885254,
+            0.0,
+            -8.500007629394531
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_7",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            6.499985694885254,
+            0.0,
+            -8.499992370605469
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_8",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Thin_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            9.500007629394531,
+            0.0,
+            -5.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_9",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            9.499992370605469,
+            0.0,
+            -7.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_10",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            5.500007152557373,
+            0.0,
+            -5.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            4.712399959564209,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_11",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Thin_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            5.499992847442627,
+            0.0,
+            -7.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            4.712399959564209,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_12",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            9.499985694885254,
+            0.0,
+            -8.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_13",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            5.499985694885254,
+            0.0,
+            -8.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_14",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            9.500014305114746,
+            0.0,
+            -4.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_15",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            5.500014305114746,
+            0.0,
+            -4.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_16",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_RoundTiles_4x4.gltf"
+        },
+        "transform": {
+          "position": [
+            7.5,
+            3.119999885559082,
+            -6.5
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_17",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_Front_Brick4.gltf"
+        },
+        "transform": {
+          "position": [
+            7.500014305114746,
+            3.119999885559082,
+            -4.5
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_18",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_Front_Brick4.gltf"
+        },
+        "transform": {
+          "position": [
+            7.499985694885254,
+            3.119999885559082,
+            -8.5
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseNE_19",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Door_1_Flat.gltf"
+        },
+        "transform": {
+          "position": [
+            8.950014114379883,
+            0.0,
+            -4.5000104904174805
+          ],
+          "rotation": [
+            0.0,
+            6.283199787139893,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.25,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseNE_Collide_S_L",
+        "transform": {
+          "position": [
+            9.250014305114746,
+            0.0,
+            -4.500012397766113
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.25,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseNE_Collide_S_R",
+        "transform": {
+          "position": [
+            6.750014305114746,
+            0.0,
+            -4.499994277954102
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            2.0,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseNE_Collide_N",
+        "transform": {
+          "position": [
+            7.499985694885254,
+            0.0,
+            -8.5
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            2.0
+          ]
+        },
+        "name": "HouseNE_Collide_W",
+        "transform": {
+          "position": [
+            9.5,
+            0.0,
+            -6.500014305114746
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            2.0
+          ]
+        },
+        "name": "HouseNE_Collide_E",
+        "transform": {
+          "position": [
+            5.5,
+            0.0,
+            -6.499985694885254
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.5,
+            0.0,
+            9.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.5,
+            0.0,
+            9.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.5,
+            0.0,
+            7.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.5,
+            0.0,
+            7.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Door_Flat.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.5,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_5",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.5,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_6",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_7",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -6.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_8",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Thin_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.5,
+            0.0,
+            7.0
+          ],
+          "rotation": [
+            0.0,
+            -1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_9",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.5,
+            0.0,
+            9.0
+          ],
+          "rotation": [
+            0.0,
+            -1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_10",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.5,
+            0.0,
+            7.0
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_11",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Thin_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.5,
+            0.0,
+            9.0
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_12",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_13",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_14",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -9.5,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_15",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            -5.5,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_16",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_RoundTiles_4x4.gltf"
+        },
+        "transform": {
+          "position": [
+            -7.5,
+            3.119999885559082,
+            8.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_17",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_Front_Brick4.gltf"
+        },
+        "transform": {
+          "position": [
+            -7.5,
+            3.119999885559082,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_18",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_Front_Brick4.gltf"
+        },
+        "transform": {
+          "position": [
+            -7.5,
+            3.119999885559082,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSW_19",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Door_1_Flat.gltf"
+        },
+        "transform": {
+          "position": [
+            -8.949999809265137,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.25,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseSW_Collide_S_L",
+        "transform": {
+          "position": [
+            -9.25,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.25,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseSW_Collide_S_R",
+        "transform": {
+          "position": [
+            -6.75,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            2.0,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseSW_Collide_N",
+        "transform": {
+          "position": [
+            -7.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            2.0
+          ]
+        },
+        "name": "HouseSW_Collide_W",
+        "transform": {
+          "position": [
+            -9.5,
+            0.0,
+            8.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            2.0
+          ]
+        },
+        "name": "HouseSW_Collide_E",
+        "transform": {
+          "position": [
+            -5.5,
+            0.0,
+            8.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            6.5,
+            0.0,
+            9.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            8.5,
+            0.0,
+            9.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            6.5,
+            0.0,
+            7.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Floor_WoodDark.gltf"
+        },
+        "transform": {
+          "position": [
+            8.5,
+            0.0,
+            7.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Door_Flat.gltf"
+        },
+        "transform": {
+          "position": [
+            6.5,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_5",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            8.5,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_6",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            6.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_7",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            8.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_8",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Thin_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            5.5,
+            0.0,
+            7.0
+          ],
+          "rotation": [
+            0.0,
+            -1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_9",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            5.5,
+            0.0,
+            9.0
+          ],
+          "rotation": [
+            0.0,
+            -1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_10",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Straight.gltf"
+        },
+        "transform": {
+          "position": [
+            9.5,
+            0.0,
+            7.0
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_11",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Wall_Plaster_Window_Thin_Round.gltf"
+        },
+        "transform": {
+          "position": [
+            9.5,
+            0.0,
+            9.0
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_12",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            5.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_13",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            9.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_14",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            5.5,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_15",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Wood.gltf"
+        },
+        "transform": {
+          "position": [
+            9.5,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_16",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_RoundTiles_4x4.gltf"
+        },
+        "transform": {
+          "position": [
+            7.5,
+            3.119999885559082,
+            8.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_17",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_Front_Brick4.gltf"
+        },
+        "transform": {
+          "position": [
+            7.5,
+            3.119999885559082,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_18",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Roof_Front_Brick4.gltf"
+        },
+        "transform": {
+          "position": [
+            7.5,
+            3.119999885559082,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "name": "HouseSE_19",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Door_1_Flat.gltf"
+        },
+        "transform": {
+          "position": [
+            6.050000190734863,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.25,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseSE_Collide_S_L",
+        "transform": {
+          "position": [
+            5.75,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.25,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseSE_Collide_S_R",
+        "transform": {
+          "position": [
+            8.25,
+            0.0,
+            6.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            2.0,
+            0.30000001192092896
+          ]
+        },
+        "name": "HouseSE_Collide_N",
+        "transform": {
+          "position": [
+            7.5,
+            0.0,
+            10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            2.0
+          ]
+        },
+        "name": "HouseSE_Collide_W",
+        "transform": {
+          "position": [
+            5.5,
+            0.0,
+            8.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            2.0
+          ]
+        },
+        "name": "HouseSE_Collide_E",
+        "transform": {
+          "position": [
+            9.5,
+            0.0,
+            8.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "animation": {
+          "clipName": "",
+          "clipTime": 0.0,
+          "looping": true,
+          "playSpeed": 0.0
+        },
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "combat": {
+          "currentHp": 3,
+          "faction": "neutral",
+          "maxHp": 3
+        },
         "name": "Carpenter",
-        "prefab": "Assets/Prefabs/QuestGiver.prefab.json",
-        "transform": { "position": [1.5, 0.0, -2.5], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }
+        "npc": {
+          "dialogText": "Hello there.",
+          "displayName": "Carpenter",
+          "questId": "gather_supplies"
+        },
+        "render": {
+          "importScale": 1.399999976158142,
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              0.6499999761581421,
+              0.800000011920929,
+              0.949999988079071
+            ]
+          },
+          "meshPath": "Assets/Models/CesiumMan/CesiumMan.gltf"
+        },
+        "transform": {
+          "position": [
+            1.5,
+            0.0,
+            -2.5
+          ],
+          "rotation": [
+            0.0,
+            3.1415998935699463,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
       },
       {
+        "animation": {
+          "clipName": "",
+          "clipTime": 0.0,
+          "looping": true,
+          "playSpeed": 0.0
+        },
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "combat": {
+          "currentHp": 3,
+          "faction": "neutral",
+          "maxHp": 3
+        },
         "name": "VillagerElder",
-        "prefab": "Assets/Prefabs/Villager.prefab.json",
-        "transform": { "position": [-2.0, 0.0, 3.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] },
-        "npc": { "displayName": "Elder", "dialogText": "Welcome to our village.", "questId": "clear_arena_trial" }
+        "npc": {
+          "dialogText": "Welcome to our village.",
+          "displayName": "Elder",
+          "questId": "clear_arena_trial"
+        },
+        "render": {
+          "importScale": 1.399999976158142,
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              0.949999988079071,
+              0.8500000238418579,
+              0.550000011920929
+            ]
+          },
+          "meshPath": "Assets/Models/CesiumMan/CesiumMan.gltf"
+        },
+        "transform": {
+          "position": [
+            -2.0,
+            0.0,
+            3.0
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
       },
       {
+        "animation": {
+          "clipName": "",
+          "clipTime": 0.0,
+          "looping": true,
+          "playSpeed": 0.0
+        },
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "combat": {
+          "currentHp": 3,
+          "faction": "neutral",
+          "maxHp": 3
+        },
         "name": "VillagerChild",
-        "prefab": "Assets/Prefabs/Villager.prefab.json",
-        "transform": { "position": [3.5, 0.0, 2.5], "rotation": [0.0, -1.5708, 0.0], "scale": [0.8, 0.8, 0.8] },
-        "npc": { "displayName": "Lina", "dialogText": "Have you seen the fox? It runs around the arena!" }
+        "npc": {
+          "dialogText": "Have you seen the fox? It runs around the arena!",
+          "displayName": "Lina"
+        },
+        "render": {
+          "importScale": 1.399999976158142,
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              0.949999988079071,
+              0.8500000238418579,
+              0.550000011920929
+            ]
+          },
+          "meshPath": "Assets/Models/CesiumMan/CesiumMan.gltf"
+        },
+        "transform": {
+          "position": [
+            3.5,
+            0.0,
+            2.5
+          ],
+          "rotation": [
+            0.0,
+            -1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929
+          ]
+        }
       },
-
-      { "name": "Wagon",  "prefab": "Assets/Prefabs/Wagon.prefab.json",  "transform": { "position": [-3.5, 0.0, -4.5], "rotation": [0.0, 0.6, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "Crate1", "prefab": "Assets/Prefabs/Crate.prefab.json",  "transform": { "position": [-1.8, 0.0, -4.2], "rotation": [0.0, 0.3, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "Crate2", "prefab": "Assets/Prefabs/Crate.prefab.json",  "transform": { "position": [-1.2, 0.0, -3.4], "rotation": [0.0, 1.1, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "Barrel1","prefab": "Assets/Prefabs/Barrel.prefab.json", "transform": { "position": [-2.4, 0.0, -3.1], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "Barrel2","prefab": "Assets/Prefabs/Barrel.prefab.json", "transform": { "position": [ 2.6, 0.0, -3.6], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
-
-      { "name": "Fence1", "prefab": "Assets/Prefabs/WoodenFence.prefab.json", "transform": { "position": [-1.0, 0.0, 5.5], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "Fence2", "prefab": "Assets/Prefabs/WoodenFence.prefab.json", "transform": { "position": [-1.0, 0.0, 3.5], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "Fence3", "prefab": "Assets/Prefabs/WoodenFence.prefab.json", "transform": { "position": [ 0.0, 0.0, 6.4], "rotation": [0.0, 0.0,    0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "Fence4", "prefab": "Assets/Prefabs/WoodenFence.prefab.json", "transform": { "position": [ 2.0, 0.0, 6.4], "rotation": [0.0, 0.0,    0.0], "scale": [1.0, 1.0, 1.0] } },
-
-      { "name": "GatherTreeW",  "prefab": "Assets/Prefabs/HarvestTree.prefab.json", "transform": { "position": [-10.5, 0.0, 1.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "GatherTreeE",  "prefab": "Assets/Prefabs/HarvestTree.prefab.json", "transform": { "position": [ 10.0, 0.0, -2.0], "rotation": [0.0, 2.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "GatherTreeN",  "prefab": "Assets/Prefabs/HarvestTree.prefab.json", "transform": { "position": [ 1.0,  0.0, -10.5],"rotation": [0.0, 1.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "GatherRockW",  "prefab": "Assets/Prefabs/HarvestRock.prefab.json", "transform": { "position": [-10.0, 0.0, -3.5], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "GatherRockE",  "prefab": "Assets/Prefabs/HarvestRock.prefab.json", "transform": { "position": [ 9.5,  0.0, 4.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
-      { "name": "GatherBushN",  "prefab": "Assets/Prefabs/HarvestBush.prefab.json", "transform": { "position": [-2.5,  0.0, -10.0],"rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
-
       {
-        "name": "VillageHorse",
-        "prefab": "Assets/Prefabs/Horse.prefab.json",
-        "transform": { "position": [4.5, 0.0, -1.0], "rotation": [0.0, 1.2, 0.0], "scale": [1.0, 1.0, 1.0] }
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.0,
+            2.0
+          ],
+          "offset": [
+            0.0,
+            -1.1399999856948853
+          ]
+        },
+        "name": "Wagon",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Prop_Wagon.gltf"
+        },
+        "transform": {
+          "position": [
+            -3.5,
+            0.0,
+            -4.5
+          ],
+          "rotation": [
+            0.0,
+            0.6000000238418579,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
       },
-
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.550000011920929,
+            0.550000011920929
+          ]
+        },
+        "name": "Crate1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Prop_Crate.gltf"
+        },
+        "transform": {
+          "position": [
+            -1.7999999523162842,
+            0.0,
+            -4.199999809265137
+          ],
+          "rotation": [
+            0.0,
+            0.30000001192092896,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.550000011920929,
+            0.550000011920929
+          ]
+        },
+        "name": "Crate2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Prop_Crate.gltf"
+        },
+        "transform": {
+          "position": [
+            -1.2000000476837158,
+            0.0,
+            -3.4000000953674316
+          ],
+          "rotation": [
+            0.0,
+            1.100000023841858,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            0.30000001192092896
+          ]
+        },
+        "name": "Barrel1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/PolyHaven/Barrel_01/Barrel_01_1k.gltf"
+        },
+        "transform": {
+          "position": [
+            -2.4000000953674316,
+            0.0,
+            -3.0999999046325684
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.30000001192092896,
+            0.30000001192092896
+          ]
+        },
+        "name": "Barrel2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/PolyHaven/Barrel_01/Barrel_01_1k.gltf"
+        },
+        "transform": {
+          "position": [
+            2.5999999046325684,
+            0.0,
+            -3.5999999046325684
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.0,
+            0.15000000596046448
+          ]
+        },
+        "name": "Fence1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Prop_WoodenFence_Single.gltf"
+        },
+        "transform": {
+          "position": [
+            -1.0,
+            0.0,
+            5.5
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.0,
+            0.15000000596046448
+          ]
+        },
+        "name": "Fence2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Prop_WoodenFence_Single.gltf"
+        },
+        "transform": {
+          "position": [
+            -1.0,
+            0.0,
+            3.5
+          ],
+          "rotation": [
+            0.0,
+            1.5707999467849731,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.0,
+            0.15000000596046448
+          ]
+        },
+        "name": "Fence3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Prop_WoodenFence_Single.gltf"
+        },
+        "transform": {
+          "position": [
+            0.0,
+            0.0,
+            6.400000095367432
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.0,
+            0.15000000596046448
+          ]
+        },
+        "name": "Fence4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Prop_WoodenFence_Single.gltf"
+        },
+        "transform": {
+          "position": [
+            2.0,
+            0.0,
+            6.400000095367432
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "harvest": {
+          "amount": 2,
+          "itemId": "wood",
+          "respawnSec": 10.0
+        },
+        "name": "GatherTreeW",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -10.5,
+            0.0,
+            1.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "harvest": {
+          "amount": 2,
+          "itemId": "wood",
+          "respawnSec": 10.0
+        },
+        "name": "GatherTreeE",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            10.0,
+            0.0,
+            -2.0
+          ],
+          "rotation": [
+            0.0,
+            2.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "harvest": {
+          "amount": 2,
+          "itemId": "wood",
+          "respawnSec": 10.0
+        },
+        "name": "GatherTreeN",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            1.0,
+            0.0,
+            -10.5
+          ],
+          "rotation": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "harvest": {
+          "amount": 2,
+          "itemId": "stone",
+          "respawnSec": 12.0
+        },
+        "name": "GatherRockW",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Rock_1.glb"
+        },
+        "transform": {
+          "position": [
+            -10.0,
+            0.0,
+            -3.5
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "harvest": {
+          "amount": 2,
+          "itemId": "stone",
+          "respawnSec": 12.0
+        },
+        "name": "GatherRockE",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Rock_1.glb"
+        },
+        "transform": {
+          "position": [
+            9.5,
+            0.0,
+            4.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "harvest": {
+          "amount": 1,
+          "itemId": "fiber",
+          "respawnSec": 8.0
+        },
+        "name": "GatherBushN",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            -2.5,
+            0.0,
+            -10.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      {
+        "animation": {
+          "clipName": "Idle",
+          "clipTime": 58.44396209716797,
+          "looping": true,
+          "playSpeed": 1.0
+        },
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.550000011920929,
+            0.8500000238418579
+          ]
+        },
+        "name": "VillageHorse",
+        "render": {
+          "importScale": 0.5,
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Horse/Horse.gltf"
+        },
+        "transform": {
+          "position": [
+            4.5,
+            0.0,
+            -1.0
+          ],
+          "rotation": [
+            0.0,
+            1.2000000476837158,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
       {
         "name": "ArenaGateMarker",
-        "transform": { "position": [11.0, 0.4, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.6, 1.6, 0.6] },
-        "render": { "mesh": "cube", "material": { "tint": [0.85, 0.55, 0.35] } }
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              0.8500000238418579,
+              0.550000011920929,
+              0.3499999940395355
+            ]
+          },
+          "mesh": "cube"
+        },
+        "transform": {
+          "position": [
+            11.0,
+            0.4000000059604645,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            0.6000000238418579,
+            1.600000023841858,
+            0.6000000238418579
+          ]
+        }
       },
       {
         "name": "ArenaGate",
-        "transform": { "position": [11.5, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
-        "trigger": { "halfExtents": [1.0, 2.5], "tag": "arena_gate", "fireOnce": true, "action": { "type": "load_scene", "param": "Assets/Scenes/arena_trial.json" } }
+        "transform": {
+          "position": [
+            11.5,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "trigger": {
+          "action": {
+            "param": "Assets/Scenes/arena_trial.json",
+            "type": "load_scene"
+          },
+          "fireOnce": true,
+          "halfExtents": [
+            1.0,
+            2.5
+          ],
+          "tag": "arena_gate"
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeN_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -9.744909286499023,
+            0.0,
+            -10.81798267364502
+          ],
+          "rotation": [
+            0.0,
+            2.0041615962982178,
+            0.0
+          ],
+          "scale": [
+            1.0119675397872925,
+            1.0119675397872925,
+            1.0119675397872925
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeN_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -1.4165878295898438,
+            0.0,
+            -8.56533145904541
+          ],
+          "rotation": [
+            0.0,
+            2.8625245094299316,
+            0.0
+          ],
+          "scale": [
+            0.9893860816955566,
+            0.9893860816955566,
+            0.9893860816955566
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeN_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            10.993759155273438,
+            0.0,
+            -10.57596206665039
+          ],
+          "rotation": [
+            0.0,
+            1.657949447631836,
+            0.0
+          ],
+          "scale": [
+            0.915398359298706,
+            0.915398359298706,
+            0.915398359298706
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeN_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -5.325902938842773,
+            0.0,
+            -11.452268600463867
+          ],
+          "rotation": [
+            0.0,
+            3.3160440921783447,
+            0.0
+          ],
+          "scale": [
+            0.8999530076980591,
+            0.8999530076980591,
+            0.8999530076980591
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeN_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            6.985998153686523,
+            0.0,
+            -10.507482528686523
+          ],
+          "rotation": [
+            0.0,
+            2.4689295291900635,
+            0.0
+          ],
+          "scale": [
+            0.8523764610290527,
+            0.8523764610290527,
+            0.8523764610290527
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ]
+        },
+        "name": "TreeS_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/PineTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -1.0706672668457031,
+            0.0,
+            10.829485893249512
+          ],
+          "rotation": [
+            0.0,
+            3.8160507678985596,
+            0.0
+          ],
+          "scale": [
+            0.9436169862747192,
+            0.9436169862747192,
+            0.9436169862747192
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ]
+        },
+        "name": "TreeS_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/PineTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            3.257107734680176,
+            0.0,
+            9.847716331481934
+          ],
+          "rotation": [
+            0.0,
+            2.1384646892547607,
+            0.0
+          ],
+          "scale": [
+            0.9888073205947876,
+            0.9888073205947876,
+            0.9888073205947876
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ]
+        },
+        "name": "TreeS_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/PineTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -3.5056324005126953,
+            0.0,
+            11.481765747070313
+          ],
+          "rotation": [
+            0.0,
+            3.8607289791107178,
+            0.0
+          ],
+          "scale": [
+            0.7037650942802429,
+            0.7037650942802429,
+            0.7037650942802429
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ]
+        },
+        "name": "TreeS_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/PineTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -3.2583227157592773,
+            0.0,
+            9.28682804107666
+          ],
+          "rotation": [
+            0.0,
+            4.54191780090332,
+            0.0
+          ],
+          "scale": [
+            1.0796377658843994,
+            1.0796377658843994,
+            1.0796377658843994
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ]
+        },
+        "name": "TreeS_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/PineTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -11.299538612365723,
+            0.0,
+            10.92671012878418
+          ],
+          "rotation": [
+            0.0,
+            3.3039743900299072,
+            0.0
+          ],
+          "scale": [
+            0.9986308813095093,
+            0.9986308813095093,
+            0.9986308813095093
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.3499999940395355,
+            0.3499999940395355
+          ],
+          "offset": [
+            0.0,
+            -0.6700000166893005
+          ]
+        },
+        "name": "TreeW_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/BirchTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -8.835451126098633,
+            0.0,
+            2.665985107421875
+          ],
+          "rotation": [
+            0.0,
+            2.167210340499878,
+            0.0
+          ],
+          "scale": [
+            0.8624496459960938,
+            0.8624496459960938,
+            0.8624496459960938
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.3499999940395355,
+            0.3499999940395355
+          ],
+          "offset": [
+            0.0,
+            -0.6700000166893005
+          ]
+        },
+        "name": "TreeW_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/BirchTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -11.314676284790039,
+            0.0,
+            7.446907997131348
+          ],
+          "rotation": [
+            0.0,
+            5.255782127380371,
+            0.0
+          ],
+          "scale": [
+            0.8225998282432556,
+            0.8225998282432556,
+            0.8225998282432556
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.3499999940395355,
+            0.3499999940395355
+          ],
+          "offset": [
+            0.0,
+            -0.6700000166893005
+          ]
+        },
+        "name": "TreeW_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/BirchTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -11.381318092346191,
+            0.0,
+            3.9145584106445313
+          ],
+          "rotation": [
+            0.0,
+            6.2337188720703125,
+            0.0
+          ],
+          "scale": [
+            0.8582857847213745,
+            0.8582857847213745,
+            0.8582857847213745
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.3499999940395355,
+            0.3499999940395355
+          ],
+          "offset": [
+            0.0,
+            -0.6700000166893005
+          ]
+        },
+        "name": "TreeW_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/BirchTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            -10.772416114807129,
+            0.0,
+            -1.4673714637756348
+          ],
+          "rotation": [
+            0.0,
+            0.18607744574546814,
+            0.0
+          ],
+          "scale": [
+            0.9020565152168274,
+            0.9020565152168274,
+            0.9020565152168274
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeE_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            8.987841606140137,
+            0.0,
+            -0.3622426986694336
+          ],
+          "rotation": [
+            0.0,
+            0.6193003058433533,
+            0.0
+          ],
+          "scale": [
+            1.0602214336395264,
+            1.0602214336395264,
+            1.0602214336395264
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeE_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            11.131988525390625,
+            0.0,
+            7.9557037353515625
+          ],
+          "rotation": [
+            0.0,
+            1.7721203565597534,
+            0.0
+          ],
+          "scale": [
+            1.027683138847351,
+            1.027683138847351,
+            1.027683138847351
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeE_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            11.420310020446777,
+            0.0,
+            1.605626106262207
+          ],
+          "rotation": [
+            0.0,
+            3.1383063793182373,
+            0.0
+          ],
+          "scale": [
+            1.0277907848358154,
+            1.0277907848358154,
+            1.0277907848358154
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.4000000059604645,
+            0.4000000059604645
+          ],
+          "offset": [
+            0.0,
+            1.3899999856948853
+          ]
+        },
+        "name": "TreeE_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/CommonTree_1.glb"
+        },
+        "transform": {
+          "position": [
+            10.987424850463867,
+            0.0,
+            2.146664619445801
+          ],
+          "rotation": [
+            0.0,
+            4.779111862182617,
+            0.0
+          ],
+          "scale": [
+            0.980110764503479,
+            0.980110764503479,
+            0.980110764503479
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "name": "Rock_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Rock_1.glb"
+        },
+        "transform": {
+          "position": [
+            -2.8855772018432617,
+            0.0,
+            6.820489883422852
+          ],
+          "rotation": [
+            0.0,
+            1.1525547504425049,
+            0.0
+          ],
+          "scale": [
+            0.975357174873352,
+            0.975357174873352,
+            0.975357174873352
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "name": "Rock_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Rock_1.glb"
+        },
+        "transform": {
+          "position": [
+            -7.911571502685547,
+            0.0,
+            -1.2458467483520508
+          ],
+          "rotation": [
+            0.0,
+            0.6281610131263733,
+            0.0
+          ],
+          "scale": [
+            0.5779972672462463,
+            0.5779972672462463,
+            0.5779972672462463
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "name": "Rock_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Rock_1.glb"
+        },
+        "transform": {
+          "position": [
+            2.3256444931030273,
+            0.0,
+            -8.21406364440918
+          ],
+          "rotation": [
+            0.0,
+            4.089653015136719,
+            0.0
+          ],
+          "scale": [
+            0.8540363311767578,
+            0.8540363311767578,
+            0.8540363311767578
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "name": "Rock_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Rock_1.glb"
+        },
+        "transform": {
+          "position": [
+            -7.318025588989258,
+            0.0,
+            11.320865631103516
+          ],
+          "rotation": [
+            0.0,
+            3.879750967025757,
+            0.0
+          ],
+          "scale": [
+            0.5917022228240967,
+            0.5917022228240967,
+            0.5917022228240967
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "name": "Rock_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Rock_1.glb"
+        },
+        "transform": {
+          "position": [
+            -4.50242805480957,
+            0.0,
+            2.5680227279663086
+          ],
+          "rotation": [
+            0.0,
+            0.04439892619848251,
+            0.0
+          ],
+          "scale": [
+            0.7623782157897949,
+            0.7623782157897949,
+            0.7623782157897949
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            0.5,
+            0.5
+          ]
+        },
+        "name": "Rock_5",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Rock_1.glb"
+        },
+        "transform": {
+          "position": [
+            -1.5652647018432617,
+            0.0,
+            -10.969564437866211
+          ],
+          "rotation": [
+            0.0,
+            3.2972567081451416,
+            0.0
+          ],
+          "scale": [
+            0.6456145644187927,
+            0.6456145644187927,
+            0.6456145644187927
+          ]
+        }
+      },
+      {
+        "name": "Bush_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            1.5092010498046875,
+            0.0,
+            10.979005813598633
+          ],
+          "rotation": [
+            0.0,
+            3.6299614906311035,
+            0.0
+          ],
+          "scale": [
+            0.8488112688064575,
+            0.8488112688064575,
+            0.8488112688064575
+          ]
+        }
+      },
+      {
+        "name": "Bush_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            5.6756439208984375,
+            0.0,
+            3.2338333129882813
+          ],
+          "rotation": [
+            0.0,
+            3.1014788150787354,
+            0.0
+          ],
+          "scale": [
+            0.8887194991111755,
+            0.8887194991111755,
+            0.8887194991111755
+          ]
+        }
+      },
+      {
+        "name": "Bush_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            -9.346899032592773,
+            0.0,
+            4.449956893920898
+          ],
+          "rotation": [
+            0.0,
+            2.053995370864868,
+            0.0
+          ],
+          "scale": [
+            1.1066542863845825,
+            1.1066542863845825,
+            1.1066542863845825
+          ]
+        }
+      },
+      {
+        "name": "Bush_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            -6.61948823928833,
+            0.0,
+            0.9463071823120117
+          ],
+          "rotation": [
+            0.0,
+            0.5546960234642029,
+            0.0
+          ],
+          "scale": [
+            0.9383280873298645,
+            0.9383280873298645,
+            0.9383280873298645
+          ]
+        }
+      },
+      {
+        "name": "Bush_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            -11.349281311035156,
+            0.0,
+            -8.47679328918457
+          ],
+          "rotation": [
+            0.0,
+            0.4352015256881714,
+            0.0
+          ],
+          "scale": [
+            1.1493221521377563,
+            1.1493221521377563,
+            1.1493221521377563
+          ]
+        }
+      },
+      {
+        "name": "Bush_5",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            0.9680166244506836,
+            0.0,
+            -4.321934700012207
+          ],
+          "rotation": [
+            0.0,
+            1.2247799634933472,
+            0.0
+          ],
+          "scale": [
+            0.7208792567253113,
+            0.7208792567253113,
+            0.7208792567253113
+          ]
+        }
+      },
+      {
+        "name": "Bush_6",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            0.5721673965454102,
+            0.0,
+            10.108983993530273
+          ],
+          "rotation": [
+            0.0,
+            2.41262149810791,
+            0.0
+          ],
+          "scale": [
+            1.020071268081665,
+            1.020071268081665,
+            1.020071268081665
+          ]
+        }
+      },
+      {
+        "name": "Bush_7",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            6.915138244628906,
+            0.0,
+            2.9732885360717773
+          ],
+          "rotation": [
+            0.0,
+            2.125492811203003,
+            0.0
+          ],
+          "scale": [
+            1.1174595355987549,
+            1.1174595355987549,
+            1.1174595355987549
+          ]
+        }
+      },
+      {
+        "name": "Bush_8",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            7.762351989746094,
+            0.0,
+            -6.669807434082031
+          ],
+          "rotation": [
+            0.0,
+            1.7089061737060547,
+            0.0
+          ],
+          "scale": [
+            0.9163947105407715,
+            0.9163947105407715,
+            0.9163947105407715
+          ]
+        }
+      },
+      {
+        "name": "Bush_9",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            -6.7761054039001465,
+            0.0,
+            4.46002197265625
+          ],
+          "rotation": [
+            0.0,
+            3.8581912517547607,
+            0.0
+          ],
+          "scale": [
+            0.8465325832366943,
+            0.8465325832366943,
+            0.8465325832366943
+          ]
+        }
+      },
+      {
+        "name": "Bush_10",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            4.4564313888549805,
+            0.0,
+            -10.33542251586914
+          ],
+          "rotation": [
+            0.0,
+            0.9201169610023499,
+            0.0
+          ],
+          "scale": [
+            1.1132793426513672,
+            1.1132793426513672,
+            1.1132793426513672
+          ]
+        }
+      },
+      {
+        "name": "Bush_11",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Bush_1.glb"
+        },
+        "transform": {
+          "position": [
+            -6.088869571685791,
+            0.0,
+            -2.3820762634277344
+          ],
+          "rotation": [
+            0.0,
+            1.4307284355163574,
+            0.0
+          ],
+          "scale": [
+            0.7527700066566467,
+            0.7527700066566467,
+            0.7527700066566467
+          ]
+        }
+      },
+      {
+        "name": "Grass_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            0.423614501953125,
+            0.0,
+            -0.3073253631591797
+          ],
+          "rotation": [
+            0.0,
+            6.22551155090332,
+            0.0
+          ],
+          "scale": [
+            0.9780802726745605,
+            0.9780802726745605,
+            0.9780802726745605
+          ]
+        }
+      },
+      {
+        "name": "Grass_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            1.8362693786621094,
+            0.0,
+            -0.18087196350097656
+          ],
+          "rotation": [
+            0.0,
+            4.598482131958008,
+            0.0
+          ],
+          "scale": [
+            1.1599575281143188,
+            1.1599575281143188,
+            1.1599575281143188
+          ]
+        }
+      },
+      {
+        "name": "Grass_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            -6.795222759246826,
+            0.0,
+            4.253058433532715
+          ],
+          "rotation": [
+            0.0,
+            5.299083232879639,
+            0.0
+          ],
+          "scale": [
+            1.2199060916900635,
+            1.2199060916900635,
+            1.2199060916900635
+          ]
+        }
+      },
+      {
+        "name": "Grass_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            6.428836822509766,
+            0.0,
+            2.670870780944824
+          ],
+          "rotation": [
+            0.0,
+            3.53861141204834,
+            0.0
+          ],
+          "scale": [
+            0.8137598633766174,
+            0.8137598633766174,
+            0.8137598633766174
+          ]
+        }
+      },
+      {
+        "name": "Grass_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            6.957427978515625,
+            0.0,
+            3.8423595428466797
+          ],
+          "rotation": [
+            0.0,
+            1.2551630735397339,
+            0.0
+          ],
+          "scale": [
+            1.3222898244857788,
+            1.3222898244857788,
+            1.3222898244857788
+          ]
+        }
+      },
+      {
+        "name": "Grass_5",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            3.0306196212768555,
+            0.0,
+            -6.302267074584961
+          ],
+          "rotation": [
+            0.0,
+            5.925380229949951,
+            0.0
+          ],
+          "scale": [
+            1.2899961471557617,
+            1.2899961471557617,
+            1.2899961471557617
+          ]
+        }
+      },
+      {
+        "name": "Grass_6",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            -9.33333683013916,
+            0.0,
+            4.237353324890137
+          ],
+          "rotation": [
+            0.0,
+            2.665363311767578,
+            0.0
+          ],
+          "scale": [
+            1.0166290998458862,
+            1.0166290998458862,
+            1.0166290998458862
+          ]
+        }
+      },
+      {
+        "name": "Grass_7",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            -7.160642147064209,
+            0.0,
+            7.936269760131836
+          ],
+          "rotation": [
+            0.0,
+            4.044373989105225,
+            0.0
+          ],
+          "scale": [
+            1.0192866325378418,
+            1.0192866325378418,
+            1.0192866325378418
+          ]
+        }
+      },
+      {
+        "name": "Grass_8",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            -0.15145397186279297,
+            0.0,
+            -6.288540840148926
+          ],
+          "rotation": [
+            0.0,
+            5.5963592529296875,
+            0.0
+          ],
+          "scale": [
+            1.150099754333496,
+            1.150099754333496,
+            1.150099754333496
+          ]
+        }
+      },
+      {
+        "name": "Grass_9",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            6.910957336425781,
+            0.0,
+            0.24641132354736328
+          ],
+          "rotation": [
+            0.0,
+            3.0542497634887695,
+            0.0
+          ],
+          "scale": [
+            0.8122348189353943,
+            0.8122348189353943,
+            0.8122348189353943
+          ]
+        }
+      },
+      {
+        "name": "Grass_10",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            11.158145904541016,
+            0.0,
+            5.886310577392578
+          ],
+          "rotation": [
+            0.0,
+            3.942678213119507,
+            0.0
+          ],
+          "scale": [
+            1.2808408737182617,
+            1.2808408737182617,
+            1.2808408737182617
+          ]
+        }
+      },
+      {
+        "name": "Grass_11",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            -3.904175281524658,
+            0.0,
+            -8.219820976257324
+          ],
+          "rotation": [
+            0.0,
+            4.774510860443115,
+            0.0
+          ],
+          "scale": [
+            0.8496431708335876,
+            0.8496431708335876,
+            0.8496431708335876
+          ]
+        }
+      },
+      {
+        "name": "Grass_12",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            0.6145038604736328,
+            0.0,
+            9.971498489379883
+          ],
+          "rotation": [
+            0.0,
+            4.498623847961426,
+            0.0
+          ],
+          "scale": [
+            1.1965066194534302,
+            1.1965066194534302,
+            1.1965066194534302
+          ]
+        }
+      },
+      {
+        "name": "Grass_13",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            6.208452224731445,
+            0.0,
+            2.4221391677856445
+          ],
+          "rotation": [
+            0.0,
+            6.180119514465332,
+            0.0
+          ],
+          "scale": [
+            1.2554594278335571,
+            1.2554594278335571,
+            1.2554594278335571
+          ]
+        }
+      },
+      {
+        "name": "Grass_14",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            6.14862060546875,
+            0.0,
+            2.224813461303711
+          ],
+          "rotation": [
+            0.0,
+            2.0986788272857666,
+            0.0
+          ],
+          "scale": [
+            1.3846096992492676,
+            1.3846096992492676,
+            1.3846096992492676
+          ]
+        }
+      },
+      {
+        "name": "Grass_15",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            7.137228012084961,
+            0.0,
+            -6.895756721496582
+          ],
+          "rotation": [
+            0.0,
+            2.393664598464966,
+            0.0
+          ],
+          "scale": [
+            0.836057722568512,
+            0.836057722568512,
+            0.836057722568512
+          ]
+        }
+      },
+      {
+        "name": "Grass_16",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            -1.155898094177246,
+            0.0,
+            0.5407819747924805
+          ],
+          "rotation": [
+            0.0,
+            4.243513584136963,
+            0.0
+          ],
+          "scale": [
+            1.2879023551940918,
+            1.2879023551940918,
+            1.2879023551940918
+          ]
+        }
+      },
+      {
+        "name": "Grass_17",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            11.189533233642578,
+            0.0,
+            -8.420554161071777
+          ],
+          "rotation": [
+            0.0,
+            6.158963680267334,
+            0.0
+          ],
+          "scale": [
+            0.864493727684021,
+            0.864493727684021,
+            0.864493727684021
+          ]
+        }
+      },
+      {
+        "name": "Grass_18",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            1.0173444747924805,
+            0.0,
+            8.962814331054688
+          ],
+          "rotation": [
+            0.0,
+            3.619037628173828,
+            0.0
+          ],
+          "scale": [
+            1.0188261270523071,
+            1.0188261270523071,
+            1.0188261270523071
+          ]
+        }
+      },
+      {
+        "name": "Grass_19",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            0.6251125335693359,
+            0.0,
+            -6.721080303192139
+          ],
+          "rotation": [
+            0.0,
+            2.2773988246917725,
+            0.0
+          ],
+          "scale": [
+            1.3767266273498535,
+            1.3767266273498535,
+            1.3767266273498535
+          ]
+        }
+      },
+      {
+        "name": "Grass_20",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            11.350591659545898,
+            0.0,
+            4.6831817626953125
+          ],
+          "rotation": [
+            0.0,
+            4.929214954376221,
+            0.0
+          ],
+          "scale": [
+            0.9310986995697021,
+            0.9310986995697021,
+            0.9310986995697021
+          ]
+        }
+      },
+      {
+        "name": "Grass_21",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            2.330845832824707,
+            0.0,
+            4.534975051879883
+          ],
+          "rotation": [
+            0.0,
+            2.6754770278930664,
+            0.0
+          ],
+          "scale": [
+            1.3983352184295654,
+            1.3983352184295654,
+            1.3983352184295654
+          ]
+        }
+      },
+      {
+        "name": "Grass_22",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            1.4010353088378906,
+            0.0,
+            7.966524124145508
+          ],
+          "rotation": [
+            0.0,
+            2.9400718212127686,
+            0.0
+          ],
+          "scale": [
+            1.1292357444763184,
+            1.1292357444763184,
+            1.1292357444763184
+          ]
+        }
+      },
+      {
+        "name": "Grass_23",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            5.216156005859375,
+            0.0,
+            -10.097264289855957
+          ],
+          "rotation": [
+            0.0,
+            0.9161554574966431,
+            0.0
+          ],
+          "scale": [
+            1.1694881916046143,
+            1.1694881916046143,
+            1.1694881916046143
+          ]
+        }
+      },
+      {
+        "name": "Grass_24",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            -5.102413654327393,
+            0.0,
+            -0.5509195327758789
+          ],
+          "rotation": [
+            0.0,
+            5.465685844421387,
+            0.0
+          ],
+          "scale": [
+            1.008999228477478,
+            1.008999228477478,
+            1.008999228477478
+          ]
+        }
+      },
+      {
+        "name": "Grass_25",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            6.3253021240234375,
+            0.0,
+            -0.37685298919677734
+          ],
+          "rotation": [
+            0.0,
+            0.8820719122886658,
+            0.0
+          ],
+          "scale": [
+            1.1748526096343994,
+            1.1748526096343994,
+            1.1748526096343994
+          ]
+        }
+      },
+      {
+        "name": "Grass_26",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            7.174716949462891,
+            0.0,
+            3.5335893630981445
+          ],
+          "rotation": [
+            0.0,
+            1.384966492652893,
+            0.0
+          ],
+          "scale": [
+            0.915367603302002,
+            0.915367603302002,
+            0.915367603302002
+          ]
+        }
+      },
+      {
+        "name": "Grass_27",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Grass.glb"
+        },
+        "transform": {
+          "position": [
+            -7.940862655639648,
+            0.0,
+            -10.999761581420898
+          ],
+          "rotation": [
+            0.0,
+            4.152698516845703,
+            0.0
+          ],
+          "scale": [
+            1.0442473888397217,
+            1.0442473888397217,
+            1.0442473888397217
+          ]
+        }
+      },
+      {
+        "name": "Flowers_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            -5.97459077835083,
+            0.0,
+            -0.2142629623413086
+          ],
+          "rotation": [
+            0.0,
+            5.465812683105469,
+            0.0
+          ],
+          "scale": [
+            1.07271146774292,
+            1.07271146774292,
+            1.07271146774292
+          ]
+        }
+      },
+      {
+        "name": "Flowers_1",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            4.728736877441406,
+            0.0,
+            -10.097453117370605
+          ],
+          "rotation": [
+            0.0,
+            4.530045986175537,
+            0.0
+          ],
+          "scale": [
+            1.0112981796264648,
+            1.0112981796264648,
+            1.0112981796264648
+          ]
+        }
+      },
+      {
+        "name": "Flowers_2",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            -4.773066997528076,
+            0.0,
+            -1.0196514129638672
+          ],
+          "rotation": [
+            0.0,
+            3.816847324371338,
+            0.0
+          ],
+          "scale": [
+            0.8333995938301086,
+            0.8333995938301086,
+            0.8333995938301086
+          ]
+        }
+      },
+      {
+        "name": "Flowers_3",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            -7.613339900970459,
+            0.0,
+            -6.983199119567871
+          ],
+          "rotation": [
+            0.0,
+            2.9481751918792725,
+            0.0
+          ],
+          "scale": [
+            1.1221848726272583,
+            1.1221848726272583,
+            1.1221848726272583
+          ]
+        }
+      },
+      {
+        "name": "Flowers_4",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            2.0486583709716797,
+            0.0,
+            -0.13074779510498047
+          ],
+          "rotation": [
+            0.0,
+            3.3955636024475098,
+            0.0
+          ],
+          "scale": [
+            0.9634492993354797,
+            0.9634492993354797,
+            0.9634492993354797
+          ]
+        }
+      },
+      {
+        "name": "Flowers_5",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            4.231395721435547,
+            0.0,
+            -11.257844924926758
+          ],
+          "rotation": [
+            0.0,
+            1.0014687776565552,
+            0.0
+          ],
+          "scale": [
+            1.2993162870407104,
+            1.2993162870407104,
+            1.2993162870407104
+          ]
+        }
+      },
+      {
+        "name": "Flowers_6",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            -3.8664770126342773,
+            0.0,
+            4.895345687866211
+          ],
+          "rotation": [
+            0.0,
+            3.1054394245147705,
+            0.0
+          ],
+          "scale": [
+            1.0709887742996216,
+            1.0709887742996216,
+            1.0709887742996216
+          ]
+        }
+      },
+      {
+        "name": "Flowers_7",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            7.280038833618164,
+            0.0,
+            -0.8702793121337891
+          ],
+          "rotation": [
+            0.0,
+            3.8710904121398926,
+            0.0
+          ],
+          "scale": [
+            0.9104658365249634,
+            0.9104658365249634,
+            0.9104658365249634
+          ]
+        }
+      },
+      {
+        "name": "Flowers_8",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            0.3444089889526367,
+            0.0,
+            -5.886631965637207
+          ],
+          "rotation": [
+            0.0,
+            5.902761459350586,
+            0.0
+          ],
+          "scale": [
+            1.0630438327789307,
+            1.0630438327789307,
+            1.0630438327789307
+          ]
+        }
+      },
+      {
+        "name": "Flowers_9",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Nature/Flowers.glb"
+        },
+        "transform": {
+          "position": [
+            5.643678665161133,
+            0.0,
+            3.699953079223633
+          ],
+          "rotation": [
+            0.0,
+            3.1328985691070557,
+            0.0
+          ],
+          "scale": [
+            1.1003801822662354,
+            1.1003801822662354,
+            1.1003801822662354
+          ]
+        }
+      },
+      {
+        "collision": {
+          "blocking": true,
+          "halfExtents": [
+            1.0,
+            2.0
+          ],
+          "offset": [
+            0.0,
+            -1.1399999856948853
+          ]
+        },
+        "name": "Placed_0",
+        "render": {
+          "material": {
+            "sampler": "wrap_linear",
+            "tint": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "meshPath": "Assets/Models/Medieval/modules/Prop_Wagon.gltf"
+        },
+        "transform": {
+          "position": [
+            -17.51210594177246,
+            0.0,
+            -2.4069089889526367
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
       }
-    ],
-    "scatter": [
-      { "prefab": "Assets/Prefabs/Tree.prefab.json",     "area": [-11.5, -11.5, 11.5, -8.5], "count": 5, "seed": 7,  "avoidRadius": 2.0, "scaleRange": [0.7, 1.1], "randomYaw": true, "namePrefix": "TreeN" },
-      { "prefab": "Assets/Prefabs/PineTree.prefab.json", "area": [-11.5,  8.8, 11.5, 11.5], "count": 5, "seed": 13, "avoidRadius": 2.0, "scaleRange": [0.7, 1.1], "randomYaw": true, "namePrefix": "TreeS" },
-      { "prefab": "Assets/Prefabs/BirchTree.prefab.json","area": [-11.5, -8.0, -8.8, 8.5],  "count": 4, "seed": 31, "avoidRadius": 2.0, "scaleRange": [0.8, 1.1], "randomYaw": true, "namePrefix": "TreeW" },
-      { "prefab": "Assets/Prefabs/Tree.prefab.json",     "area": [ 8.8, -8.0, 11.5, 8.5],   "count": 4, "seed": 21, "avoidRadius": 2.0, "scaleRange": [0.8, 1.1], "randomYaw": true, "namePrefix": "TreeE" },
-      { "prefab": "Assets/Prefabs/Rock.prefab.json",     "area": [-11.5, -11.5, 11.5, 11.5],"count": 6, "seed": 42, "avoidRadius": 1.2, "blockerMargin": 1.0, "scaleRange": [0.5, 1.0], "randomYaw": true, "namePrefix": "Rock" },
-      { "prefab": "Assets/Prefabs/Bush.prefab.json",     "area": [-11.5, -11.5, 11.5, 11.5],"count": 12,"seed": 99, "blockerMargin": 1.2, "scaleRange": [0.7, 1.2], "randomYaw": true, "namePrefix": "Bush" },
-      { "prefab": "Assets/Prefabs/Grass.prefab.json",    "area": [-11.5, -11.5, 11.5, 11.5],"count": 28,"seed": 5,  "scaleRange": [0.8, 1.4], "randomYaw": true, "namePrefix": "Grass" },
-      { "prefab": "Assets/Prefabs/Flowers.prefab.json",  "area": [-11.5, -11.5, 11.5, 11.5],"count": 10,"seed": 77, "scaleRange": [0.8, 1.3], "randomYaw": true, "namePrefix": "Flowers" }
     ]
-  }
+  },
+  "schemaVersion": 2
 }

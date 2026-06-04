@@ -526,6 +526,41 @@ void TextRenderer::RenderPlacementHud(const std::wstring& prefabLabel, int prefa
     line(L"Backspace undo   Del remove   F12 save   F4 exit", dim, dialogBodyFormat.Get());
 }
 
+void TextRenderer::RenderGradeReadout(float exposure, float saturation, float contrast,
+    float timeOfDay, int viewportW, int viewportH) noexcept
+{
+    ID2D1RenderTarget* const target = gfx.GetD2DTarget();
+    if (target == nullptr || !panelBrush || !whiteBrush || !dialogNameFormat || !dialogBodyFormat) return;
+    (void)viewportW;
+
+    const float width = 430.0f, pad = 12.0f, lineH = 22.0f;
+    const float height = pad * 2.0f + lineH * 4.0f + 8.0f;
+    const float left = 16.0f;
+    const float top  = static_cast<float>(viewportH) - height - 16.0f;
+    target->FillRectangle(D2D1::RectF(left, top, left + width, top + height), panelBrush.Get());
+
+    const float il = left + pad, ir = left + width - pad;
+    float y = top + pad;
+    ID2D1SolidColorBrush* const hdr = highlightBrush ? highlightBrush.Get() : whiteBrush.Get();
+    auto line = [&](const wchar_t* s, ID2D1SolidColorBrush* brush, IDWriteTextFormat* fmt)
+    {
+        target->DrawText(s, static_cast<UINT32>(wcslen(s)), fmt,
+            D2D1::RectF(il, y, ir, y + lineH), brush,
+            D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE_NATURAL);
+        y += lineH;
+    };
+
+    line(L"LOOK TUNER", hdr, dialogNameFormat.Get());
+    y += 6.0f;
+    wchar_t buf[160];
+    swprintf_s(buf, L"Exposure  %.2f   ( - / = )", exposure);
+    line(buf, whiteBrush.Get(), dialogBodyFormat.Get());
+    swprintf_s(buf, L"Saturate  %.2f   ( ; / ' )", saturation);
+    line(buf, whiteBrush.Get(), dialogBodyFormat.Get());
+    swprintf_s(buf, L"Contrast  %.2f  ( , / . )   Sun  %.2f  ( O / P )", contrast, timeOfDay);
+    line(buf, whiteBrush.Get(), dialogBodyFormat.Get());
+}
+
 void TextRenderer::RenderDialog(const std::wstring& npcName, const std::wstring& text, int viewportW, int viewportH, float alpha) noexcept
 {
     ID2D1RenderTarget* const target = gfx.GetD2DTarget();

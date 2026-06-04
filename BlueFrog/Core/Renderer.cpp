@@ -559,10 +559,14 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	static const auto dayClockStart = std::chrono::steady_clock::now();
 	const float tsec = std::chrono::duration<float>(std::chrono::steady_clock::now() - dayClockStart).count();
 	constexpr float kDayLength = 240.0f;
-	// Start the world in mid-morning instead of at midnight so launching the
-	// game lands on a bright, readable scene (phase 0 = midnight would open on
-	// the dark night branch). +0.30 puts the opening sun comfortably up.
-	const float phase    = std::fmod(tsec / kDayLength + 0.30f, 1.0f); // 0..1, 0 = midnight
+	// Start at true noon so launch lands on neutral white daylight — textures
+	// then read at their authored color (a warm/low sun was tinting the ground
+	// mustard and washing the wood pale). +0.5 = midday, warm factor ~0.
+	// When the live look-tuner has set a fixed time of day, use it; otherwise
+	// the real-time clock sweeps the sun (opening at midday via the +0.5).
+	const float phase    = timeOverride_
+		? timeOfDay_
+		: std::fmod(tsec / kDayLength + 0.5f, 1.0f); // 0..1, 0 = midnight
 	const float dayAngle = phase * 6.2831853f;
 	const float sunHeight = -std::cos(dayAngle);               // -1 midnight .. +1 noon
 
@@ -579,8 +583,11 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 			lerpf(1.0f, 1.0f, warm) * bright,
 			lerpf(0.96f, 0.58f, warm) * bright,
 			lerpf(0.90f, 0.32f, warm) * bright };
-		lightData.ambientSky    = { lerpf(0.20f, 0.34f, bright), lerpf(0.18f, 0.40f, bright), lerpf(0.22f, 0.50f, bright) };
-		lightData.ambientGround = { lerpf(0.06f, 0.18f, bright), lerpf(0.05f, 0.16f, bright), lerpf(0.05f, 0.13f, bright) };
+		// Toned-down ambient (was ~1.6x these): a strong warm sun + lower sky
+		// fill lets surface albedo + normal relief read richer instead of the
+		// blue sky wash flattening everything toward pale.
+		lightData.ambientSky    = { lerpf(0.13f, 0.22f, bright), lerpf(0.12f, 0.25f, bright), lerpf(0.14f, 0.30f, bright) };
+		lightData.ambientGround = { lerpf(0.04f, 0.11f, bright), lerpf(0.035f, 0.10f, bright), lerpf(0.035f, 0.08f, bright) };
 	}
 	else
 	{

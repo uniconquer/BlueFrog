@@ -20,7 +20,7 @@ namespace
 		"Texture2D sceneTex : register(t0);\n"
 		"Texture2D bloomTex : register(t1);\n"
 		"SamplerState samp : register(s0);\n"
-		"cbuffer Post : register(b0) { float exposure; float bloomThreshold; float bloomIntensity; float pad0; float2 blurDir; float2 pad1; };\n"
+		"cbuffer Post : register(b0) { float exposure; float bloomThreshold; float bloomIntensity; float saturation; float2 blurDir; float contrast; float pad2; };\n"
 		"float3 ACESFilm(float3 x)\n"
 		"{\n"
 		"    const float a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;\n"
@@ -31,7 +31,14 @@ namespace
 		"    float3 scene = sceneTex.Sample(samp, i.uv).rgb;\n"
 		"    float3 bloom = bloomTex.Sample(samp, i.uv).rgb;\n"
 		"    float3 hdr   = (scene + bloom * bloomIntensity) * exposure;\n"
-		"    return float4(ACESFilm(hdr), 1.0);\n"
+		"    float3 col   = ACESFilm(hdr);\n"
+		// Painterly grade: lift saturation (vibrance) + a gentle S-curve
+		// contrast so the stylized kit reads punchy like the kit's promo art
+		// instead of washed-out flat.
+		"    float luma   = dot(col, float3(0.2126, 0.7152, 0.0722));\n"
+		"    col          = lerp(float3(luma, luma, luma), col, saturation);\n"
+		"    col          = saturate((col - 0.5) * contrast + 0.5);\n"
+		"    return float4(col, 1.0);\n"
 		"}\n";
 
 	// Bright-pass: keep only the HDR energy above the threshold.
@@ -130,7 +137,7 @@ void PostProcessPass::SetTarget(Graphics& gfx, ID3D11RenderTargetView* rtv, UINT
 	ctx->RSSetViewports(1u, &vp);
 }
 
-void PostProcessPass::Resolve(Graphics& gfx, float exposure) noexcept
+void PostProcessPass::Resolve(Graphics& gfx, float exposure, float saturation, float contrast) noexcept
 {
 	ID3D11DeviceContext* ctx = gfx.GetContext();
 
@@ -151,7 +158,9 @@ void PostProcessPass::Resolve(Graphics& gfx, float exposure) noexcept
 	};
 
 	PostParams p;
-	p.exposure = exposure;
+	p.exposure   = exposure;
+	p.saturation = saturation;
+	p.contrast   = contrast;
 
 	// 1) Bright-pass: full-res HDR -> half-res bloom[0].
 	clearSRVs();

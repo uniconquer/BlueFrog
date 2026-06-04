@@ -116,6 +116,14 @@ private:
 	bool   debugGizmosEnabled  = false;
 	bool   worldGridEnabled    = false;
 	bool   reloadRequested     = false;
+	// Live look-tuner (post-process grade + sun). Adjusted in-game by hotkeys
+	// so the art look can be dialed in without a rebuild; current values are
+	// shown as a small on-screen readout. -/= exposure, ;/' saturation,
+	// ,/. contrast, PgDn/PgUp time-of-day.
+	float  gradeExposure   = 0.9f;
+	float  gradeSaturation = 1.05f;
+	float  gradeContrast   = 1.0f;
+	bool   gradeShowReadout = false; // toggled on first adjustment
 	// In-game placement tool (world editor). F4 toggles; in placement mode
 	// LMB drops the selected prefab at the mouse's ground point, [ ] cycle
 	// the prefab, T rotates, Backspace undoes the last drop, F12 saves.

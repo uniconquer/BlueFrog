@@ -177,7 +177,20 @@ public:
 	void DrawGhostMesh(const std::string& meshPath, float x, float y, float z,
 		float yaw, float importScale, const TopDownCamera& camera) noexcept;
 
+	// Live look-tuner: pin the day/night cycle to a fixed time of day (0=midnight,
+	// 0.5=noon) so the look-grading hotkeys can scrub the sun. Once set, the
+	// real-time clock is ignored until the process restarts.
+	void SetTimeOfDay(float phase01) noexcept
+	{
+		timeOverride_ = true;
+		timeOfDay_ = phase01 < 0.0f ? 0.0f : (phase01 > 1.0f ? 1.0f : phase01);
+	}
+	void AdjustTimeOfDay(float delta) noexcept { SetTimeOfDay(timeOfDay_ + delta); }
+	[[nodiscard]] float GetTimeOfDay() const noexcept { return timeOfDay_; }
+
 private:
+	bool  timeOverride_ = false;
+	float timeOfDay_    = 0.5f; // matches the default opening phase (true noon)
 	void BindLitState() noexcept;
 	void BindSkinnedState() noexcept;
 	// Shadow depth pass: render all casters from the sun's POV into the

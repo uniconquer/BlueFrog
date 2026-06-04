@@ -33,7 +33,7 @@ public:
 
 	// Run bloom + resolve the HDR target to the back buffer with exposure +
 	// ACES. Call after all 3D passes and before UI/text.
-	void Resolve(Graphics& gfx, float exposure) noexcept;
+	void Resolve(Graphics& gfx, float exposure, float saturation = 1.0f, float contrast = 1.0f) noexcept;
 
 private:
 	struct PostParams
@@ -41,10 +41,10 @@ private:
 		float exposure       = 1.0f;
 		float bloomThreshold = 0.8f;
 		float bloomIntensity = 0.7f;
-		float pad0           = 0.0f;
+		float saturation     = 1.0f; // composite vibrance (was pad0)
 		float blurDirX       = 0.0f;
 		float blurDirY       = 0.0f;
-		float pad1           = 0.0f;
+		float contrast       = 1.0f; // composite S-curve strength (was pad1)
 		float pad2           = 0.0f;
 	};
 
