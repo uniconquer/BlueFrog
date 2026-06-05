@@ -14,11 +14,44 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <string>
 
 namespace
 {
 	constexpr const char* kDefaultScenePath = "Assets/Scenes/arena_trial.json";
+
+	// Returns a pointer to the mutable authored "objects" array of a scene doc,
+	// or nullptr if the doc isn't shaped as expected (callers then no-op).
+	nlohmann::json* AuthoredObjects(nlohmann::json& doc) noexcept
+	{
+		if (!doc.is_object() || !doc.contains("scene") || !doc["scene"].is_object()) return nullptr;
+		auto& sc = doc["scene"];
+		if (!sc.contains("objects") || !sc["objects"].is_array()) return nullptr;
+		return &sc["objects"];
+	}
+
+	// Erase the authored entry that owns a given runtime object name. A group
+	// prefab instance "HouseNW" owns runtime children "HouseNW_Wall_3" etc., so
+	// we match an authored entry whose name == runtimeName or is a prefix of it
+	// (authoredName + "_"). Returns the erased entry's name ("" if none).
+	std::string EraseAuthoredOwningName(nlohmann::json& doc, const std::string& runtimeName) noexcept
+	{
+		nlohmann::json* objs = AuthoredObjects(doc);
+		if (objs == nullptr) return {};
+		for (auto it = objs->begin(); it != objs->end(); ++it)
+		{
+			if (!it->is_object() || !it->contains("name") || !(*it)["name"].is_string()) continue;
+			const std::string an = (*it)["name"].get<std::string>();
+			if (an == runtimeName || (runtimeName.size() > an.size() &&
+				runtimeName.compare(0, an.size(), an) == 0 && runtimeName[an.size()] == '_'))
+			{
+				objs->erase(it);
+				return an;
+			}
+		}
+		return {};
+	}
 
 	// ASCII narrow→wide for HUD display. NPC text is validator-bound to
 	// ASCII per the scene schema, so a 1:1 widen is correct.
@@ -66,6 +99,7 @@ void FLApp::OnStartup()
 	}
 
 	gameplaySimulation.BuildArena(scene, camera, currentScenePath);
+	RefreshSceneDoc();
 
 	if (profileLoaded && profile.playerHealth > 0)
 	{
@@ -816,30 +850,39 @@ void FLApp::PollDebugToggles() noexcept
 		}
 		case VK_F12:
 		{
-			// Save: serialize the live scene + camera + objective spec back
-			// to currentScenePath. Pairs with F5 (reload) as the editor
-			// round-trip — edit via inspector → F12 → F5 → verify on disk.
+			// Save: write the AUTHORED scene document (prefab refs + scatter +
+			// inline objects), with placement-editor edits already folded in,
+			// back to currentScenePath. Camera target + objective are refreshed
+			// from the live state. This keeps the file DRY (a prefab stays one
+			// "prefab" reference) instead of inlining every expanded child the
+			// way a runtime-object dump would. F5 reloads it.
+			bool ok = false;
 			std::string err;
-			// SceneSerializer is engine-agnostic about objectives — encode
-			// to raw JSON text here on the game side, then hand it over.
-			const std::string objectiveBlockJson = ObjectiveStateIO::EncodeJson(gameplaySimulation.GetObjectiveState());
-			const bool ok = SceneSerializer::Save(
-				std::filesystem::path(currentScenePath),
-				scene, camera,
-				objectiveBlockJson,
-				&err);
-			if (ok)
+			try
 			{
-				const std::string msg = "[Save] wrote " + currentScenePath + "\n";
-				std::fputs(msg.c_str(), stdout);
-				::OutputDebugStringA(msg.c_str());
+				if (AuthoredObjects(sceneDoc_) == nullptr)
+				{
+					err = "authored scene doc missing/!malformed (was the scene file readable?)";
+				}
+				else
+				{
+					sceneDoc_["scene"]["camera"]["target"] = {
+						camera.GetTarget().x, camera.GetTarget().y, camera.GetTarget().z };
+					const std::string objectiveBlockJson =
+						ObjectiveStateIO::EncodeJson(gameplaySimulation.GetObjectiveState());
+					if (!objectiveBlockJson.empty())
+						sceneDoc_["objective"] = nlohmann::json::parse(objectiveBlockJson);
+					std::ofstream out(currentScenePath);
+					if (out.is_open()) { out << sceneDoc_.dump(2) << '\n'; ok = true; }
+					else err = "cannot open file for write";
+				}
 			}
-			else
-			{
-				const std::string msg = "[Save] FAILED: " + err + "\n";
-				std::fputs(msg.c_str(), stdout);
-				::OutputDebugStringA(msg.c_str());
-			}
+			catch (const std::exception& e) { err = e.what(); }
+			const std::string msg = ok
+				? ("[Save] wrote " + currentScenePath + " (prefab-preserving)\n")
+				: ("[Save] FAILED: " + err + "\n");
+			std::fputs(msg.c_str(), stdout);
+			::OutputDebugStringA(msg.c_str());
 			break;
 		}
 		case VK_TAB:
@@ -923,6 +966,7 @@ void FLApp::UpdateModel(const GameplayInput& input, float dt) noexcept
 		// subsequent F5 reloads the *new* scene, not the previous one.
 		currentScenePath = *path;
 		gameplaySimulation.ReloadScene(currentScenePath, scene, camera);
+		RefreshSceneDoc();
 		hudState = gameplaySimulation.BuildHudState(scene);
 	}
 
@@ -934,6 +978,7 @@ void FLApp::UpdateModel(const GameplayInput& input, float dt) noexcept
 	{
 		reloadRequested = false;
 		gameplaySimulation.ReloadScene(currentScenePath, scene, camera);
+		RefreshSceneDoc();
 		hudState = gameplaySimulation.BuildHudState(scene);
 	}
 
@@ -943,8 +988,25 @@ void FLApp::UpdateModel(const GameplayInput& input, float dt) noexcept
 	if (gameplaySimulation.ConsumePendingDeathReload())
 	{
 		gameplaySimulation.ReloadScene(currentScenePath, scene, camera);
+		RefreshSceneDoc();
 		hudState = gameplaySimulation.BuildHudState(scene);
 	}
+}
+
+void FLApp::RefreshSceneDoc() noexcept
+{
+	// Pull the authored scene JSON fresh from disk so the placement editor
+	// edits + F12 save round-trip the file's structure (prefab refs, scatter,
+	// inline objects) instead of the expanded runtime objects. Placement
+	// deltas are reset because a (re)load discards unsaved placements.
+	placedNames.clear();
+	sceneDoc_ = nlohmann::json::object();
+	try
+	{
+		std::ifstream in(currentScenePath);
+		if (in.is_open()) sceneDoc_ = nlohmann::json::parse(in);
+	}
+	catch (...) { sceneDoc_ = nlohmann::json::object(); }
 }
 
 bool FLApp::ConsumeQuestCollect(const Quest* quest) noexcept
@@ -1209,6 +1271,7 @@ void FLApp::UpdatePlacement(const GameplayInput& input) noexcept
 				[&](const SceneObject& o) {
 					return o.name == base || o.name.rfind(base + "_", 0) == 0;
 				}), objs.end());
+			EraseAuthoredOwningName(sceneDoc_, base); // keep authored doc in sync
 		}
 	}
 
@@ -1253,6 +1316,9 @@ void FLApp::UpdatePlacement(const GameplayInput& input) noexcept
 				const std::string nm = objs[bestIdx].name;
 				objs.erase(objs.begin() + bestIdx);
 				placedNames.erase(std::remove(placedNames.begin(), placedNames.end(), nm), placedNames.end());
+				// Drop the owning authored entry (whole prefab instance) so the
+				// next F12 save reflects the deletion.
+				EraseAuthoredOwningName(sceneDoc_, nm);
 				const std::string msg = "[Delete] removed '" + nm + "'\n";
 				std::fputs(msg.c_str(), stdout);
 				::OutputDebugStringA(msg.c_str());
@@ -1269,6 +1335,19 @@ void FLApp::UpdatePlacement(const GameplayInput& input) noexcept
 			if (SceneLoader::InstantiatePrefab(scene, PlacementPrefabPath(), gp.x, gp.y, gp.z, placementYaw, name, &err))
 			{
 				placedNames.push_back(name);
+				// Mirror the placement into the authored doc as a clean prefab
+				// reference (so F12 writes a ref, not the expanded children).
+				if (nlohmann::json* objs = AuthoredObjects(sceneDoc_))
+				{
+					objs->push_back({
+						{ "name", name },
+						{ "prefab", PlacementPrefabPath() },
+						{ "transform", {
+							{ "position", { gp.x, gp.y, gp.z } },
+							{ "rotation", { 0.0f, placementYaw, 0.0f } },
+							{ "scale", { 1.0f, 1.0f, 1.0f } } } }
+					});
+				}
 			}
 			else
 			{

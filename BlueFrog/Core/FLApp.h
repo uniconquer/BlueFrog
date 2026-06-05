@@ -2,6 +2,8 @@
 
 #include "AppBase.h"
 
+#include <nlohmann/json.hpp>
+
 #include "Renderer.h"
 #include "../Engine/Camera/TopDownCamera.h"
 #include "../Engine/Scene/Scene.h"
@@ -148,6 +150,14 @@ private:
 	float       placementCursorZ = 0.0f;
 	bool        placementCursorValid = false;
 	std::vector<std::string> placedNames;
+	// Authored scene document (the on-disk JSON: prefab refs + scatter +
+	// inline objects + overrides). The placement editor keeps THIS in sync
+	// rather than the expanded runtime objects, so F12 writes a clean
+	// prefab-referencing file instead of inlining every prefab's children.
+	// Refreshed from currentScenePath on every (re)load.
+	nlohmann::json sceneDoc_;
+	// Re-read sceneDoc_ from currentScenePath and clear placement deltas.
+	void RefreshSceneDoc() noexcept;
 	bool   inspectorEnabled    = false;
 	int    inspectorSelected   = 0;
 	int    inspectorFieldIndex = 0;

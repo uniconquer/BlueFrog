@@ -176,6 +176,16 @@ namespace
 		return j;
 	}
 
+	json EncodeMount(const MountComponent& mc)
+	{
+		// occupied is runtime-only (a rider on board) so it is never written —
+		// a freshly loaded scene must start with an empty mount.
+		json j = json::object();
+		j["displayName"]     = mc.displayName;
+		j["speedMultiplier"] = mc.speedMultiplier;
+		return j;
+	}
+
 	json EncodeHarvest(const HarvestComponent& hc)
 	{
 		json j = json::object();
@@ -206,6 +216,7 @@ namespace
 		if (obj.enemyBehaviorComponent.has_value()) j["behavior"] = EncodeBehavior(obj.enemyBehaviorComponent.value());
 		if (obj.animationStateComponent.has_value()) j["animation"] = EncodeAnimation(obj.animationStateComponent.value());
 		if (obj.npcComponent.has_value())      j["npc"]       = EncodeNpc(obj.npcComponent.value());
+		if (obj.mountComponent.has_value())    j["mount"]     = EncodeMount(obj.mountComponent.value());
 		if (obj.harvestComponent.has_value())  j["harvest"]   = EncodeHarvest(obj.harvestComponent.value());
 		if (obj.lootComponent.has_value())     j["loot"]      = EncodeLoot(obj.lootComponent.value());
 		return j;
