@@ -340,3 +340,6 @@ _tmp_fbximport/
 
 # StarBit asset — FBX import produced an empty glb; excluded until re-sourced
 BlueFrog/Assets/Models/StarBit/
+
+# Frame-dump debugging artifact (FLApp temporary backbuffer capture)
+_frame.raw
