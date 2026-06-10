@@ -1,5 +1,5 @@
 {
-  "render":    { "meshPath": "Assets/Models/Mixamo/Knight.glb", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
+  "render":    { "meshPath": "Assets/Models/Universal/HeroMale/HeroMale.gltf", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
   "collision": { "halfExtents": [0.45, 0.45], "blocking": true },
   "combat":    { "faction": "player", "maxHp": 5, "currentHp": 5 },
   "animation": { "clipName": "", "playSpeed": 1.0, "looping": true }

@@ -22,7 +22,7 @@
       {
         "name": "Player",
         "prefab": "Assets/Prefabs/Player.prefab.json",
-        "transform": { "position": [-3.0, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }
+        "transform": { "position": [0.0, 0.0, 5.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }
       },
 
       { "name": "HouseNW", "prefab": "Assets/Prefabs/House2.prefab.json", "transform": { "position": [-7.5, 0.0, -6.5], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] } },

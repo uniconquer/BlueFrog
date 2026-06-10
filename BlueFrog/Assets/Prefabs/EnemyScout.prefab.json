@@ -1,5 +1,5 @@
 {
-  "render":    { "meshPath": "Assets/Models/Mixamo/Knight.glb", "importScale": 0.85, "material": { "tint": [0.70, 0.55, 0.45] } },
+  "render":    { "meshPath": "Assets/Models/Universal/HeroMale/HeroMale.gltf", "importScale": 0.85, "material": { "tint": [0.70, 0.55, 0.45] } },
   "collision": { "halfExtents": [0.45, 0.45], "blocking": true },
   "combat":    { "faction": "enemy", "maxHp": 3, "currentHp": 3 },
   "loot":      { "itemId": "monster_part", "amount": 1, "chance": 1.0 },
