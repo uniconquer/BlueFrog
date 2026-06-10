@@ -651,21 +651,15 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	}
 
 	BindSkinnedState();
-	for (const auto& object : scene.GetObjects())
-	{
-		if (!object.CanRender()) continue;
-		const SkinnedMeshBuffers* skinned = ResolveSkinnedMesh(*object.renderComponent);
-		if (skinned == nullptr) continue;
-		const AnimationStateComponent* animState = object.animationStateComponent.has_value()
-			? &object.animationStateComponent.value()
-			: nullptr;
-		DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera, animState);
-	}
 
-	// X-ray silhouette insurance: re-draw player-faction actors where they
-	// LOST the depth test (GREATER + no write) as a flat cool tint. The
-	// dither cutout usually reveals the real model, so this only shows for
-	// the slivers the cylinder misses (e.g. an arm past the hole's rim).
+	// X-ray silhouette insurance BEFORE any actor writes depth: at this
+	// point the depth buffer holds the static world only, so the GREATER
+	// test can only be won by world geometry hiding the actor — the body
+	// can't silhouette against its own front surfaces (drawing this after
+	// the normal pass tinted the far arm/back of the player in the open).
+	// Visible parts get painted over by the normal skinned draw below; the
+	// dither cutout usually reveals the real model anyway, so this only
+	// shows for slivers the cylinder misses (e.g. an arm past the rim).
 	{
 		bool silhouetteBound = false;
 		for (const auto& object : scene.GetObjects())
@@ -694,6 +688,17 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 			gfx.GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffffu);
 			gfx.GetContext()->OMSetDepthStencilState(nullptr, 0u);
 		}
+	}
+
+	for (const auto& object : scene.GetObjects())
+	{
+		if (!object.CanRender()) continue;
+		const SkinnedMeshBuffers* skinned = ResolveSkinnedMesh(*object.renderComponent);
+		if (skinned == nullptr) continue;
+		const AnimationStateComponent* animState = object.animationStateComponent.has_value()
+			? &object.animationStateComponent.value()
+			: nullptr;
+		DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera, animState);
 	}
 
 	// Release the shadow map SRV so next frame's depth pass can bind it as
