@@ -252,6 +252,11 @@ private:
 	// lit/skinned shaders multiply into their output (1.0 = opaque normal draw).
 	Microsoft::WRL::ComPtr<ID3D11BlendState> ghostBlendState;
 	float currentGhostAlpha = 1.0f;
+	// Camera-occluder fade: depth-test-only state (write mask ZERO) for the
+	// translucent re-draw of objects sitting between the camera and its
+	// target. No depth write means the player drawn afterwards isn't
+	// rejected behind the faded roof/wall.
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> fadeDepthState;
 	std::unordered_map<std::string, Texture2D> textureCache;
 	Sampler samplerWrapLinear;
 	Sampler samplerClampLinear;

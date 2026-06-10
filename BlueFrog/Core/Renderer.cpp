@@ -88,6 +88,18 @@ Renderer::Renderer(Graphics& gfx)
 	{
 		throw BFGFX_EXCEPT(hr);
 	}
+
+	// Depth test ON / write OFF for camera-occluder fades (see fadeDepthState
+	// in the header). LESS_EQUAL so the faded re-draw can sit at exactly the
+	// depth its opaque neighbours wrote.
+	D3D11_DEPTH_STENCIL_DESC dsd = {};
+	dsd.DepthEnable    = TRUE;
+	dsd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dsd.DepthFunc      = D3D11_COMPARISON_LESS_EQUAL;
+	if (const HRESULT hr = gfx.GetDevice()->CreateDepthStencilState(&dsd, fadeDepthState.GetAddressOf()); FAILED(hr))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
 }
 
 const std::array<Renderer::LitVertex, 24>& Renderer::GetCubeVertices() noexcept
@@ -617,17 +629,72 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	shadowBuffer.Update(gfx, shadowData);
 	shadowPass.BindForRead(gfx, 1u, 1u);
 
+	// Camera-occluder fade (GTA-style): anything sitting close to the
+	// eye->target sight line gets re-classified as translucent so the
+	// player never vanishes behind a roof. The 3D point-to-segment
+	// distance naturally spares low props mid-ray (the ray flies ~5m
+	// overhead there) and the t-cutoff spares the ground/decals right at
+	// the player's feet. Skinned actors are exempt — only static lit
+	// geometry fades.
+	const XMFLOAT3 eyeF = camera.GetPosition();
+	const XMFLOAT3 tgtF = camera.GetTarget();
+	const XMVECTOR eye  = XMLoadFloat3(&eyeF);
+	const XMVECTOR seg  = XMVectorSubtract(XMLoadFloat3(&tgtF), eye);
+	const float    segLenSq = XMVectorGetX(XMVector3LengthSq(seg));
+	constexpr float kFadeRadius = 2.4f;  // how close to the sight line counts as "in the way"
+	constexpr float kFadeAlpha  = 0.22f; // floor alpha for a dead-center occluder
+	constexpr float kTCutoff    = 0.82f; // past this toward the target, leave it opaque
+	auto occluderFade = [&](const DirectX::XMFLOAT3& p) noexcept -> float
+	{
+		const XMVECTOR w = XMVectorSubtract(XMLoadFloat3(&p), eye);
+		const float t = segLenSq > 1e-4f
+			? XMVectorGetX(XMVector3Dot(w, seg)) / segLenSq
+			: 1.0f;
+		if (t < 0.05f || t > kTCutoff) return 1.0f;
+		const XMVECTOR closest = XMVectorAdd(eye, XMVectorScale(seg, t));
+		const float d = XMVectorGetX(XMVector3Length(
+			XMVectorSubtract(XMLoadFloat3(&p), closest)));
+		if (d >= kFadeRadius) return 1.0f;
+		// Smooth ramp: fully ghosted at the line, opaque at the radius edge.
+		const float x = d / kFadeRadius;
+		return kFadeAlpha + (1.0f - kFadeAlpha) * (x * x);
+	};
+
 	// Two-pass split: lit (static) first, skinned second. Each pass binds
 	// its own pipeline state once. ResolveSkinnedMesh returns nullptr when
 	// the asset has no skin data — those fall through to the lit pass.
+	// Occluding lit objects are deferred to a translucent sub-pass (ghost
+	// blend + no depth write) so the skinned pass drawn after them isn't
+	// depth-rejected behind a faded roof.
 	BindLitState();
+	std::vector<std::pair<const SceneObject*, float>> fadedDraws;
 	for (const auto& object : scene.GetObjects())
 	{
 		if (!object.CanRender()) continue;
 		// Skip skinned meshes here; they are drawn in the second pass with
 		// the matching pipeline.
 		if (ResolveSkinnedMesh(*object.renderComponent) != nullptr) continue;
+		const float fade = occluderFade(object.transform.position);
+		if (fade < 1.0f)
+		{
+			fadedDraws.emplace_back(&object, fade);
+			continue;
+		}
 		DrawMesh(ResolveMesh(*object.renderComponent), object.transform, *object.renderComponent, camera);
+	}
+	if (!fadedDraws.empty())
+	{
+		const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		gfx.GetContext()->OMSetBlendState(ghostBlendState.Get(), blendFactor, 0xffffffffu);
+		gfx.GetContext()->OMSetDepthStencilState(fadeDepthState.Get(), 0u);
+		for (const auto& [object, fade] : fadedDraws)
+		{
+			currentGhostAlpha = fade;
+			DrawMesh(ResolveMesh(*object->renderComponent), object->transform, *object->renderComponent, camera);
+		}
+		currentGhostAlpha = 1.0f;
+		gfx.GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffffu);
+		gfx.GetContext()->OMSetDepthStencilState(nullptr, 0u);
 	}
 
 	BindSkinnedState();
