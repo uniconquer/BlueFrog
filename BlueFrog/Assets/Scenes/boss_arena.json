@@ -16,7 +16,7 @@
         "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [22.0, 1.0, 22.0] },
         "render": {
           "mesh": "plane",
-          "material": { "texture": "Assets/Textures/ground_grey_check.png", "tint": [0.78, 0.72, 0.85], "sampler": "wrap_linear" }
+          "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.62, 0.56, 0.66], "sampler": "wrap_linear", "uvScale": [1.4, 1.4] }
         }
       },
       {

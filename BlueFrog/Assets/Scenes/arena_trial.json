@@ -17,7 +17,7 @@
         "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [18.0, 1.0, 18.0] },
         "render": {
           "mesh": "plane",
-          "material": { "texture": "Assets/Textures/ground_grey_check.png", "tint": [1.0, 1.0, 1.0], "sampler": "wrap_linear" }
+          "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.92, 0.88, 0.84], "sampler": "wrap_linear", "uvScale": [1.15, 1.15] }
         }
       },
       {
@@ -25,7 +25,7 @@
         "transform": { "position": [0.0, 1.25, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.35, 1.35, 1.35] },
         "render": {
           "mesh": "cube",
-          "material": { "tint": [1.0, 0.94, 0.80] }
+          "material": { "texture": "Assets/Textures/cobble.png", "tint": [1.0, 0.90, 0.70], "sampler": "wrap_linear", "uvScale": [2.0, 2.0] }
         },
         "collision": { "halfExtents": [1.35, 1.35], "blocking": true }
       },
@@ -56,13 +56,13 @@
       {
         "name": "PillarA",
         "transform": { "position": [-3.5, 0.8, -2.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.8, 0.8, 0.8] },
-        "render": { "meshPath": "Assets/Models/tetrahedron.gltf", "material": { "tint": [0.95, 0.86, 1.0] } },
+        "render": { "mesh": "cube", "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.80, 0.78, 0.75], "sampler": "wrap_linear", "uvScale": [1.5, 1.5] } },
         "collision": { "halfExtents": [0.8, 0.8], "blocking": true }
       },
       {
         "name": "PillarB",
         "transform": { "position": [3.5, 0.8, 2.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.8, 0.8, 0.8] },
-        "render": { "mesh": "cube", "material": { "tint": [1.0, 0.88, 0.84] } },
+        "render": { "mesh": "cube", "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.80, 0.78, 0.75], "sampler": "wrap_linear", "uvScale": [1.5, 1.5] } },
         "collision": { "halfExtents": [0.8, 0.8], "blocking": true }
       },
       {
@@ -81,24 +81,18 @@
         "transform": { "position": [4.0, 0.0, 4.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }
       },
       {
-        "name": "SkinnedTest",
-        "transform": { "position": [-3.5, 0.0, 3.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.5, 0.5, 0.5] },
-        "render": { "meshPath": "Assets/Models/RiggedSimple/RiggedSimple.gltf", "material": { "tint": [0.7, 0.85, 1.0] } },
-        "animation": { "clipName": "", "playSpeed": 1.0, "looping": true }
-      },
-      {
         "name": "BossPortalMarker",
         "transform": { "position": [0.0, 0.4, -5.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.5, 0.8, 0.5] },
         "render": { "mesh": "cube", "material": { "tint": [0.4, 0.85, 1.0] } }
       },
       {
         "name": "VillageReturnMarker",
-        "transform": { "position": [-5.8, 0.4, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.5, 0.8, 0.5] },
+        "transform": { "position": [-5.5, 0.4, 4.8], "rotation": [0.0, 0.0, 0.0], "scale": [0.5, 0.8, 0.5] },
         "render": { "mesh": "cube", "material": { "tint": [0.55, 0.92, 0.55] } }
       },
       {
         "name": "VillageReturnPortal",
-        "transform": { "position": [-5.8, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
+        "transform": { "position": [-5.5, 0.0, 4.8], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
         "trigger": {
           "halfExtents": [0.8, 0.8],
           "tag": "village_return",
