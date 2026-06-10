@@ -42,6 +42,7 @@ C++17 + DirectX 11 게임 엔진(BlueFrogEngine.lib) + GTA2식 탑다운 판타�
 - **PixelConstantBuffer(b1 MaterialBuffer 등)는 PS 전용** — VS에서 읽으면 0이 나옴 (uvScale 평면 텍스처 버그의 원인이었음). 셰이더에서 cbuffer를 쓰는 스테이지를 반드시 확인
 - 텍스처는 풀 밉체인 생성(Texture2D.h: MipLevels=0 + GenerateMips) — 없으면 원거리에서 평균색으로 뭉개짐
 - baseColor=sRGB, normal/roughness/ORM=linear
+- **카메라 가림 = lit PS 디더 컷아웃** (LightBuffer의 cutoutTarget/cutoutRadius, 카메라→타깃 원통 픽셀을 Bayer 디더로 discard) + 플레이어 X-ray 실루엣(스킨드 소스의 PSSilhouette 엔트리, GREATER/no-write DSS). 오브젝트 단위 알파 페이드는 모듈 조각 중첩 얼룩 때문에 폐기했음 — 되돌리지 말 것
 
 ## 관례
 

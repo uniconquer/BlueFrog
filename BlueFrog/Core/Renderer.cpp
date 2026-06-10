@@ -57,6 +57,7 @@ Renderer::Renderer(Graphics& gfx)
 	litInputLayout(gfx, LitPipeline::GetInputLayoutDesc().data(), static_cast<UINT>(LitPipeline::GetInputLayoutDesc().size()), litVertexShader),
 	skinnedVertexShader(gfx, SkinnedPipeline::GetShaderSource(), "VSMain"),
 	skinnedPixelShader(gfx, SkinnedPipeline::GetShaderSource(), "PSMain"),
+	skinnedSilhouettePixelShader(gfx, SkinnedPipeline::GetShaderSource(), "PSSilhouette"),
 	skinnedInputLayout(gfx, SkinnedPipeline::GetInputLayoutDesc().data(), static_cast<UINT>(SkinnedPipeline::GetInputLayoutDesc().size()), skinnedVertexShader),
 	shadowPass(gfx),
 	depthStaticVertexShader(gfx, ShadowDepthPipeline::GetStaticShaderSource(), "VSMain"),
@@ -89,14 +90,14 @@ Renderer::Renderer(Graphics& gfx)
 		throw BFGFX_EXCEPT(hr);
 	}
 
-	// Depth test ON / write OFF for camera-occluder fades (see fadeDepthState
-	// in the header). LESS_EQUAL so the faded re-draw can sit at exactly the
-	// depth its opaque neighbours wrote.
+	// X-ray silhouette: draw ONLY where the actor failed the normal depth
+	// test (GREATER) and never write depth — the silhouette is an overlay,
+	// not geometry.
 	D3D11_DEPTH_STENCIL_DESC dsd = {};
 	dsd.DepthEnable    = TRUE;
 	dsd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	dsd.DepthFunc      = D3D11_COMPARISON_LESS_EQUAL;
-	if (const HRESULT hr = gfx.GetDevice()->CreateDepthStencilState(&dsd, fadeDepthState.GetAddressOf()); FAILED(hr))
+	dsd.DepthFunc      = D3D11_COMPARISON_GREATER;
+	if (const HRESULT hr = gfx.GetDevice()->CreateDepthStencilState(&dsd, silhouetteDepthState.GetAddressOf()); FAILED(hr))
 	{
 		throw BFGFX_EXCEPT(hr);
 	}
@@ -614,6 +615,10 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	XMStoreFloat3(&lightData.lightDir, rawDir);
 	lightData.ambient = 0.26f;                  // legacy flat term, unused by shaders now
 	lightData.camPos  = camera.GetPosition();   // PBR view vector
+	// Camera cutout: aim the dither cylinder at the follow target (the
+	// player). See LitPipeline PSMain for the per-pixel discard.
+	lightData.cutoutTarget = camera.GetTarget();
+	lightData.cutoutRadius = 1.7f;
 	lightBuffer.Update(gfx, lightData);
 
 	// Shadow depth pass (Shadow S2): render all casters from the sun's POV
@@ -629,72 +634,20 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 	shadowBuffer.Update(gfx, shadowData);
 	shadowPass.BindForRead(gfx, 1u, 1u);
 
-	// Camera-occluder fade (GTA-style): anything sitting close to the
-	// eye->target sight line gets re-classified as translucent so the
-	// player never vanishes behind a roof. The 3D point-to-segment
-	// distance naturally spares low props mid-ray (the ray flies ~5m
-	// overhead there) and the t-cutoff spares the ground/decals right at
-	// the player's feet. Skinned actors are exempt — only static lit
-	// geometry fades.
-	const XMFLOAT3 eyeF = camera.GetPosition();
-	const XMFLOAT3 tgtF = camera.GetTarget();
-	const XMVECTOR eye  = XMLoadFloat3(&eyeF);
-	const XMVECTOR seg  = XMVectorSubtract(XMLoadFloat3(&tgtF), eye);
-	const float    segLenSq = XMVectorGetX(XMVector3LengthSq(seg));
-	constexpr float kFadeRadius = 2.4f;  // how close to the sight line counts as "in the way"
-	constexpr float kFadeAlpha  = 0.22f; // floor alpha for a dead-center occluder
-	constexpr float kTCutoff    = 0.82f; // past this toward the target, leave it opaque
-	auto occluderFade = [&](const DirectX::XMFLOAT3& p) noexcept -> float
-	{
-		const XMVECTOR w = XMVectorSubtract(XMLoadFloat3(&p), eye);
-		const float t = segLenSq > 1e-4f
-			? XMVectorGetX(XMVector3Dot(w, seg)) / segLenSq
-			: 1.0f;
-		if (t < 0.05f || t > kTCutoff) return 1.0f;
-		const XMVECTOR closest = XMVectorAdd(eye, XMVectorScale(seg, t));
-		const float d = XMVectorGetX(XMVector3Length(
-			XMVectorSubtract(XMLoadFloat3(&p), closest)));
-		if (d >= kFadeRadius) return 1.0f;
-		// Smooth ramp: fully ghosted at the line, opaque at the radius edge.
-		const float x = d / kFadeRadius;
-		return kFadeAlpha + (1.0f - kFadeAlpha) * (x * x);
-	};
-
 	// Two-pass split: lit (static) first, skinned second. Each pass binds
 	// its own pipeline state once. ResolveSkinnedMesh returns nullptr when
 	// the asset has no skin data — those fall through to the lit pass.
-	// Occluding lit objects are deferred to a translucent sub-pass (ghost
-	// blend + no depth write) so the skinned pass drawn after them isn't
-	// depth-rejected behind a faded roof.
+	// Camera occlusion is handled per-PIXEL by the lit shader's dither
+	// cutout (see cutoutTarget above), so the loop stays a single opaque
+	// pass — no translucent re-draws, no layering artifacts.
 	BindLitState();
-	std::vector<std::pair<const SceneObject*, float>> fadedDraws;
 	for (const auto& object : scene.GetObjects())
 	{
 		if (!object.CanRender()) continue;
 		// Skip skinned meshes here; they are drawn in the second pass with
 		// the matching pipeline.
 		if (ResolveSkinnedMesh(*object.renderComponent) != nullptr) continue;
-		const float fade = occluderFade(object.transform.position);
-		if (fade < 1.0f)
-		{
-			fadedDraws.emplace_back(&object, fade);
-			continue;
-		}
 		DrawMesh(ResolveMesh(*object.renderComponent), object.transform, *object.renderComponent, camera);
-	}
-	if (!fadedDraws.empty())
-	{
-		const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		gfx.GetContext()->OMSetBlendState(ghostBlendState.Get(), blendFactor, 0xffffffffu);
-		gfx.GetContext()->OMSetDepthStencilState(fadeDepthState.Get(), 0u);
-		for (const auto& [object, fade] : fadedDraws)
-		{
-			currentGhostAlpha = fade;
-			DrawMesh(ResolveMesh(*object->renderComponent), object->transform, *object->renderComponent, camera);
-		}
-		currentGhostAlpha = 1.0f;
-		gfx.GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffffu);
-		gfx.GetContext()->OMSetDepthStencilState(nullptr, 0u);
 	}
 
 	BindSkinnedState();
@@ -707,6 +660,40 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 			? &object.animationStateComponent.value()
 			: nullptr;
 		DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera, animState);
+	}
+
+	// X-ray silhouette insurance: re-draw player-faction actors where they
+	// LOST the depth test (GREATER + no write) as a flat cool tint. The
+	// dither cutout usually reveals the real model, so this only shows for
+	// the slivers the cylinder misses (e.g. an arm past the hole's rim).
+	{
+		bool silhouetteBound = false;
+		for (const auto& object : scene.GetObjects())
+		{
+			if (!object.CanRender()) continue;
+			if (!object.combatComponent.has_value() ||
+				object.combatComponent->faction != CombatFaction::Player) continue;
+			const SkinnedMeshBuffers* skinned = ResolveSkinnedMesh(*object.renderComponent);
+			if (skinned == nullptr) continue;
+			if (!silhouetteBound)
+			{
+				skinnedSilhouettePixelShader.Bind(gfx);
+				const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+				gfx.GetContext()->OMSetBlendState(ghostBlendState.Get(), blendFactor, 0xffffffffu);
+				gfx.GetContext()->OMSetDepthStencilState(silhouetteDepthState.Get(), 0u);
+				silhouetteBound = true;
+			}
+			const AnimationStateComponent* animState = object.animationStateComponent.has_value()
+				? &object.animationStateComponent.value()
+				: nullptr;
+			DrawSkinnedMesh(*skinned, object.transform, *object.renderComponent, camera, animState);
+		}
+		if (silhouetteBound)
+		{
+			skinnedPixelShader.Bind(gfx);
+			gfx.GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffffu);
+			gfx.GetContext()->OMSetDepthStencilState(nullptr, 0u);
+		}
 	}
 
 	// Release the shadow map SRV so next frame's depth pass can bind it as

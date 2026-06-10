@@ -95,6 +95,12 @@ private:
 		float pad3 = 0.0f;
 		DirectX::XMFLOAT3 ambientGround;
 		float pad4 = 0.0f;
+		// Camera cutout (LitPipeline PSMain): the eye->cutoutTarget cylinder
+		// gets dither-discarded so the player shows through occluders. The
+		// skinned shader declares only the prefix of this cbuffer, which is
+		// valid — bound size may exceed the declared size. Radius 0 = off.
+		DirectX::XMFLOAT3 cutoutTarget;
+		float cutoutRadius = 0.0f;
 	};
 
 	struct MeshBuffers
@@ -235,6 +241,9 @@ private:
 	InputLayout litInputLayout;
 	VertexShader skinnedVertexShader;
 	PixelShader skinnedPixelShader;
+	// Flat-tint PS (entry PSSilhouette in the same skinned source) for the
+	// x-ray re-draw of hidden player-faction actors.
+	PixelShader skinnedSilhouettePixelShader;
 	InputLayout skinnedInputLayout;
 	// Shadow map depth pass resources.
 	ShadowMapPass shadowPass;
@@ -252,11 +261,11 @@ private:
 	// lit/skinned shaders multiply into their output (1.0 = opaque normal draw).
 	Microsoft::WRL::ComPtr<ID3D11BlendState> ghostBlendState;
 	float currentGhostAlpha = 1.0f;
-	// Camera-occluder fade: depth-test-only state (write mask ZERO) for the
-	// translucent re-draw of objects sitting between the camera and its
-	// target. No depth write means the player drawn afterwards isn't
-	// rejected behind the faded roof/wall.
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> fadeDepthState;
+	// X-ray silhouette: GREATER depth test + write mask ZERO. Player-faction
+	// skinned actors are re-drawn through this state after the normal passes,
+	// so only the pixels that LOST the depth test (hidden behind opaque
+	// geometry the cutout didn't reach) receive the flat silhouette tint.
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> silhouetteDepthState;
 	std::unordered_map<std::string, Texture2D> textureCache;
 	Sampler samplerWrapLinear;
 	Sampler samplerClampLinear;

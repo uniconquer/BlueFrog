@@ -218,6 +218,14 @@ namespace SkinnedPipeline
 			"    if (hasEmissive > 0.5f) emissive *= emissiveTex.Sample(surfaceSampler, input.uv).rgb;\n"
 			"    float3 color = direct + ambientTerm + emissive;\n"
 			"    return float4(color, alpha * ghostAlpha);\n"
+			"}\n"
+			// X-ray overlay (bound with a GREATER / no-write depth state):
+			// flat cool tint with a slight top-light ramp so the hidden actor
+			// reads as a body shape, not a flat sticker.
+			"float4 PSSilhouette(PSIn input) : SV_Target\n"
+			"{\n"
+			"    float ramp = saturate(input.normalWS.y * 0.25f + 0.75f);\n"
+			"    return float4(0.30f * ramp, 0.62f * ramp, 1.00f * ramp, 0.42f);\n"
 			"}\n";
 	}
 }

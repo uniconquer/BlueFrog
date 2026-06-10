@@ -54,6 +54,8 @@ namespace LitPipeline
 			"    float  pad3;\n"
 			"    float3 ambientGround;\n"
 			"    float  pad4;\n"
+			"    float3 cutoutTarget;\n"
+			"    float  cutoutRadius;\n"
 			"};\n"
 			"cbuffer ShadowBuffer : register(b4)\n"
 			"{\n"
@@ -137,6 +139,31 @@ namespace LitPipeline
 			"static const float PI = 3.14159265f;\n"
 			"float4 PSMain(PSIn input) : SV_Target\n"
 			"{\n"
+			// Camera cutout: dither-discard fragments inside the eye->target
+			// cylinder so the player reads through roofs/walls. Stays on the
+			// opaque pipeline (depth writes intact) — per-PIXEL holes instead
+			// of per-object alpha, so stacked house modules can't double-blend
+			// into the layered-translucency mush the ghost fade produced.
+			// Radius 0 disables (shadow/depth passes use separate shaders and
+			// are unaffected: cut pixels still cast shadows, which grounds the
+			// building visually).
+			"    if (cutoutRadius > 0.0f)\n"
+			"    {\n"
+			"        float3 cray = cutoutTarget - camPos;\n"
+			"        float  ct   = dot(input.worldPos - camPos, cray) / max(dot(cray, cray), 1e-4f);\n"
+			"        if (ct > 0.02f && ct < 0.93f)\n"
+			"        {\n"
+			"            float cd = length(input.worldPos - (camPos + cray * ct));\n"
+			"            if (cd < cutoutRadius)\n"
+			"            {\n"
+			"                float coverage = saturate(cd / cutoutRadius);\n"
+			"                coverage *= coverage;\n"
+			"                const float bayer[16] = { 0.0f, 8.0f, 2.0f, 10.0f, 12.0f, 4.0f, 14.0f, 6.0f, 3.0f, 11.0f, 1.0f, 9.0f, 15.0f, 7.0f, 13.0f, 5.0f };\n"
+			"                uint2 px = uint2(input.pos.xy) & 3u;\n"
+			"                if (coverage < (bayer[px.y * 4u + px.x] + 0.5f) / 16.0f) discard;\n"
+			"            }\n"
+			"        }\n"
+			"    }\n"
 			"    float3 N = normalize(input.normalWS);\n"
 			"    float3 V = normalize(camPos - input.worldPos);\n"
 			// Tiling lives here (PS) not the VS: the MaterialBuffer (b1) is bound
