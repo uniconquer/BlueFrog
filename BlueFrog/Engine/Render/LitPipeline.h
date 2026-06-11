@@ -105,17 +105,20 @@ namespace LitPipeline
 			// Slope-scaled bias: grazing faces (small nDotL) self-shadow and
 			// need more bias; near-flat-lit faces need little, keeping the
 			// contact line tight instead of peter-panning.
-			"    float bias  = max(0.0015f, 0.004f * (1.0f - nDotL));\n"
+			"    float bias  = max(0.0018f, 0.005f * (1.0f - nDotL));\n"
 			"    float depth = proj.z - bias;\n"
-			// 3x3 PCF. Each tap is itself hardware-bilinear (comparison
-			// sampler), so this softens edges well beyond a single tap.
-			// texel must match ShadowMapPass::kSize (2048).
+			// 5x5 PCF (Shadow S4). Each tap is itself hardware-bilinear
+			// (comparison sampler) so the penumbra spans ~6 texels — soft but
+			// still tight since the ortho frustum shrank to 28u. The slope
+			// bias is a touch higher than the old 3x3's because the outer
+			// taps land farther from the receiver. texel must match
+			// ShadowMapPass::kSize (2048).
 			"    const float texel = 1.0f / 2048.0f;\n"
 			"    float sum = 0.0f;\n"
-			"    [unroll] for (int y = -1; y <= 1; ++y)\n"
-			"        [unroll] for (int x = -1; x <= 1; ++x)\n"
+			"    [unroll] for (int y = -2; y <= 2; ++y)\n"
+			"        [unroll] for (int x = -2; x <= 2; ++x)\n"
 			"            sum += shadowMap.SampleCmpLevelZero(shadowSampler, uv + float2(x, y) * texel, depth);\n"
-			"    return sum * (1.0f / 9.0f);\n"
+			"    return sum * (1.0f / 25.0f);\n"
 			"}\n"
 			// Per-pixel tangent frame from screen-space derivatives (Schuler).
 			// Lets us apply a tangent-space normal map without a vertex TANGENT

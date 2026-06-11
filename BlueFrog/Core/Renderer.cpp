@@ -487,13 +487,27 @@ DirectX::XMMATRIX Renderer::ComputeLightViewProj(const TopDownCamera& camera, Di
 	constexpr float kLightDistance = 40.0f; // how far "up" the sun sits
 	const XMVECTOR lightPos = XMVectorSubtract(center, XMVectorScale(dir, kLightDistance));
 	const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // dir has X/Z tilt so never parallel
-	const XMMATRIX view = XMMatrixLookAtLH(lightPos, center, up);
+	XMMATRIX view = XMMatrixLookAtLH(lightPos, center, up);
 
 	// Orthographic (parallel sun rays). Width/height cover the visible
 	// play area around the camera target; near/far bracket the 40-unit
-	// stand-off plus scene depth.
-	constexpr float kOrthoSize = 34.0f;
-	const XMMATRIX proj = XMMatrixOrthographicLH(kOrthoSize, kOrthoSize, 1.0f, 90.0f);
+	// stand-off plus scene depth. 28u over the 2048 map ≈ 73 texels/m
+	// (was 34u ≈ 60) — the close-follow camera never sees casters more
+	// than ~14u from the target.
+	constexpr float kOrthoSize = 28.0f;
+
+	// Texel-snap (Shadow S4): the frustum follows the camera target every
+	// frame, so without snapping the map re-rasterizes from a continuously
+	// sliding origin and shadow edges crawl/shimmer as the player walks.
+	// Round the light-space XY of the frustum center to whole shadow-map
+	// texels and fold the correction into the view translation.
+	constexpr float kTexelWorld = kOrthoSize / 2048.0f; // ShadowMapPass::kSize
+	const XMVECTOR centerLS = XMVector3Transform(center, view);
+	const float snapX = std::floor(XMVectorGetX(centerLS) / kTexelWorld) * kTexelWorld - XMVectorGetX(centerLS);
+	const float snapY = std::floor(XMVectorGetY(centerLS) / kTexelWorld) * kTexelWorld - XMVectorGetY(centerLS);
+	view = view * XMMatrixTranslation(snapX, snapY, 0.0f);
+
+	const XMMATRIX proj = XMMatrixOrthographicLH(kOrthoSize, kOrthoSize, 10.0f, 75.0f);
 	return view * proj;
 }
 
