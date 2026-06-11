@@ -101,6 +101,22 @@ Renderer::Renderer(Graphics& gfx)
 	{
 		throw BFGFX_EXCEPT(hr);
 	}
+
+	// Default rasterizer + negative depth bias for the silhouette re-draw
+	// (see silhouetteRasterState in the header). -4000 D24 counts ≈ 0.3-1m
+	// of view depth across the zoom range: floor decals and other paper-thin
+	// overlaps stop triggering the x-ray while roofs/walls (metres closer)
+	// still do. Nothing else in the engine sets a rasterizer state, so the
+	// pass can restore the pipeline with RSSetState(nullptr).
+	D3D11_RASTERIZER_DESC rsd = {};
+	rsd.FillMode        = D3D11_FILL_SOLID;
+	rsd.CullMode        = D3D11_CULL_BACK;
+	rsd.DepthClipEnable = TRUE;
+	rsd.DepthBias       = -4000;
+	if (const HRESULT hr = gfx.GetDevice()->CreateRasterizerState(&rsd, silhouetteRasterState.GetAddressOf()); FAILED(hr))
+	{
+		throw BFGFX_EXCEPT(hr);
+	}
 }
 
 const std::array<Renderer::LitVertex, 24>& Renderer::GetCubeVertices() noexcept
@@ -675,6 +691,7 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 				const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 				gfx.GetContext()->OMSetBlendState(ghostBlendState.Get(), blendFactor, 0xffffffffu);
 				gfx.GetContext()->OMSetDepthStencilState(silhouetteDepthState.Get(), 0u);
+				gfx.GetContext()->RSSetState(silhouetteRasterState.Get());
 				silhouetteBound = true;
 			}
 			const AnimationStateComponent* animState = object.animationStateComponent.has_value()
@@ -687,6 +704,7 @@ void Renderer::Render(const Scene& scene, const TopDownCamera& camera)
 			skinnedPixelShader.Bind(gfx);
 			gfx.GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffffu);
 			gfx.GetContext()->OMSetDepthStencilState(nullptr, 0u);
+			gfx.GetContext()->RSSetState(nullptr);
 		}
 	}
 

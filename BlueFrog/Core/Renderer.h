@@ -266,6 +266,13 @@ private:
 	// so only the pixels that LOST the depth test (hidden behind opaque
 	// geometry the cutout didn't reach) receive the flat silhouette tint.
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> silhouetteDepthState;
+	// Companion rasterizer state with a negative depth bias: the silhouette
+	// must only fire for REAL occluders (a roof, meters closer), not the
+	// centimetre gap between the player's soles and the floor decals that
+	// hover at y=0.03-0.05 to dodge z-fighting (those were tinting the feet
+	// blue on the plaza). The bias pulls silhouette depth toward the camera
+	// so paper-thin overlaps lose the GREATER test.
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> silhouetteRasterState;
 	std::unordered_map<std::string, Texture2D> textureCache;
 	Sampler samplerWrapLinear;
 	Sampler samplerClampLinear;
