@@ -14,10 +14,18 @@
     "objects": [
       {
         "name": "Ground",
-        "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [18.0, 1.0, 18.0] },
+        "transform": { "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [14.0, 1.0, 14.0] },
         "render": {
           "mesh": "plane",
-          "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.92, 0.88, 0.84], "sampler": "wrap_linear", "uvScale": [1.15, 1.15] }
+          "material": { "texture": "Assets/Textures/grass.png", "tint": [1.0, 1.0, 1.0], "sampler": "wrap_linear", "uvScale": [0.45, 0.45] }
+        }
+      },
+      {
+        "name": "ArenaFloor",
+        "transform": { "position": [0.0, 0.04, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [7.3, 1.0, 7.3] },
+        "render": {
+          "mesh": "plane",
+          "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.92, 0.88, 0.84], "sampler": "wrap_linear", "uvScale": [0.92, 0.92] }
         }
       },
       {
@@ -29,42 +37,59 @@
         },
         "collision": { "halfExtents": [1.35, 1.35], "blocking": true }
       },
-      {
-        "name": "NorthWall",
-        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
-        "transform": { "position": [0.0, 1.0, 6.5], "rotation": [0.0, 0.0, 0.0], "scale": [6.0, 1.0, 0.7] },
-        "collision": { "halfExtents": [6.0, 0.7], "blocking": true }
-      },
-      {
-        "name": "SouthWall",
-        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
-        "transform": { "position": [0.0, 1.0, -6.5], "rotation": [0.0, 0.0, 0.0], "scale": [6.0, 1.0, 0.7] },
-        "collision": { "halfExtents": [6.0, 0.7], "blocking": true }
-      },
-      {
-        "name": "EastWall",
-        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
-        "transform": { "position": [6.5, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.7, 1.0, 6.0] },
-        "collision": { "halfExtents": [0.7, 6.0], "blocking": true }
-      },
-      {
-        "name": "WestWall",
-        "prefab": "Assets/Prefabs/ArenaWall.prefab.json",
-        "transform": { "position": [-6.5, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [0.7, 1.0, 6.0] },
-        "collision": { "halfExtents": [0.7, 6.0], "blocking": true }
-      },
-      {
-        "name": "PillarA",
-        "transform": { "position": [-3.5, 0.8, -2.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.8, 0.8, 0.8] },
-        "render": { "mesh": "cube", "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.80, 0.78, 0.75], "sampler": "wrap_linear", "uvScale": [1.5, 1.5] } },
-        "collision": { "halfExtents": [0.8, 0.8], "blocking": true }
-      },
-      {
-        "name": "PillarB",
-        "transform": { "position": [3.5, 0.8, 2.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.8, 0.8, 0.8] },
-        "render": { "mesh": "cube", "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.80, 0.78, 0.75], "sampler": "wrap_linear", "uvScale": [1.5, 1.5] } },
-        "collision": { "halfExtents": [0.8, 0.8], "blocking": true }
-      },
+
+      { "name": "NorthWallCol", "transform": { "position": [0.0, 1.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "collision": { "halfExtents": [7.3, 0.55], "blocking": true } },
+      { "name": "SouthWallCol", "transform": { "position": [0.0, 1.0, -7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "collision": { "halfExtents": [7.3, 0.55], "blocking": true } },
+      { "name": "EastWallCol",  "transform": { "position": [7.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "collision": { "halfExtents": [0.55, 7.3], "blocking": true } },
+      { "name": "WestWallCol",  "transform": { "position": [-7.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "collision": { "halfExtents": [0.55, 7.3], "blocking": true } },
+
+      { "name": "WallN1", "transform": { "position": [-6.0, 0.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallN2", "transform": { "position": [-4.0, 0.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallN3", "transform": { "position": [-2.0, 0.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallN4", "transform": { "position": [0.0, 0.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallN5", "transform": { "position": [2.0, 0.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallN6", "transform": { "position": [4.0, 0.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallN7", "transform": { "position": [6.0, 0.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+
+      { "name": "WallS1", "transform": { "position": [-6.0, 0.0, -7.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallS2", "transform": { "position": [-4.0, 0.0, -7.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallS3", "transform": { "position": [-2.0, 0.0, -7.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "BossGateArch", "transform": { "position": [0.0, 0.0, -7.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_Arch.gltf" } },
+      { "name": "WallS5", "transform": { "position": [2.0, 0.0, -7.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallS6", "transform": { "position": [4.0, 0.0, -7.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallS7", "transform": { "position": [6.0, 0.0, -7.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+
+      { "name": "WallW1", "transform": { "position": [-7.0, 0.0, -6.0], "rotation": [0.0, -1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallW2", "transform": { "position": [-7.0, 0.0, -4.0], "rotation": [0.0, -1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallW3", "transform": { "position": [-7.0, 0.0, -2.0], "rotation": [0.0, -1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallW4", "transform": { "position": [-7.0, 0.0, 0.0], "rotation": [0.0, -1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallW5", "transform": { "position": [-7.0, 0.0, 2.0], "rotation": [0.0, -1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "ExitArch", "transform": { "position": [-7.0, 0.0, 4.0], "rotation": [0.0, -1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_Arch.gltf" } },
+      { "name": "WallW7", "transform": { "position": [-7.0, 0.0, 6.0], "rotation": [0.0, -1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+
+      { "name": "WallE1", "transform": { "position": [7.0, 0.0, -6.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallE2", "transform": { "position": [7.0, 0.0, -4.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallE3", "transform": { "position": [7.0, 0.0, -2.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallE4", "transform": { "position": [7.0, 0.0, 0.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallE5", "transform": { "position": [7.0, 0.0, 2.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallE6", "transform": { "position": [7.0, 0.0, 4.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+      { "name": "WallE7", "transform": { "position": [7.0, 0.0, 6.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Wall_UnevenBrick_Straight.gltf" } },
+
+      { "name": "CornerNW", "transform": { "position": [-7.0, 0.0, 7.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Brick.gltf" } },
+      { "name": "CornerNE", "transform": { "position": [7.0, 0.0, 7.0], "rotation": [0.0, 1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Brick.gltf" } },
+      { "name": "CornerSW", "transform": { "position": [-7.0, 0.0, -7.0], "rotation": [0.0, -1.5708, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Brick.gltf" } },
+      { "name": "CornerSE", "transform": { "position": [7.0, 0.0, -7.0], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] }, "render": { "meshPath": "Assets/Models/Medieval/modules/Corner_Exterior_Brick.gltf" } },
+
+      { "name": "PillarA", "transform": { "position": [-3.5, 0.8, -2.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.8, 0.8, 0.8] }, "render": { "mesh": "cube", "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.80, 0.78, 0.75], "sampler": "wrap_linear", "uvScale": [1.5, 1.5] } }, "collision": { "halfExtents": [0.8, 0.8], "blocking": true } },
+      { "name": "PillarB", "transform": { "position": [3.5, 0.8, 2.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.8, 0.8, 0.8] }, "render": { "mesh": "cube", "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.80, 0.78, 0.75], "sampler": "wrap_linear", "uvScale": [1.5, 1.5] } }, "collision": { "halfExtents": [0.8, 0.8], "blocking": true } },
+
+      { "name": "CrateNE1", "prefab": "Assets/Prefabs/Crate.prefab.json",  "transform": { "position": [5.7, 0.0, 5.7], "rotation": [0.0, 0.4, 0.0], "scale": [1.0, 1.0, 1.0] } },
+      { "name": "CrateNE2", "prefab": "Assets/Prefabs/Crate.prefab.json",  "transform": { "position": [6.1, 0.0, 4.6], "rotation": [0.0, 1.1, 0.0], "scale": [0.85, 0.85, 0.85] } },
+      { "name": "BarrelNE", "prefab": "Assets/Prefabs/Barrel.prefab.json", "transform": { "position": [4.7, 0.0, 6.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
+      { "name": "CrateSE",  "prefab": "Assets/Prefabs/Crate.prefab.json",  "transform": { "position": [6.0, 0.0, -5.8], "rotation": [0.0, 0.8, 0.0], "scale": [1.0, 1.0, 1.0] } },
+      { "name": "BarrelSW", "prefab": "Assets/Prefabs/Barrel.prefab.json", "transform": { "position": [-5.9, 0.0, -5.9], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
+      { "name": "WagonNW",  "prefab": "Assets/Prefabs/Wagon.prefab.json",  "transform": { "position": [-5.3, 0.0, 5.9], "rotation": [0.0, 2.2, 0.0], "scale": [0.9, 0.9, 0.9] } },
+
       {
         "name": "Player",
         "prefab": "Assets/Prefabs/Player.prefab.json",
@@ -80,21 +105,12 @@
         "prefab": "Assets/Prefabs/EnemyArcher.prefab.json",
         "transform": { "position": [4.0, 0.0, 4.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] }
       },
-      {
-        "name": "BossPortalMarker",
-        "transform": { "position": [0.0, 0.4, -5.5], "rotation": [0.0, 0.0, 0.0], "scale": [0.5, 0.8, 0.5] },
-        "render": { "mesh": "cube", "material": { "tint": [0.4, 0.85, 1.0] } }
-      },
-      {
-        "name": "VillageReturnMarker",
-        "transform": { "position": [-5.5, 0.4, 4.8], "rotation": [0.0, 0.0, 0.0], "scale": [0.5, 0.8, 0.5] },
-        "render": { "mesh": "cube", "material": { "tint": [0.55, 0.92, 0.55] } }
-      },
+
       {
         "name": "VillageReturnPortal",
-        "transform": { "position": [-5.5, 0.0, 4.8], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
+        "transform": { "position": [-6.4, 0.0, 4.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
         "trigger": {
-          "halfExtents": [0.8, 0.8],
+          "halfExtents": [0.7, 0.9],
           "tag": "village_return",
           "fireOnce": false,
           "action": { "type": "load_scene", "param": "Assets/Scenes/village.json" }
@@ -102,9 +118,9 @@
       },
       {
         "name": "BossPortal",
-        "transform": { "position": [0.0, 0.0, -5.5], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
+        "transform": { "position": [0.0, 0.0, -6.4], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] },
         "trigger": {
-          "halfExtents": [1.2, 1.2],
+          "halfExtents": [0.9, 0.7],
           "tag": "boss_portal",
           "fireOnce": true,
           "action": { "type": "load_scene", "param": "Assets/Scenes/boss_arena.json" }

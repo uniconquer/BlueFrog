@@ -44,6 +44,10 @@ C++17 + DirectX 11 게임 엔진(BlueFrogEngine.lib) + GTA2식 탑다운 판타�
 - baseColor=sRGB, normal/roughness/ORM=linear
 - **카메라 가림 = lit PS 디더 컷아웃** (LightBuffer의 cutoutTarget/cutoutRadius, 카메라→타깃 원통 픽셀을 Bayer 디더로 discard) + 플레이어 X-ray 실루엣(스킨드 소스의 PSSilhouette 엔트리, GREATER/no-write DSS). 오브젝트 단위 알파 페이드는 모듈 조각 중첩 얼룩 때문에 폐기했음 — 되돌리지 말 것
 
+## 시뮬레이션 함정
+
+- **AppBase가 프레임 dt를 0.1s로 클램프** — 씬 로드 히치(밉맵 생성 수 초)가 첫 틱에 통째로 들어가 AI 순간이동 + 넉백 벽 관통을 일으켰음. 클램프를 지우지 말 것
+
 ## 관례
 
 - 커밋은 유저가 요청할 때만. 빌드+스모크(+시각 검증) 후 커밋
