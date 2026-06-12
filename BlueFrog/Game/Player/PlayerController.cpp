@@ -16,6 +16,17 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	dashCooldownRemaining    = std::max(0.0f, dashCooldownRemaining - dt);
 	(void)bus; (void)popups; // skill events route through SkillSystem now
 
+	// Vertical-layer timers + the jump input buffer tick every frame
+	// regardless of branch, so a press just before landing (or just after
+	// walking off a ledge — coyote) still registers.
+	{
+		const bool jumpEdge = input.jumpHeld && !prevJumpHeld;
+		prevJumpHeld = input.jumpHeld;
+		jumpBufferRemaining  = jumpEdge ? kJumpBufferTime : std::max(0.0f, jumpBufferRemaining - dt);
+		coyoteRemaining      = std::max(0.0f, coyoteRemaining - dt);
+		landingStunRemaining = std::max(0.0f, landingStunRemaining - dt);
+	}
+
 	SceneObject* player = FindPlayer(scene);
 	if (player == nullptr || !player->combatComponent.has_value())
 	{
@@ -128,6 +139,12 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 			player->transform.position.y += mountRiderYOffset;
 			player->transform.rotation.y  = mount->transform.rotation.y;
 
+			// Riding zeroes the vertical layer — no jumping off horseback
+			// in V1, and the dismount path drops the player back onto
+			// whatever FloorHeightAt says next tick.
+			grounded = true;
+			verticalVelocity = 0.0f;
+
 			player->combatComponent->invulnerable = false;
 			UpdateTint(*player);
 			return true;
@@ -148,10 +165,14 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	if (player->combatComponent->knockbackTimeRemaining > 0.0f)
 	{
 		DirectX::XMFLOAT3 mouseGroundPoint = player->transform.position;
-		if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, playerHeight, mouseGroundPoint))
+		if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, player->transform.position.y, mouseGroundPoint))
 		{
 			player->transform.rotation.y = PlayerAimSystem::ComputeYawRadians(player->transform.position, mouseGroundPoint);
 		}
+		// Gravity keeps running through the stagger — getting knocked off
+		// a roof should drop you, not freeze you mid-air (no jumping out
+		// of a stagger though).
+		IntegrateVertical(*player, scene, dt, /*allowJump=*/false);
 		// Clear invulnerable in case the player dashed into this hit — the
 		// stun window is a different mechanic (vulnerable) and the dash
 		// flag is no longer relevant once knockback is in effect.
@@ -167,7 +188,8 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	// vector if any, otherwise the player's current facing yaw projected
 	// onto the XZ plane. That way a player who hasn't pressed WASD yet
 	// still dashes forward instead of standing still.
-	if (input.dashHeld && dashCooldownRemaining <= 0.0f && dashTimeRemaining <= 0.0f)
+	if (input.dashHeld && dashCooldownRemaining <= 0.0f && dashTimeRemaining <= 0.0f
+		&& grounded && landingStunRemaining <= 0.0f)
 	{
 		float dirX = move.x;
 		float dirZ = move.z;
@@ -195,19 +217,27 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	// semantics ("dash cancels skill" or vice versa) are a v2 design
 	// decision left open.
 	const bool castingSkill = (skills != nullptr) && skills->IsExecuting(std::string(GameplaySceneIds::Player));
-	const float effectiveSpeed = (dashTimeRemaining > 0.0f)
+	float effectiveSpeed = (dashTimeRemaining > 0.0f)
 		? (moveSpeed * dashSpeedMul)
 		: (castingSkill ? 0.0f : moveSpeed);
+	// Vertical-layer movement gates: a hard landing roots the player for
+	// the stun window; airborne steering keeps most (not all) authority
+	// so jump arcs stay predictable.
+	if (landingStunRemaining > 0.0f) effectiveSpeed = 0.0f;
+	else if (!grounded)              effectiveSpeed *= kAirControlMul;
 	const float useX = (dashTimeRemaining > 0.0f) ? dashDirX : move.x;
 	const float useZ = (dashTimeRemaining > 0.0f) ? dashDirZ : move.z;
 	DirectX::XMFLOAT3 desiredPosition = player->transform.position;
 	desiredPosition.x += useX * effectiveSpeed * dt;
 	desiredPosition.z += useZ * effectiveSpeed * dt;
-	desiredPosition.y = playerHeight;
 	CollisionSystem::MoveAndSlide(*player, scene, desiredPosition);
 
+	// Gravity / jump / landing — after the XZ slide so the floor query
+	// sees the final footprint for this tick.
+	IntegrateVertical(*player, scene, dt, /*allowJump=*/!castingSkill);
+
 	DirectX::XMFLOAT3 mouseGroundPoint = player->transform.position;
-	if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, playerHeight, mouseGroundPoint))
+	if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, player->transform.position.y, mouseGroundPoint))
 	{
 		player->transform.rotation.y = PlayerAimSystem::ComputeYawRadians(player->transform.position, mouseGroundPoint);
 	}
@@ -287,4 +317,61 @@ void PlayerController::UpdateTint(SceneObject& player) const noexcept
 		0.72f + healthRatio * 0.20f,
 		0.30f + healthRatio * 0.25f
 	};
+}
+
+void PlayerController::IntegrateVertical(SceneObject& player, Scene& scene, float dt, bool allowJump) noexcept
+{
+	DirectX::XMFLOAT3& pos = player.transform.position;
+	const float floorY = CollisionSystem::FloorHeightAt(player, scene, pos.x, pos.z, pos.y);
+
+	if (grounded)
+	{
+		if (pos.y > floorY + 0.01f)
+		{
+			// Walked off a ledge: become airborne with no upward kick, and
+			// open the coyote window so a slightly-late jump still fires.
+			grounded = false;
+			verticalVelocity = 0.0f;
+			coyoteRemaining = kCoyoteTime;
+			airApexY = pos.y;
+		}
+		else
+		{
+			// Snap to the surface — this is also what walks the player UP
+			// stairs/crates (FloorHeightAt honors kStepHeight).
+			pos.y = floorY;
+		}
+	}
+
+	if (allowJump && jumpBufferRemaining > 0.0f && landingStunRemaining <= 0.0f
+		&& (grounded || coyoteRemaining > 0.0f))
+	{
+		verticalVelocity = kJumpVelocity;
+		grounded = false;
+		coyoteRemaining = 0.0f;
+		jumpBufferRemaining = 0.0f;
+		airApexY = pos.y;
+	}
+
+	if (!grounded)
+	{
+		verticalVelocity += kGravity * dt;
+		pos.y += verticalVelocity * dt;
+		airApexY = std::max(airApexY, pos.y);
+		// Re-query at the (possibly moved) XZ: landing surface can differ
+		// from takeoff (jumping onto a crate, falling off a roof).
+		const float landY = CollisionSystem::FloorHeightAt(player, scene, pos.x, pos.z, std::max(pos.y, airApexY));
+		if (verticalVelocity <= 0.0f && pos.y <= landY)
+		{
+			pos.y = landY;
+			grounded = true;
+			verticalVelocity = 0.0f;
+			const float fallDistance = airApexY - pos.y;
+			if (fallDistance >= kHardLandHeight)
+			{
+				landingStunRemaining = kHardLandStun;
+				hardLandedThisTick = true;
+			}
+		}
+	}
 }

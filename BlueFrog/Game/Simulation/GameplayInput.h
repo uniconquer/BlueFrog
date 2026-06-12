@@ -12,6 +12,9 @@ struct GameplayInput
 	// skill system's job, so spam-press during cooldown silently no-ops.
 	bool heavyAttackQueued = false;
 	bool dashHeld = false;
+	// Jump key held-state (Space). PlayerController edge-detects + buffers
+	// internally (0.12s input buffer + 0.1s coyote), so raw held is enough.
+	bool jumpHeld = false;
 	// Edge-triggered (true on the frame E went from up to down). FLApp
 	// uses it to enter / exit dialog mode; downstream systems can also
 	// consume it for other context-sensitive actions (open chest, read

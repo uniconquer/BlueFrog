@@ -44,6 +44,14 @@ C++17 + DirectX 11 게임 엔진(BlueFrogEngine.lib) + GTA2식 탑다운 판타�
 - baseColor=sRGB, normal/roughness/ORM=linear
 - **카메라 가림 = lit PS 디더 컷아웃** (LightBuffer의 cutoutTarget/cutoutRadius, 카메라→타깃 원통 픽셀을 Bayer 디더로 discard) + 플레이어 X-ray 실루엣(스킨드 소스의 PSSilhouette 엔트리, GREATER/no-write DSS). 오브젝트 단위 알파 페이드는 모듈 조각 중첩 얼룩 때문에 폐기했음 — 되돌리지 말 것
 
+## 수직 레이어 (Jump V1)
+
+- 충돌 박스에 `baseY`/`topY` (생략=기존 무한기둥). XZ 충돌은 y구간 겹칠 때만, `CollisionSystem::FloorHeightAt` = 발 아래 topY 최댓값 (스텝업 0.35)
+- 플레이어: Space 점프(정점 1.3m), 중력 -22, 코요테 0.1+버퍼 0.12, 3.5m+ 낙하 시 0.4s 경직+먼지. **대시는 Shift로 이동했음**
+- 지붕 = House 프리팹의 보행 데크 콜라이더(baseY 2.9/topY 3.25 — 1층은 그 밑을 통과). 계단 = StoneStairs.prefab (스텝 콜라이더 0.34 상승 체인)
+- 전투: TryMeleeAttack에 Δy 게이트 — range≤3.5는 1.2(지붕 위 근접 면제), 원거리는 5.0(아처는 지붕 관통)
+- 카메라는 점프 포물선이 아니라 FloorHeightAt(스무딩)을 추적, 블롭 그림자도 바닥높이에 투영
+
 ## 시뮬레이션 함정
 
 - **AppBase가 프레임 dt를 0.1s로 클램프** — 씬 로드 히치(밉맵 생성 수 초)가 첫 틱에 통째로 들어가 AI 순간이동 + 넉백 벽 관통을 일으켰음. 클램프를 지우지 말 것

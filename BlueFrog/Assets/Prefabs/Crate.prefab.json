@@ -1,4 +1,4 @@
 {
   "render": { "meshPath": "Assets/Models/Medieval/modules/Prop_Crate.gltf", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
-  "collision": { "halfExtents": [0.55, 0.55], "blocking": true }
+  "collision": { "halfExtents": [0.55, 0.55], "topY": 1.05, "blocking": true }
 }

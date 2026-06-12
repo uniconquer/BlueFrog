@@ -1,5 +1,6 @@
 #include "ShadowRenderer.h"
 
+#include "../Physics/CollisionSystem.h"
 #include "../Scene/CombatComponent.h"
 #include "../Scene/SceneObject.h"
 
@@ -130,9 +131,15 @@ void ShadowRenderer::Render(const Scene& scene, const TopDownCamera& camera) noe
 			halfZ = obj.collisionComponent->halfExtents.y * 1.1f;
 		}
 
+		// Project onto the surface UNDER the actor, not the world ground
+		// plane — an airborne or rooftop actor's blob lands on the roof /
+		// crate below them, doubling as a landing-point cue mid-jump.
+		const float floorY = CollisionSystem::FloorHeightAt(
+			obj, scene, obj.transform.position.x, obj.transform.position.z,
+			obj.transform.position.y);
 		const XMMATRIX world =
 			XMMatrixScaling(halfX, 1.0f, halfZ) *
-			XMMatrixTranslation(obj.transform.position.x, kShadowLift, obj.transform.position.z);
+			XMMatrixTranslation(obj.transform.position.x, floorY + kShadowLift, obj.transform.position.z);
 
 		ShadowParams params;
 		XMStoreFloat4x4(&params.transform, XMMatrixTranspose(world * viewProj));

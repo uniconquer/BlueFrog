@@ -1,4 +1,4 @@
 {
   "render": { "meshPath": "Assets/Models/Medieval/modules/Prop_WoodenFence_Single.gltf", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
-  "collision": { "halfExtents": [1.0, 0.15], "blocking": true }
+  "collision": { "halfExtents": [1.0, 0.15], "topY": 1.0, "blocking": true }
 }

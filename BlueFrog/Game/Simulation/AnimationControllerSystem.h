@@ -30,7 +30,12 @@
 // chase/attack ranges so the visible clip matches the AI behavior.
 namespace AnimationControllerSystem
 {
-	inline void Tick(Scene& scene, const GameplayInput& input, float /*dt*/, const SkillSystem* skills = nullptr, bool playerMounted = false) noexcept
+	// playerAirborne / playerVerticalVel / playerLanding mirror the
+	// PlayerController vertical layer (Jump V1): airborne picks the jump
+	// clips (rising = JumpStart's push-off pose, falling = JumpLoop),
+	// and the brief landing stun after a hard fall plays JumpLand once.
+	inline void Tick(Scene& scene, const GameplayInput& input, float /*dt*/, const SkillSystem* skills = nullptr, bool playerMounted = false,
+		bool playerAirborne = false, float playerVerticalVel = 0.0f, bool playerLanding = false) noexcept
 	{
 		const SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 		if (player == nullptr) return;
@@ -97,12 +102,27 @@ namespace AnimationControllerSystem
 					// horse like a stick".
 					asc.clipName = std::string("Ride");
 				}
+				else if (playerAirborne)
+				{
+					// Rising = the push-off pose, falling = the airborne
+					// loop. Both loop (true above) so a long fall doesn't
+					// freeze on the clip's last frame.
+					asc.clipName = (playerVerticalVel > 0.5f) ? std::string("JumpStart") : std::string("JumpLoop");
+				}
+				else if (playerLanding)
+				{
+					// Hard-landing stun window: play the landing crouch
+					// once; looping=false pins the recovery pose until the
+					// stun releases back to Idle/Walk.
+					asc.clipName = std::string("JumpLand");
+					asc.looping  = false;
+				}
 				else
 				{
 					const float move = std::hypot(input.movementIntent.x, input.movementIntent.y);
-					// Clip names match the NLA tracks baked into Knight.glb by
-					// _tmp_fbximport/mixamo_to_gltf.py: Idle, Walk, Slash,
-					// SlashDown, Hit, Die.
+					// Clip names match the Universal character NLA tracks
+					// (_tmp_fbximport/merge_universal.py): Idle, Walk, Run,
+					// Slash, SlashDown, Hit, Die, Ride, Jump*.
 					asc.clipName = (move > kPlayerMoveThreshold) ? std::string("Walk") : std::string("Idle");
 				}
 			}

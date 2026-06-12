@@ -1,9 +1,12 @@
 #pragma once
 
 #include "../../Engine/Camera/TopDownCamera.h"
+#include "../../Engine/Physics/CollisionSystem.h"
 #include "../../Engine/Scene/Scene.h"
 #include "GameplaySceneIds.h"
 #include "SystemContext.h"
+
+#include <algorithm>
 
 // The camera runs in two phases around the simulation step:
 //   - ApplyInput (pre-sim): fold orbit/zoom input into the camera.
@@ -36,8 +39,23 @@ public:
 			// rather than the floor under their feet.
 			constexpr float kChestOffsetY = 1.0f;
 			DirectX::XMFLOAT3 t = player->transform.position;
-			t.y += kChestOffsetY;
+			// Vertical: follow the FLOOR under the player (smoothed), not
+			// the ballistic jump arc — a flat jump must not bob the whole
+			// view. Climbing a roof eases the camera up; jumping in place
+			// leaves it rock-steady.
+			const float floorY = CollisionSystem::FloorHeightAt(
+				*player, ctx.scene, t.x, t.z, player->transform.position.y);
+			if (!floorYInitialized)
+			{
+				smoothedFloorY = floorY;
+				floorYInitialized = true;
+			}
+			smoothedFloorY += (floorY - smoothedFloorY) * (std::min)(1.0f, ctx.dt * 6.0f);
+			t.y = smoothedFloorY + kChestOffsetY;
 			ctx.camera.SetTarget(t);
 		}
 	}
+private:
+	float smoothedFloorY    = 0.0f;
+	bool  floorYInitialized = false;
 };

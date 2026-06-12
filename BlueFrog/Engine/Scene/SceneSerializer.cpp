@@ -103,6 +103,10 @@ namespace
 		{
 			j["offset"] = json::array({ cc.offset.x, cc.offset.y });
 		}
+		// Only authored vertical extents round-trip; the defaults stay
+		// invisible so legacy files keep their exact shape.
+		if (cc.baseY != 0.0f)  j["baseY"] = cc.baseY;
+		if (cc.topY < 1.0e8f)  j["topY"]  = cc.topY;
 		j["blocking"]    = cc.blocksMovement;
 		return j;
 	}

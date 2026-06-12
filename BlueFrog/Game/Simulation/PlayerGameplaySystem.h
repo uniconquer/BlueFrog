@@ -1,9 +1,11 @@
 #pragma once
 
+#include "../../Engine/Render/ParticleSystem.h"
 #include "../../Engine/Scene/Scene.h"
 #include "../../Engine/UI/HudState.h"
 #include "../Hud/HudPresenter.h"
 #include "../Player/PlayerController.h"
+#include "GameplaySceneIds.h"
 #include "SystemContext.h"
 
 class PlayerGameplaySystem final
@@ -12,6 +14,22 @@ public:
 	void Update(const SystemContext& ctx) noexcept
 	{
 		playerController.Update(ctx.input, ctx.scene, ctx.camera, ctx.dt, ctx.eventBus, ctx.audio, ctx.damagePopups, ctx.skills);
+
+		// Hard-landing feedback (Jump V1): a >=3.5m fall just ended — kick
+		// up a dust puff at the feet to sell the impact alongside the
+		// JumpLand pose + input stun the controller applies.
+		if (playerController.ConsumeHardLanded() && ctx.particles != nullptr)
+		{
+			if (const SceneObject* p = ctx.scene.FindObject(GameplaySceneIds::Player))
+			{
+				DirectX::XMFLOAT3 pos = p->transform.position;
+				pos.y += 0.12f;
+				ctx.particles->Burst(pos, 12, 2.4f, 0.5f,
+					{ 0.66f, 0.58f, 0.46f, 0.85f },
+					{ 0.66f, 0.58f, 0.46f, 0.0f },
+					0.32f);
+			}
+		}
 	}
 
 	[[nodiscard]] HudState BuildHudState(const Scene& scene) const noexcept

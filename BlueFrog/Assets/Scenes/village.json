@@ -59,6 +59,11 @@
       { "name": "Fence3", "prefab": "Assets/Prefabs/WoodenFence.prefab.json", "transform": { "position": [ 0.0, 0.0, 6.4], "rotation": [0.0, 0.0,    0.0], "scale": [1.0, 1.0, 1.0] } },
       { "name": "Fence4", "prefab": "Assets/Prefabs/WoodenFence.prefab.json", "transform": { "position": [ 2.0, 0.0, 6.4], "rotation": [0.0, 0.0,    0.0], "scale": [1.0, 1.0, 1.0] } },
 
+      { "name": "StairsSE",   "prefab": "Assets/Prefabs/StoneStairs.prefab.json", "transform": { "position": [4.4, 0.0, 4.5], "rotation": [0.0, 3.1416, 0.0], "scale": [1.0, 1.0, 1.0] } },
+      { "name": "JumpCrateA", "prefab": "Assets/Prefabs/Crate.prefab.json", "transform": { "position": [2.4, 0.0, 4.2],  "rotation": [0.0, 0.2, 0.0], "scale": [1.0, 1.0, 1.0] } },
+      { "name": "JumpCrateB", "prefab": "Assets/Prefabs/Crate.prefab.json", "transform": { "position": [3.5, 0.0, 4.2],  "rotation": [0.0, 0.9, 0.0], "scale": [1.0, 1.0, 1.0] } },
+      { "name": "JumpCrateB2","prefab": "Assets/Prefabs/Crate.prefab.json", "transform": { "position": [3.5, 1.05, 4.2], "rotation": [0.0, 0.4, 0.0], "scale": [1.0, 1.0, 1.0] } },
+
       { "name": "GatherTreeW",  "prefab": "Assets/Prefabs/HarvestTree.prefab.json", "transform": { "position": [-10.5, 0.0, 1.0],  "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
       { "name": "GatherTreeE",  "prefab": "Assets/Prefabs/HarvestTree.prefab.json", "transform": { "position": [ 10.0, 0.0, -2.0], "rotation": [0.0, 2.0, 0.0], "scale": [1.0, 1.0, 1.0] } },
       { "name": "GatherTreeN",  "prefab": "Assets/Prefabs/HarvestTree.prefab.json", "transform": { "position": [ 1.0,  0.0, -10.5],"rotation": [0.0, 1.0, 0.0], "scale": [1.0, 1.0, 1.0] } },

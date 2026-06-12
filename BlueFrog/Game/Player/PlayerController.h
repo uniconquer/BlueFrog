@@ -77,4 +77,35 @@ private:
 	float mountSpeed = 0.0f;
 	static constexpr float mountAccel = 9.0f;  // m/s^2 ramp-up under input
 	static constexpr float mountDecel = 7.0f;  // m/s^2 coast-down (friction)
+
+public:
+	// Vertical layer (Jump V1) — read by the animation controller, camera
+	// and landing-FX wiring.
+	[[nodiscard]] bool  IsAirborne() const noexcept { return !grounded; }
+	[[nodiscard]] float VerticalVelocity() const noexcept { return verticalVelocity; }
+	[[nodiscard]] bool  IsLandingStunned() const noexcept { return landingStunRemaining > 0.0f; }
+	// One-shot: true exactly once after a >= kHardLandHeight fall lands
+	// (the caller spawns dust/SFX off it).
+	[[nodiscard]] bool  ConsumeHardLanded() noexcept { const bool v = hardLandedThisTick; hardLandedThisTick = false; return v; }
+private:
+	// Gravity integration + jump with coyote time and an input buffer.
+	// The player's y is no longer snapped to 0 — it rides FloorHeightAt
+	// (stairs, crates, roofs) and ballistic arcs between. Tuning per the
+	// V1 design: snappy arcade gravity, ~1.3m apex.
+	void IntegrateVertical(SceneObject& player, Scene& scene, float dt, bool allowJump) noexcept;
+	static constexpr float kGravity         = -22.0f;
+	static constexpr float kJumpVelocity    = 7.5f;   // apex ~= v^2/2g ~= 1.3m
+	static constexpr float kAirControlMul   = 0.8f;
+	static constexpr float kCoyoteTime      = 0.10f;
+	static constexpr float kJumpBufferTime  = 0.12f;
+	static constexpr float kHardLandHeight  = 3.5f;   // falls >= this stun on landing
+	static constexpr float kHardLandStun    = 0.4f;
+	float verticalVelocity      = 0.0f;
+	bool  grounded              = true;
+	float coyoteRemaining       = 0.0f;
+	float jumpBufferRemaining   = 0.0f;
+	bool  prevJumpHeld          = false;
+	float airApexY              = 0.0f;
+	float landingStunRemaining  = 0.0f;
+	bool  hardLandedThisTick    = false;
 };

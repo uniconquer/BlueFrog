@@ -11,7 +11,7 @@ namespace
 	// rotated — a long thin wall stays long+thin at any angle. Our yaw
 	// convention maps local->world as (lx*c + lz*s, -lx*s + lz*c), so the
 	// inverse (world->local) is (dx*c - dz*s, dx*s + dz*c).
-	bool CircleVsObb(float cx, float cz, float radius,
+	bool CircleVsObbXZ(float cx, float cz, float radius,
 		const SceneObject& box, const DirectX::XMFLOAT3& boxPos) noexcept
 	{
 		const auto& bc = *box.collisionComponent;
@@ -39,6 +39,17 @@ namespace
 		const float ddx = lx - clampedX;
 		const float ddz = lz - clampedZ;
 		return (ddx * ddx + ddz * ddz) < (radius * radius);
+	}
+
+	// World-space vertical span of a blocker's box: local baseY/topY scaled
+	// by the object's Y scale, offset by its position. The 1e9 legacy
+	// default stays effectively infinite through any sane scale.
+	void BoxWorldYRange(const SceneObject& box, float& outBase, float& outTop) noexcept
+	{
+		const auto& bc = *box.collisionComponent;
+		const float sy = box.transform.scale.y;
+		outBase = box.transform.position.y + bc.baseY * sy;
+		outTop  = box.transform.position.y + (std::min)(bc.topY, 1.0e9f) * sy;
 	}
 
 	bool IsBlockingCollisionPair(const SceneObject& actor, const SceneObject& other) noexcept
@@ -102,17 +113,64 @@ bool CollisionSystem::CollidesAt(const SceneObject& actor, const Scene& scene, c
 	// actors (player, enemies, mount).
 	const float radius = (std::max)(actor.collisionComponent->halfExtents.x,
 	                                actor.collisionComponent->halfExtents.y);
+	// 2.5D: the actor's solid body spans [feet + kStepHeight, feet +
+	// kActorHeight]. Starting at knee height means boxes whose top pokes
+	// less than a step above the floor never block — the floor query
+	// "steps onto" them instead — and boxes entirely above the head
+	// (e.g. a bridge deck while walking under it) are passed beneath.
+	const float bodyLo = position.y + kStepHeight;
+	const float bodyHi = position.y + kActorHeight;
 	for (const auto& other : scene.GetObjects())
 	{
 		if (!IsBlockingCollisionPair(actor, other))
 		{
 			continue;
 		}
-		if (CircleVsObb(position.x, position.z, radius, other, other.transform.position))
+		float boxBase = 0.0f, boxTop = 0.0f;
+		BoxWorldYRange(other, boxBase, boxTop);
+		if (bodyLo >= boxTop || bodyHi <= boxBase)
+		{
+			continue; // vertically clear of this blocker
+		}
+		if (CircleVsObbXZ(position.x, position.z, radius, other, other.transform.position))
 		{
 			return true;
 		}
 	}
 
 	return false;
+}
+
+float CollisionSystem::FloorHeightAt(const SceneObject& actor, const Scene& scene, float x, float z, float actorY) noexcept
+{
+	// The world ground plane is the universal fallback floor.
+	float best = 0.0f;
+	if (!actor.collisionComponent.has_value())
+	{
+		return best;
+	}
+
+	// Slightly smaller probe than the blocking disc so the actor can't
+	// "stand" on a surface they barely clip at the rim.
+	const float radius = 0.8f * (std::max)(actor.collisionComponent->halfExtents.x,
+	                                       actor.collisionComponent->halfExtents.y);
+	const float reach = actorY + kStepHeight; // highest top we can stand on / step up to
+	for (const auto& other : scene.GetObjects())
+	{
+		if (!IsBlockingCollisionPair(actor, other))
+		{
+			continue;
+		}
+		float boxBase = 0.0f, boxTop = 0.0f;
+		BoxWorldYRange(other, boxBase, boxTop);
+		if (boxTop > reach || boxTop <= best)
+		{
+			continue; // above our step reach, or not an improvement
+		}
+		if (CircleVsObbXZ(x, z, radius, other, other.transform.position))
+		{
+			best = boxTop;
+		}
+	}
+	return best;
 }

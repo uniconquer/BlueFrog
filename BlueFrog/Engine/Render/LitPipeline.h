@@ -156,8 +156,12 @@ namespace LitPipeline
 			"        float  ct   = dot(input.worldPos - camPos, cray) / max(dot(cray, cray), 1e-4f);\n"
 			"        if (ct > 0.02f && ct < 0.93f)\n"
 			"        {\n"
-			"            float cd = length(input.worldPos - (camPos + cray * ct));\n"
-			"            if (cd < cutoutRadius)\n"
+			"            float3 cnear = camPos + cray * ct;\n"
+			"            float cd = length(input.worldPos - cnear);\n"
+			// Fragments well BELOW the sight line are the surface the
+			// player stands on (rooftop, crate top), not an occluder —
+			// without this the deck under a rooftop player dissolves.
+			"            if (cd < cutoutRadius && (input.worldPos.y - cnear.y) > -0.45f)\n"
 			"            {\n"
 			"                float coverage = saturate(cd / cutoutRadius);\n"
 			"                coverage *= coverage;\n"

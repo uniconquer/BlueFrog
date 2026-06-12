@@ -33,6 +33,19 @@ bool CombatSystem::TryMeleeAttack(SceneObject& attacker, SceneObject& target, in
 		return false;
 	}
 
+	// Vertical gate (Jump V1 combat rule). Every strike routes through
+	// here (player slash, scout slash, archer arrow — all SkillSystem
+	// damage events), so the reach is keyed off the strike's range:
+	// short-range melee can't cross more than ~a body of height (a
+	// rooftop player is safe from ground melee; a crate ~1m still
+	// trades), while long-range shots arc generously — high ground is
+	// "ranged duel territory", not a safe room.
+	const float maxDeltaY = (range <= 3.5f) ? 1.2f : 5.0f;
+	if (std::fabs(attacker.transform.position.y - target.transform.position.y) > maxDeltaY)
+	{
+		return false;
+	}
+
 	// Dash i-frames live on the target's combat component. The caller's
 	// cooldown should NOT be consumed when a strike is dodged (return
 	// false) — the attacker can retry next frame after the i-frame window

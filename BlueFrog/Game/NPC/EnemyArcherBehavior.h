@@ -54,7 +54,12 @@ public:
 		const float dx = player.transform.position.x - enemy.transform.position.x;
 		const float dz = player.transform.position.z - enemy.transform.position.z;
 		const float distance = std::sqrt(dx * dx + dz * dz);
-		const bool inRange = distance <= fireRange;
+		// Vertical gate (Jump V1 combat rule): arrows arc generously — a
+		// rooftop player blocks MELEE but stays a valid archer target, so
+		// high ground is "ranged duel territory", not a safe room.
+		constexpr float kArcherMaxDeltaY = 5.0f;
+		const float dy = std::fabs(player.transform.position.y - enemy.transform.position.y);
+		const bool inRange = distance <= fireRange && dy <= kArcherMaxDeltaY;
 
 		// Always face the player so the model orientation tells the story
 		// even when nothing is happening yet.

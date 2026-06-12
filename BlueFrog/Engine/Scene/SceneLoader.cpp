@@ -111,6 +111,10 @@ static CollisionComponent ParseCollision(const json& j)
 	CollisionComponent cc;
 	if (j.contains("halfExtents")) cc.halfExtents = ParseFloat2(j["halfExtents"]);
 	if (j.contains("offset"))      cc.offset = ParseFloat2(j["offset"]);
+	// 2.5D vertical extent (see CollisionComponent). Absent = legacy
+	// infinite pillar.
+	if (j.contains("baseY"))       cc.baseY = j["baseY"].get<float>();
+	if (j.contains("topY"))        cc.topY = j["topY"].get<float>();
 	if (j.contains("blocking"))    cc.blocksMovement = j["blocking"].get<bool>();
 	return cc;
 }

@@ -705,7 +705,9 @@ void FLApp::OnUpdate(float dt)
 	// visibly freeze (no walk-in-place) while dialog or inventory is up.
 	if (!worldPaused)
 	{
-		AnimationControllerSystem::Tick(scene, input, dt, &skillSystem, gameplaySimulation.GetPlayerController().IsMounted());
+		const PlayerController& pc = gameplaySimulation.GetPlayerController();
+		AnimationControllerSystem::Tick(scene, input, dt, &skillSystem, pc.IsMounted(),
+			pc.IsAirborne(), pc.VerticalVelocity(), pc.IsLandingStunned());
 		AnimationSystem::Tick(scene, dt);
 	}
 }
@@ -1164,8 +1166,10 @@ GameplayInput FLApp::CollectGameplayInput(float dt) noexcept
 		input.orbitDelta += orbitSpeed;
 	}
 	// Dash gate. PlayerController internal cooldown handles the "no spam"
-	// requirement, so plain held-key sampling is enough here.
-	input.dashHeld = GetKeyboard().KeyIsPressed(VK_SPACE);
+	// requirement, so plain held-key sampling is enough here. Space moved
+	// to jump when the vertical layer landed; dash lives on Shift now.
+	input.dashHeld = GetKeyboard().KeyIsPressed(VK_SHIFT);
+	input.jumpHeld = GetKeyboard().KeyIsPressed(VK_SPACE);
 
 	// E-key edge (set during PollDebugToggles). Consume + clear so the
 	// next tick starts with a fresh flag.

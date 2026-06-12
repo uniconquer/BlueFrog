@@ -1,4 +1,4 @@
 {
   "render": { "meshPath": "Assets/Models/PolyHaven/Barrel_01/Barrel_01_1k.gltf", "importScale": 1.0, "material": { "tint": [1.0, 1.0, 1.0] } },
-  "collision": { "halfExtents": [0.3, 0.3], "blocking": true }
+  "collision": { "halfExtents": [0.3, 0.3], "topY": 0.85, "blocking": true }
 }
