@@ -100,6 +100,12 @@ private:
 	static constexpr float kJumpBufferTime  = 0.12f;
 	static constexpr float kHardLandHeight  = 3.5f;   // falls >= this stun on landing
 	static constexpr float kHardLandStun    = 0.4f;
+	// Descending: if the floor drops by no more than this in a frame, snap
+	// down to it and stay grounded instead of going airborne — turns a
+	// stair / roof-slope descent into a smooth walk-down. A hair above the
+	// 0.34 stair/roof step so a single step never trips a fall, but well
+	// under a real ledge (crate 1.0, eave 3.3) which still drops.
+	static constexpr float kSnapDownHeight  = 0.45f;
 	float verticalVelocity      = 0.0f;
 	bool  grounded              = true;
 	float coyoteRemaining       = 0.0f;

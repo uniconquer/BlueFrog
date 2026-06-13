@@ -326,10 +326,12 @@ void PlayerController::IntegrateVertical(SceneObject& player, Scene& scene, floa
 
 	if (grounded)
 	{
-		if (pos.y > floorY + 0.01f)
+		if (pos.y > floorY + kSnapDownHeight)
 		{
-			// Walked off a ledge: become airborne with no upward kick, and
-			// open the coyote window so a slightly-late jump still fires.
+			// The floor dropped away by more than a step — a real ledge
+			// (roof eave, crate edge). Become airborne with no upward
+			// kick, and open the coyote window so a slightly-late jump
+			// still fires.
 			grounded = false;
 			verticalVelocity = 0.0f;
 			coyoteRemaining = kCoyoteTime;
@@ -337,8 +339,13 @@ void PlayerController::IntegrateVertical(SceneObject& player, Scene& scene, floa
 		}
 		else
 		{
-			// Snap to the surface — this is also what walks the player UP
-			// stairs/crates (FloorHeightAt honors kStepHeight).
+			// Within a step of the floor: snap straight to it and STAY
+			// grounded. Rising = step-up (stairs/crates); falling = the
+			// "ground snap" that makes descending stairs / a roof slope
+			// read as walking down a ramp instead of a string of little
+			// drops (FloorHeightAt already only offers surfaces within
+			// +kStepHeight above the feet, so this never teleports the
+			// player up a wall).
 			pos.y = floorY;
 		}
 	}
