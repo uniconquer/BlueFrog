@@ -416,21 +416,399 @@
       }
     },
     {
-      "comment": "Walkable roof deck (Jump V1): actors above the walls stand here; ground-floor actors pass under (baseY above head).",
       "transform": {
         "position": [
-          0.0,
-          0.0,
+          -0.125,
+          3.12,
           0.0
         ]
       },
       "collision": {
         "halfExtents": [
-          2.3,
-          2.3
+          0.125,
+          2.75
         ],
-        "baseY": 2.9,
-        "topY": 3.25,
+        "baseY": 3.261,
+        "topY": 3.561,
+        "blocking": true
+      },
+      "comment": "Rideable roof (Jump V1): 0.25-wide strips step up the 4x4 tile slope (+-X) in 0.338 rises so step-up walking climbs to the ridge. Ridge ~6.7 world; eave strip 3.30 meets the StoneStairs top (3.0)."
+    },
+    {
+      "transform": {
+        "position": [
+          -0.375,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 2.923,
+        "topY": 3.223,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -0.625,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 2.585,
+        "topY": 2.885,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -0.875,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 2.247,
+        "topY": 2.547,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -1.125,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 1.91,
+        "topY": 2.21,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -1.375,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 1.572,
+        "topY": 1.872,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -1.625,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 1.234,
+        "topY": 1.534,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -1.875,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 0.896,
+        "topY": 1.196,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -2.125,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 0.558,
+        "topY": 0.858,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -2.375,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 0.22,
+        "topY": 0.52,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          -2.625,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": -0.118,
+        "topY": 0.182,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          0.125,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 3.261,
+        "topY": 3.561,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          0.375,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 2.923,
+        "topY": 3.223,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          0.625,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 2.585,
+        "topY": 2.885,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          0.875,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 2.247,
+        "topY": 2.547,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          1.125,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 1.91,
+        "topY": 2.21,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          1.375,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 1.572,
+        "topY": 1.872,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          1.625,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 1.234,
+        "topY": 1.534,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          1.875,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 0.896,
+        "topY": 1.196,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          2.125,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 0.558,
+        "topY": 0.858,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          2.375,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": 0.22,
+        "topY": 0.52,
+        "blocking": true
+      }
+    },
+    {
+      "transform": {
+        "position": [
+          2.625,
+          3.12,
+          0.0
+        ]
+      },
+      "collision": {
+        "halfExtents": [
+          0.125,
+          2.75
+        ],
+        "baseY": -0.118,
+        "topY": 0.182,
         "blocking": true
       }
     }

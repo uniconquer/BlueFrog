@@ -158,10 +158,13 @@ namespace LitPipeline
 			"        {\n"
 			"            float3 cnear = camPos + cray * ct;\n"
 			"            float cd = length(input.worldPos - cnear);\n"
-			// Fragments well BELOW the sight line are the surface the
-			// player stands on (rooftop, crate top), not an occluder —
-			// without this the deck under a rooftop player dissolves.
-			"            if (cd < cutoutRadius && (input.worldPos.y - cnear.y) > -0.45f)\n"
+			// Only fragments ABOVE the player's feet plane can occlude the
+			// body — anything at/below the feet is the surface being stood
+			// on (roof tiles, crate top, floor decals) and must stay. The
+			// follow target sits 1.0 above the feet, hence the -0.9.
+			// Keying off the feet (not the sight line) keeps the reveal a
+			// clean full circle instead of clipping its lower half.
+			"            if (cd < cutoutRadius && input.worldPos.y > (cutoutTarget.y - 0.9f))\n"
 			"            {\n"
 			"                float coverage = saturate(cd / cutoutRadius);\n"
 			"                coverage *= coverage;\n"
