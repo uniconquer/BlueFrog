@@ -1,0 +1,5 @@
+{
+  "comment": "Parkour platform (Jump V2). baseY -1 / topY 1 are LOCAL: scaled by transform.scale.y they match the cube's own ±1 faces, so the collision box always equals the visible slab and the walkable top sits at position.y + scale.y. Vary instance scale.y for thickness, position.y for height.",
+  "render":    { "mesh": "cube", "material": { "texture": "Assets/Textures/cobble.png", "tint": [0.74, 0.64, 0.5], "sampler": "wrap_linear", "uvScale": [1.5, 0.4] } },
+  "collision": { "halfExtents": [1.0, 1.0], "baseY": -1.0, "topY": 1.0, "blocking": true }
+}
