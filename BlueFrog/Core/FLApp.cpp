@@ -707,7 +707,7 @@ void FLApp::OnUpdate(float dt)
 	{
 		const PlayerController& pc = gameplaySimulation.GetPlayerController();
 		AnimationControllerSystem::Tick(scene, input, dt, &skillSystem, pc.IsMounted(),
-			pc.IsAirborne(), pc.VerticalVelocity(), pc.IsLandingStunned());
+			pc.IsAirborne(), pc.VerticalVelocity(), pc.IsLandingStunned(), pc.IsMantling());
 		AnimationSystem::Tick(scene, dt);
 	}
 }

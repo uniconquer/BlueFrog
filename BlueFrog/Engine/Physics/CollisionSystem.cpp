@@ -174,3 +174,53 @@ float CollisionSystem::FloorHeightAt(const SceneObject& actor, const Scene& scen
 	}
 	return best;
 }
+
+std::optional<DirectX::XMFLOAT3> CollisionSystem::FindMantleTarget(const SceneObject& actor, const Scene& scene, float dirX, float dirZ, float actorY) noexcept
+{
+	if (!actor.collisionComponent.has_value())
+	{
+		return std::nullopt;
+	}
+	const float radius = (std::max)(actor.collisionComponent->halfExtents.x,
+	                                actor.collisionComponent->halfExtents.y);
+	// Probe just past the actor's leading edge in the move direction.
+	const float px = actor.transform.position.x + dirX * (radius + 0.35f);
+	const float pz = actor.transform.position.z + dirZ * (radius + 0.35f);
+
+	// Highest blocker top under the probe that is too tall to step onto but
+	// within mantle reach.
+	const float bandLo = actorY + kStepHeight;
+	const float bandHi = actorY + kMantleReach;
+	float ledgeTop = -1.0e9f;
+	for (const auto& other : scene.GetObjects())
+	{
+		if (!IsBlockingCollisionPair(actor, other))
+		{
+			continue;
+		}
+		float boxBase = 0.0f, boxTop = 0.0f;
+		BoxWorldYRange(other, boxBase, boxTop);
+		if (boxTop <= bandLo || boxTop > bandHi || boxTop <= ledgeTop)
+		{
+			continue;
+		}
+		if (CircleVsObbXZ(px, pz, radius, other, other.transform.position))
+		{
+			ledgeTop = boxTop;
+		}
+	}
+	if (ledgeTop < -1.0e8f)
+	{
+		return std::nullopt;
+	}
+
+	// Headroom: the actor's body must fit standing on the ledge (CollidesAt
+	// tests the [feet+step, feet+height] band, so the ledge box itself —
+	// whose top == feet here — never self-blocks).
+	const DirectX::XMFLOAT3 dest{ px, ledgeTop, pz };
+	if (CollidesAt(actor, scene, dest))
+	{
+		return std::nullopt;
+	}
+	return dest;
+}

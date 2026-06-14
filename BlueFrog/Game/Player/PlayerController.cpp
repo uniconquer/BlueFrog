@@ -171,8 +171,8 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		}
 		// Gravity keeps running through the stagger — getting knocked off
 		// a roof should drop you, not freeze you mid-air (no jumping out
-		// of a stagger though).
-		IntegrateVertical(*player, scene, dt, /*allowJump=*/false);
+		// of a stagger though, and no mantle: 0 move intent).
+		IntegrateVertical(*player, scene, dt, /*allowJump=*/false, 0.0f, 0.0f);
 		// Clear invulnerable in case the player dashed into this hit — the
 		// stun window is a different mechanic (vulnerable) and the dash
 		// flag is no longer relevant once knockback is in effect.
@@ -189,7 +189,7 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	// onto the XZ plane. That way a player who hasn't pressed WASD yet
 	// still dashes forward instead of standing still.
 	if (input.dashHeld && dashCooldownRemaining <= 0.0f && dashTimeRemaining <= 0.0f
-		&& grounded && landingStunRemaining <= 0.0f)
+		&& grounded && landingStunRemaining <= 0.0f && !mantling)
 	{
 		float dirX = move.x;
 		float dirZ = move.z;
@@ -221,10 +221,10 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		? (moveSpeed * dashSpeedMul)
 		: (castingSkill ? 0.0f : moveSpeed);
 	// Vertical-layer movement gates: a hard landing roots the player for
-	// the stun window; airborne steering keeps most (not all) authority
-	// so jump arcs stay predictable.
-	if (landingStunRemaining > 0.0f) effectiveSpeed = 0.0f;
-	else if (!grounded)              effectiveSpeed *= kAirControlMul;
+	// the stun window; a mantle scripts its own motion; airborne steering
+	// keeps most (not all) authority so jump arcs stay predictable.
+	if (mantling || landingStunRemaining > 0.0f) effectiveSpeed = 0.0f;
+	else if (!grounded)                          effectiveSpeed *= kAirControlMul;
 	const float useX = (dashTimeRemaining > 0.0f) ? dashDirX : move.x;
 	const float useZ = (dashTimeRemaining > 0.0f) ? dashDirZ : move.z;
 	DirectX::XMFLOAT3 desiredPosition = player->transform.position;
@@ -232,9 +232,10 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	desiredPosition.z += useZ * effectiveSpeed * dt;
 	CollisionSystem::MoveAndSlide(*player, scene, desiredPosition);
 
-	// Gravity / jump / landing — after the XZ slide so the floor query
-	// sees the final footprint for this tick.
-	IntegrateVertical(*player, scene, dt, /*allowJump=*/!castingSkill);
+	// Gravity / jump / landing / mantle — after the XZ slide so the floor
+	// query sees the final footprint for this tick. Mantle ledge search
+	// keys off the move intent, so pass it through.
+	IntegrateVertical(*player, scene, dt, /*allowJump=*/!castingSkill, move.x, move.z);
 
 	DirectX::XMFLOAT3 mouseGroundPoint = player->transform.position;
 	if (PlayerAimSystem::ComputeMouseGroundPoint(input, camera, player->transform.position.y, mouseGroundPoint))
@@ -242,7 +243,7 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 		player->transform.rotation.y = PlayerAimSystem::ComputeYawRadians(player->transform.position, mouseGroundPoint);
 	}
 
-	if (input.attackQueued && skills != nullptr)
+	if (input.attackQueued && skills != nullptr && !mantling)
 	{
 		// SkillSystem.Start returns false if the skill is mid-execution
 		// or still on cooldown — we gate the SFX off the same signal so
@@ -258,7 +259,7 @@ bool PlayerController::Update(const GameplayInput& input, Scene& scene, TopDownC
 	// Second skill slot (F key) — heavy slash. SkillSystem rejects the
 	// call if any skill is already mid-execution on this caster, so the
 	// two slots can't double-cast on top of each other.
-	if (input.heavyAttackQueued && skills != nullptr)
+	if (input.heavyAttackQueued && skills != nullptr && !mantling)
 	{
 		if (skills->Start(std::string(GameplaySceneIds::Player), "heavy_slash", &scene))
 		{
@@ -319,9 +320,33 @@ void PlayerController::UpdateTint(SceneObject& player) const noexcept
 	};
 }
 
-void PlayerController::IntegrateVertical(SceneObject& player, Scene& scene, float dt, bool allowJump) noexcept
+void PlayerController::IntegrateVertical(SceneObject& player, Scene& scene, float dt, bool allowJump, float moveX, float moveZ) noexcept
 {
 	DirectX::XMFLOAT3& pos = player.transform.position;
+
+	// Mantle in progress: scripted pull-up, everything else suspended.
+	// Y leads X/Z (sy ramps faster) so the body rises over the lip before
+	// sliding onto the ledge instead of clipping through the wall.
+	if (mantling)
+	{
+		mantleT += dt / kMantleDuration;
+		const float u  = std::clamp(mantleT, 0.0f, 1.0f);
+		const float s  = u * u * (3.0f - 2.0f * u);
+		const float uy = std::clamp(mantleT * 1.5f, 0.0f, 1.0f);
+		const float sy = uy * uy * (3.0f - 2.0f * uy);
+		pos.x = mantleFrom.x + (mantleTo.x - mantleFrom.x) * s;
+		pos.z = mantleFrom.z + (mantleTo.z - mantleFrom.z) * s;
+		pos.y = mantleFrom.y + (mantleTo.y - mantleFrom.y) * sy;
+		if (mantleT >= 1.0f)
+		{
+			pos = mantleTo;
+			mantling = false;
+			grounded = true;
+			verticalVelocity = 0.0f;
+		}
+		return;
+	}
+
 	const float floorY = CollisionSystem::FloorHeightAt(player, scene, pos.x, pos.z, pos.y);
 
 	if (grounded)
@@ -378,6 +403,24 @@ void PlayerController::IntegrateVertical(SceneObject& player, Scene& scene, floa
 			{
 				landingStunRemaining = kHardLandStun;
 				hardLandedThisTick = true;
+			}
+		}
+		// Mantle: once rising has slowed (at/after apex) and the player is
+		// pushing toward a wall, reach for a ledge in the mantle band and
+		// pull up. Gated on move intent so it's deliberate — you aim at the
+		// ledge — and on vVel so it grabs near the apex, not on the way up.
+		else if (verticalVelocity <= 1.0f)
+		{
+			const float ml = std::sqrt(moveX * moveX + moveZ * moveZ);
+			if (ml > 0.1f)
+			{
+				if (auto ledge = CollisionSystem::FindMantleTarget(player, scene, moveX / ml, moveZ / ml, pos.y))
+				{
+					mantling   = true;
+					mantleT    = 0.0f;
+					mantleFrom = pos;
+					mantleTo   = *ledge;
+				}
 			}
 		}
 	}

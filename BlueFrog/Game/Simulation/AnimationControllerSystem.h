@@ -35,7 +35,7 @@ namespace AnimationControllerSystem
 	// clips (rising = JumpStart's push-off pose, falling = JumpLoop),
 	// and the brief landing stun after a hard fall plays JumpLand once.
 	inline void Tick(Scene& scene, const GameplayInput& input, float /*dt*/, const SkillSystem* skills = nullptr, bool playerMounted = false,
-		bool playerAirborne = false, float playerVerticalVel = 0.0f, bool playerLanding = false) noexcept
+		bool playerAirborne = false, float playerVerticalVel = 0.0f, bool playerLanding = false, bool playerMantling = false) noexcept
 	{
 		const SceneObject* player = scene.FindObject(GameplaySceneIds::Player);
 		if (player == nullptr) return;
@@ -101,6 +101,12 @@ namespace AnimationControllerSystem
 					// "sitting on something" rather than "standing on
 					// horse like a stick".
 					asc.clipName = std::string("Ride");
+				}
+				else if (playerMantling)
+				{
+					// Pulling up over a ledge — hold the tucked airborne
+					// pose; the move is brief (~0.3s) and ends grounded.
+					asc.clipName = std::string("JumpLoop");
 				}
 				else if (playerAirborne)
 				{

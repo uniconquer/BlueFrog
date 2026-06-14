@@ -84,6 +84,7 @@ public:
 	[[nodiscard]] bool  IsAirborne() const noexcept { return !grounded; }
 	[[nodiscard]] float VerticalVelocity() const noexcept { return verticalVelocity; }
 	[[nodiscard]] bool  IsLandingStunned() const noexcept { return landingStunRemaining > 0.0f; }
+	[[nodiscard]] bool  IsMantling() const noexcept { return mantling; }
 	// One-shot: true exactly once after a >= kHardLandHeight fall lands
 	// (the caller spawns dust/SFX off it).
 	[[nodiscard]] bool  ConsumeHardLanded() noexcept { const bool v = hardLandedThisTick; hardLandedThisTick = false; return v; }
@@ -91,8 +92,9 @@ private:
 	// Gravity integration + jump with coyote time and an input buffer.
 	// The player's y is no longer snapped to 0 — it rides FloorHeightAt
 	// (stairs, crates, roofs) and ballistic arcs between. Tuning per the
-	// V1 design: snappy arcade gravity, ~1.3m apex.
-	void IntegrateVertical(SceneObject& player, Scene& scene, float dt, bool allowJump) noexcept;
+	// V1 design: snappy arcade gravity, ~1.3m apex. moveX/moveZ is the
+	// world-space horizontal move intent (drives mantle ledge search).
+	void IntegrateVertical(SceneObject& player, Scene& scene, float dt, bool allowJump, float moveX, float moveZ) noexcept;
 	static constexpr float kGravity         = -22.0f;
 	static constexpr float kJumpVelocity    = 7.5f;   // apex ~= v^2/2g ~= 1.3m
 	static constexpr float kAirControlMul   = 0.8f;
@@ -114,4 +116,14 @@ private:
 	float airApexY              = 0.0f;
 	float landingStunRemaining  = 0.0f;
 	bool  hardLandedThisTick    = false;
+
+	// Mantle (Jump V2): a scripted pull-up onto a ledge the jump apex
+	// couldn't clear. While mantling, input is locked and gravity is off;
+	// the player lerps from mantleFrom to mantleTo (Y leading so the body
+	// clears the lip before sliding in), then lands grounded on the ledge.
+	bool  mantling              = false;
+	float mantleT               = 0.0f;
+	DirectX::XMFLOAT3 mantleFrom { 0.0f, 0.0f, 0.0f };
+	DirectX::XMFLOAT3 mantleTo   { 0.0f, 0.0f, 0.0f };
+	static constexpr float kMantleDuration = 0.32f;
 };
