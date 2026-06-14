@@ -1,0 +1,6 @@
+{
+  "comment": "Rooftop reward (Jump V2): a gilded crate only reachable by climbing — gives the trophy charm on E. Long respawn so it reads as an occasional stash, not a farm. topY makes it standable too.",
+  "render":    { "meshPath": "Assets/Models/Medieval/modules/Prop_Crate.gltf", "importScale": 1.0, "material": { "tint": [1.0, 0.82, 0.28] } },
+  "collision": { "halfExtents": [0.55, 0.55], "topY": 1.05, "blocking": true },
+  "harvest":   { "itemId": "charm", "amount": 2, "respawnSec": 120.0 }
+}
