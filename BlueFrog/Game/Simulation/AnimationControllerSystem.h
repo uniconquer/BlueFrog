@@ -104,9 +104,11 @@ namespace AnimationControllerSystem
 				}
 				else if (playerMantling)
 				{
-					// Pulling up over a ledge — hold the tucked airborne
-					// pose; the move is brief (~0.3s) and ends grounded.
-					asc.clipName = std::string("JumpLoop");
+					// Dedicated climb-up clip (UAL2 ClimbUp, root motion
+					// stripped so the controller's lerp owns the motion).
+					// Non-looping: play it through once over the mantle.
+					asc.clipName = std::string("Mantle");
+					asc.looping  = false;
 				}
 				else if (playerAirborne)
 				{

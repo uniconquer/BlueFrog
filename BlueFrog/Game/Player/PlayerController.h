@@ -125,5 +125,5 @@ private:
 	float mantleT               = 0.0f;
 	DirectX::XMFLOAT3 mantleFrom { 0.0f, 0.0f, 0.0f };
 	DirectX::XMFLOAT3 mantleTo   { 0.0f, 0.0f, 0.0f };
-	static constexpr float kMantleDuration = 0.32f;
+	static constexpr float kMantleDuration = 0.5f; // long enough the climb clip reads
 };
